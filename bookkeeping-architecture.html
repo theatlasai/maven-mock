@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bookkeeping Backend — Architecture</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --s50:#f8fafc;--s100:#f1f5f9;--s200:#e2e8f0;--s300:#cbd5e1;--s400:#94a3b8;--s500:#64748b;--s600:#475569;--s700:#334155;--s800:#1e293b;--s900:#0f172a;
+  --i50:#eef2ff;--i100:#e0e7ff;--i200:#c7d2fe;--i500:#6366f1;--i600:#4f46e5;--i700:#4338ca;
+  --g50:#f0fdf4;--g100:#dcfce7;--g500:#22c55e;--g600:#16a34a;--g700:#15803d;
+  --a50:#fffbeb;--a100:#fef3c7;--a500:#f59e0b;--a700:#b45309;
+  --v50:#f5f3ff;--v100:#ede9fe;--v500:#8b5cf6;--v600:#7c3aed;--v700:#6d28d9;
+  --r50:#fff1f2;--r100:#ffe4e6;--r500:#ef4444;--r600:#dc2626;
+  --b50:#eff6ff;--b100:#dbeafe;--b500:#3b82f6;--b700:#1d4ed8;
+  --t50:#f0fdfa;--t100:#ccfbf1;--t600:#0d9488;--t700:#0f766e;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;background:var(--s50);color:var(--s900);line-height:1.6}
+
+/* ── layout ── */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;flex-shrink:0;background:white;border-right:1px solid var(--s200);position:sticky;top:0;height:100vh;overflow-y:auto;padding:24px 0}
+.page{flex:1;max-width:860px;padding:48px 40px 100px}
+
+/* ── sidebar ── */
+.sb-logo{display:flex;align-items:center;gap:9px;padding:0 20px 20px;border-bottom:1px solid var(--s100);margin-bottom:16px}
+.logo-mark{width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:7px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:12px;flex-shrink:0}
+.sb-name{font-size:13px;font-weight:700;color:var(--s900)}
+.sb-nav{padding:0 12px}
+.sb-section{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--s400);padding:8px 8px 4px;margin-top:8px}
+.sb-link{display:block;font-size:12px;color:var(--s600);padding:5px 8px;border-radius:6px;text-decoration:none;transition:background .1s,color .1s}
+.sb-link:hover{background:var(--s100);color:var(--s900)}
+.sb-link.active{background:var(--i50);color:var(--i600);font-weight:600}
+
+/* ── doc header ── */
+.doc-header{margin-bottom:48px;padding-bottom:28px;border-bottom:2px solid var(--s200)}
+.doc-meta{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.doc-eyebrow{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--s400)}
+.doc-title{font-size:30px;font-weight:800;color:var(--s900);line-height:1.2;margin-bottom:10px}
+.doc-sub{font-size:15px;color:var(--s500);margin-bottom:18px;line-height:1.5}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font-size:11px;font-weight:600;padding:3px 10px;border-radius:9999px}
+.chip-i{background:var(--i100);color:var(--i700)}
+.chip-g{background:var(--g100);color:var(--g700)}
+.chip-a{background:var(--a100);color:var(--a700)}
+.chip-v{background:var(--v100);color:var(--v700)}
+.chip-s{background:var(--s100);color:var(--s600)}
+.chip-t{background:var(--t100);color:var(--t700)}
+
+/* ── sections ── */
+.section{margin-bottom:56px;scroll-margin-top:24px}
+.sec-eyebrow{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--i500);margin-bottom:4px}
+.sec-title{font-size:21px;font-weight:700;color:var(--s900);margin-bottom:4px}
+.sec-sub{font-size:13px;color:var(--s500);margin-bottom:24px}
+
+/* ── concept cards ── */
+.concept-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:0}
+.concept-card{background:white;border:1px solid var(--s200);border-radius:14px;padding:22px;border-top:3px solid}
+.concept-card.intent{border-top-color:var(--i500)}
+.concept-card.strategy{border-top-color:var(--v500)}
+.concept-card.recipe{border-top-color:var(--a500)}
+.concept-card.workflow{border-top-color:var(--g500)}
+.cc-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:16px}
+.cc-icon.intent{background:var(--i50)}
+.cc-icon.strategy{background:var(--v50)}
+.cc-icon.recipe{background:var(--a50)}
+.cc-icon.workflow{background:var(--g50)}
+.cc-title{font-size:14px;font-weight:700;color:var(--s900);margin-bottom:6px}
+.cc-body{font-size:12px;color:var(--s600);line-height:1.6}
+.cc-fields{margin-top:10px;display:flex;flex-direction:column;gap:3px}
+.cc-field{font-size:11px;font-family:ui-monospace,monospace;color:var(--s500);background:var(--s50);padding:2px 7px;border-radius:4px;display:inline-flex;align-items:center;gap:6px}
+.cc-field-name{color:var(--i600);font-weight:600}
+.cc-field-type{color:var(--s400)}
+.planned-badge{font-size:10px;font-weight:600;background:var(--a100);color:var(--a700);padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:middle}
+
+/* ── pipeline diagram ── */
+.pipeline{background:white;border:1px solid var(--s200);border-radius:16px;padding:32px;overflow:hidden}
+.pipe-node{border-radius:10px;padding:14px 18px;margin-bottom:2px;position:relative}
+.pipe-node.parse{background:var(--b50);border:1px solid var(--b100)}
+.pipe-node.intent-node{background:var(--a50);border:2px dashed var(--a500);opacity:.8}
+.pipe-node.static{background:var(--i50);border:1px solid var(--i100)}
+.pipe-node.dynamic{background:var(--v50);border:1px solid var(--v100)}
+.pipe-node.llm{background:var(--t50);border:1px solid var(--t100)}
+.pipe-node.persist{background:var(--g50);border:1px solid var(--g100)}
+.pipe-node.strategy-handler{background:var(--s100);border:1px solid var(--s200)}
+.pipe-header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.pipe-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0}
+.parse .pipe-num{background:var(--b500);color:white}
+.intent-node .pipe-num{background:var(--a500);color:white}
+.static .pipe-num{background:var(--i500);color:white}
+.dynamic .pipe-num{background:var(--v500);color:white}
+.llm .pipe-num{background:var(--t600);color:white}
+.persist .pipe-num{background:var(--g600);color:white}
+.strategy-handler .pipe-num{background:var(--s500);color:white}
+.pipe-name{font-size:13px;font-weight:700;color:var(--s900)}
+.pipe-tag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:white;color:var(--s500);border:1px solid var(--s200)}
+.pipe-details{font-size:12px;color:var(--s600);line-height:1.6;padding-left:32px}
+.pipe-details li{margin-bottom:2px;list-style:none;position:relative;padding-left:14px}
+.pipe-details li::before{content:"·";position:absolute;left:0;color:var(--s400)}
+.pipe-arrow{text-align:center;color:var(--s300);font-size:20px;line-height:1;padding:4px 0}
+.pipe-branch{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:6px 0}
+.pipe-strategy{border-radius:8px;padding:12px 14px;background:white;border:1px solid var(--s200)}
+.ps-label{font-size:11px;font-weight:700;color:var(--s700);margin-bottom:4px}
+.ps-body{font-size:11px;color:var(--s500);line-height:1.5}
+.pipe-note{font-size:11px;color:var(--s400);text-align:center;margin-top:16px;padding-top:12px;border-top:1px dashed var(--s200);font-style:italic}
+.planned-strip{background:var(--a50);border:1px dashed var(--a500);border-radius:8px;padding:8px 14px;margin:-4px 0 6px;font-size:11px;color:var(--a700);display:flex;align-items:center;gap:6px}
+
+/* ── recipe composition ── */
+.recipe-diagram{background:white;border:1px solid var(--s200);border-radius:14px;padding:28px}
+.recipe-row{display:grid;grid-template-columns:180px 1fr;gap:0;border-radius:10px;overflow:hidden;margin-bottom:12px;border:1px solid var(--s200)}
+.recipe-label{background:var(--a50);padding:16px;font-size:12px;font-weight:700;color:var(--a700);display:flex;align-items:center}
+.recipe-body{padding:16px;background:white}
+.recipe-body-title{font-size:12px;font-weight:600;color:var(--s800);margin-bottom:6px}
+.recipe-body p{font-size:12px;color:var(--s600);line-height:1.5}
+.recipe-fields{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.recipe-field{font-size:11px;font-family:ui-monospace,monospace;background:var(--s50);color:var(--s600);padding:2px 8px;border-radius:4px;border:1px solid var(--s200)}
+.recipe-field.key{color:var(--i600);background:var(--i50);border-color:var(--i100)}
+
+/* ── strategy table ── */
+.strategy-table{width:100%;border-collapse:collapse;background:white;border-radius:12px;overflow:hidden;border:1px solid var(--s200)}
+.strategy-table th{background:var(--s50);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--s500);padding:10px 14px;text-align:left;border-bottom:1px solid var(--s200)}
+.strategy-table td{padding:11px 14px;font-size:12px;border-bottom:1px solid var(--s100);vertical-align:top}
+.strategy-table tr:last-child td{border-bottom:none}
+.strategy-table tr:hover td{background:var(--s50)}
+.strategy-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:9999px;display:inline-block}
+.sb-cat{background:var(--i100);color:var(--i700)}
+.sb-income{background:var(--g100);color:var(--g700)}
+.sb-transfer{background:var(--b100);color:var(--b700)}
+.sb-check{background:var(--a100);color:var(--a700)}
+.sb-reserved{background:var(--s100);color:var(--s500)}
+
+/* ── workflow engine ── */
+.engine-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.engine-card{background:white;border:1px solid var(--s200);border-radius:12px;padding:20px}
+.ec-title{font-size:13px;font-weight:700;color:var(--s900);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.ec-title svg{flex-shrink:0}
+.ec-body{font-size:12px;color:var(--s600);line-height:1.6}
+.code-block{background:var(--s900);color:#e2e8f0;font-size:11px;font-family:ui-monospace,monospace;padding:14px 16px;border-radius:8px;line-height:1.7;overflow-x:auto;margin:12px 0}
+.code-block .kw{color:#93c5fd}
+.code-block .str{color:#86efac}
+.code-block .cmt{color:#64748b;font-style:italic}
+.code-block .fn{color:#c4b5fd}
+.code-block .num{color:#fca5a5}
+
+/* ── data architecture ── */
+.data-split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.data-card{background:white;border:1px solid var(--s200);border-radius:14px;padding:22px}
+.dc-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--s100)}
+.dc-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.dc-icon.pg{background:var(--b50)}
+.dc-icon.mg{background:var(--g50)}
+.dc-title{font-size:14px;font-weight:700;color:var(--s900)}
+.dc-sub{font-size:11px;color:var(--s400)}
+.dc-table{width:100%;border-collapse:collapse}
+.dc-table td{padding:6px 0;font-size:11px;vertical-align:top;border-bottom:1px solid var(--s100)}
+.dc-table tr:last-child td{border-bottom:none}
+.dc-table td:first-child{font-family:ui-monospace,monospace;color:var(--i600);font-weight:600;padding-right:12px;white-space:nowrap;font-size:10px}
+.dc-table td:last-child{color:var(--s600)}
+
+/* ── decisions table ── */
+.decisions{background:white;border:1px solid var(--s200);border-radius:12px;overflow:hidden}
+.dec-row{display:grid;grid-template-columns:220px 1fr 1fr;border-bottom:1px solid var(--s100)}
+.dec-row.header{background:var(--s50)}
+.dec-row:last-child{border-bottom:none}
+.dec-cell{padding:13px 16px;font-size:12px}
+.dec-row.header .dec-cell{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--s500)}
+.dec-decision{font-weight:600;color:var(--s800)}
+.dec-choice{color:var(--s700);font-family:ui-monospace,monospace;font-size:11px}
+.dec-rationale{color:var(--s500);font-size:11px;line-height:1.5}
+
+/* ── gaps ── */
+.gaps-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.gap-card{background:white;border:1px solid var(--s200);border-radius:10px;padding:16px}
+.gap-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.gap-title{font-size:12px;font-weight:700;color:var(--s800)}
+.gap-status{font-size:10px;font-weight:600;padding:2px 8px;border-radius:9999px}
+.gap-unmerged{background:var(--a100);color:var(--a700)}
+.gap-planned{background:var(--s100);color:var(--s500)}
+.gap-reserved{background:var(--r100);color:var(--r600)}
+.gap-body{font-size:11px;color:var(--s500);line-height:1.5}
+
+/* ── misc ── */
+.divider{border:none;border-top:1px solid var(--s200);margin:0 0 28px}
+.callout-box{border-radius:10px;padding:16px 20px;margin-bottom:24px;font-size:12px;line-height:1.6}
+.callout-box.info{background:var(--i50);border:1px solid var(--i100);color:var(--i700)}
+.callout-box.warn{background:var(--a50);border:1px solid var(--a100);color:var(--a700)}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ── Sidebar ── -->
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="logo-mark">A</div>
+    <span class="sb-name">Architecture</span>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section">Overview</div>
+    <a class="sb-link active" href="#concepts">Core Concepts</a>
+    <a class="sb-link" href="#pipeline">Data Pipeline</a>
+    <div class="sb-section">Design</div>
+    <a class="sb-link" href="#recipe">Recipe</a>
+    <a class="sb-link" href="#strategies">Strategies</a>
+    <a class="sb-link" href="#workflow">Workflow Engine</a>
+    <div class="sb-section">Infrastructure</div>
+    <a class="sb-link" href="#data">Data Architecture</a>
+    <a class="sb-link" href="#multitenancy">Multi-tenancy</a>
+    <div class="sb-section">Review</div>
+    <a class="sb-link" href="#decisions">Design Decisions</a>
+    <a class="sb-link" href="#gaps">Gaps &amp; Roadmap</a>
+  </div>
+</nav>
+
+<!-- ── Main ── -->
+<main class="page">
+
+  <!-- Header -->
+  <div class="doc-header">
+    <div class="doc-meta">
+      <div class="logo-mark">A</div>
+      <span class="doc-eyebrow">Backend Architecture · CTO Review</span>
+    </div>
+    <div class="doc-title">Bookkeeping Platform</div>
+    <div class="doc-sub">Multi-tenant Django/DRF backend — from raw bank statement to ledger-ready categorised transactions via a recipe-driven, workflow-orchestrated AI pipeline.</div>
+    <div class="chips">
+      <span class="chip chip-i">Django / DRF</span>
+      <span class="chip chip-v">Celery / Pub/Sub</span>
+      <span class="chip chip-g">Postgres + MongoDB</span>
+      <span class="chip chip-a">OpenAI · Gemini</span>
+      <span class="chip chip-s">Schema-per-tenant</span>
+      <span class="chip chip-t">Source: maven-backend</span>
+    </div>
+  </div>
+
+  <!-- ── Section 1: Core Concepts ── -->
+  <div class="section" id="concepts">
+    <div class="sec-eyebrow">Section 1</div>
+    <div class="sec-title">Core Concepts</div>
+    <div class="sec-sub">Four primitives that compose the entire system.</div>
+
+    <div class="concept-grid">
+      <div class="concept-card intent">
+        <div class="cc-icon intent">🎯</div>
+        <div class="cc-title">Intent</div>
+        <div class="cc-body">The <strong>why / what / whom</strong> of a transaction. Determines which Strategy handles it. Currently a single field; a richer LLM-inferred model is in-progress.</div>
+        <div class="cc-fields">
+          <span class="cc-field"><span class="cc-field-name">routing_intent</span> <span class="cc-field-type">CharField — on Transaction</span></span>
+          <span class="cc-field"><span class="cc-field-name">purpose / medium / entity_type</span> <span class="cc-field-type planned-badge">Planned</span></span>
+          <span class="cc-field"><span class="cc-field-name">confidence</span> <span class="cc-field-type">FloatField — LLM score</span></span>
+        </div>
+      </div>
+
+      <div class="concept-card strategy">
+        <div class="cc-icon strategy">⚙️</div>
+        <div class="cc-title">Strategy</div>
+        <div class="cc-body">A <strong>handler</strong> for a class of transactions needing specialised logic beyond COA assignment. Each strategy has its own config model and processing workflow.</div>
+        <div class="cc-fields">
+          <span class="cc-field"><span class="cc-field-name">categorisation</span> <span class="cc-field-type">default path (rules + LLM)</span></span>
+          <span class="cc-field"><span class="cc-field-name">income_split</span> <span class="cc-field-type">ProcessorConfig</span></span>
+          <span class="cc-field"><span class="cc-field-name">transfer</span> <span class="cc-field-type">TransferConfig</span></span>
+          <span class="cc-field"><span class="cc-field-name">check</span> <span class="cc-field-type">CheckMatchConfig</span></span>
+        </div>
+      </div>
+
+      <div class="concept-card recipe">
+        <div class="cc-icon recipe">📋</div>
+        <div class="cc-title">Recipe</div>
+        <div class="cc-body">The <strong>account-level routing configuration</strong> for a CapitalAccount. Composed of RoutingRules + StrategyConfigs. Created at onboarding; refined over time. No single model — emergent from row composition.</div>
+        <div class="cc-fields">
+          <span class="cc-field"><span class="cc-field-name">RoutingRule</span> <span class="cc-field-type">conditions (JSONField) + FK → StrategyConfig</span></span>
+          <span class="cc-field"><span class="cc-field-name">StrategyConfig</span> <span class="cc-field-type">bridge → concrete config</span></span>
+          <span class="cc-field"><span class="cc-field-name">priority ASC</span> <span class="cc-field-type">first match wins</span></span>
+        </div>
+      </div>
+
+      <div class="concept-card workflow">
+        <div class="cc-icon workflow">🔄</div>
+        <div class="cc-title">Workflow</div>
+        <div class="cc-body">The <strong>orchestration engine</strong> ("agent" in business). A node graph with a shared context blackboard. Nodes are tools or sub-workflows; transitions are condition-driven. Called "Agent" by the product team.</div>
+        <div class="cc-fields">
+          <span class="cc-field"><span class="cc-field-name">WorkflowNode</span> <span class="cc-field-type">foreground (human gate) | background (Celery)</span></span>
+          <span class="cc-field"><span class="cc-field-name">context</span> <span class="cc-field-type">Dict[str, Any] — serialised to Postgres</span></span>
+          <span class="cc-field"><span class="cc-field-name">workflow_class_path</span> <span class="cc-field-type">version-pinned at creation</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 2: Pipeline ── -->
+  <div class="section" id="pipeline">
+    <div class="sec-eyebrow">Section 2</div>
+    <div class="sec-title">Data Pipeline</div>
+    <div class="sec-sub">From uploaded bank statement to categorised Postgres rows — every step is a Workflow Node.</div>
+
+    <div class="pipeline">
+      <!-- Parse -->
+      <div class="pipe-node parse">
+        <div class="pipe-header">
+          <div class="pipe-num">1</div>
+          <div class="pipe-name">ParsePdfNode</div>
+          <span class="pipe-tag">Background · Celery</span>
+        </div>
+        <ul class="pipe-details">
+          <li>PDF or CSV → <code>csv_bank_statement_data</code> (Date / Description / Amount rows)</li>
+          <li>Write <code>BankStatementLineDocument</code> to MongoDB (audit trail)</li>
+          <li>Detect duplicates against prior batches via row fingerprinting</li>
+        </ul>
+      </div>
+
+      <div class="pipe-arrow">↓</div>
+
+      <!-- Intent (planned) -->
+      <div class="planned-strip">
+        <span>⚠</span> <strong>Planned — branch not merged:</strong> InferIntentNode runs here. LLM infers purpose / medium / entity_type per description. Non-categorisation transactions persisted immediately; categorisation rows continue.
+      </div>
+
+      <!-- Static Rules -->
+      <div class="pipe-node static">
+        <div class="pipe-header">
+          <div class="pipe-num">2</div>
+          <div class="pipe-name">ApplyStaticRulesNode</div>
+          <span class="pipe-tag">Background · Self-loop</span>
+        </div>
+        <ul class="pipe-details">
+          <li>Load static <code>RulesSnapshot</code> from MongoDB (falls back to Postgres cache)</li>
+          <li>Exact case-insensitive match on description</li>
+          <li>Match → <code>"Rule Match Status" = "Single Match"</code> — <strong>locked, never overwritten downstream</strong></li>
+        </ul>
+      </div>
+
+      <div class="pipe-arrow">↓ unmatched rows only</div>
+
+      <!-- Dynamic Rules -->
+      <div class="pipe-node dynamic">
+        <div class="pipe-header">
+          <div class="pipe-num">3</div>
+          <div class="pipe-name">ApplyDynamicRulesNode</div>
+          <span class="pipe-tag">Background · Self-loop</span>
+        </div>
+        <ul class="pipe-details">
+          <li>Load dynamic <code>RulesSnapshot</code> — sorted by Similarity Threshold DESC (most specific first)</li>
+          <li><code>re.search(regex, description, IGNORECASE)</code> per row</li>
+          <li>Static-matched rows explicitly skipped — values never overwritten</li>
+        </ul>
+      </div>
+
+      <div class="pipe-arrow">↓ rows still unmatched</div>
+
+      <!-- LLM -->
+      <div class="pipe-node llm">
+        <div class="pipe-header">
+          <div class="pipe-num">4</div>
+          <div class="pipe-name">LLMCategorizeNodeV2</div>
+          <span class="pipe-tag">Background · 4-round clustering</span>
+        </div>
+        <ul class="pipe-details">
+          <li>Inflow / outflow clustered separately; descriptions cleaned before embedding</li>
+          <li>Round 1 → threshold 0.85 · Round 2 → 0.90 · Round 3 → 0.95 · Round 4 → 0.98 (force-accept)</li>
+          <li>Counterparty override from Django <code>Counterparty</code> model</li>
+          <li><code>_link_intent_records()</code> closes placeholder <code>TransactionIntent</code> rows</li>
+        </ul>
+      </div>
+
+      <div class="pipe-arrow">↓</div>
+
+      <!-- Persist -->
+      <div class="pipe-node persist">
+        <div class="pipe-header">
+          <div class="pipe-num">5</div>
+          <div class="pipe-name">PersistTransactionsNode</div>
+          <span class="pipe-tag">Foreground</span>
+        </div>
+        <ul class="pipe-details">
+          <li><code>bulk_create Transaction</code> rows in Postgres</li>
+          <li><code>routing_intent</code> + <code>applied_strategy_config</code> stamped per row</li>
+          <li><code>_enrich_persisted_transactions()</code>: receipt matching, transfer detection, dedup</li>
+        </ul>
+      </div>
+
+      <div class="pipe-arrow">↓</div>
+
+      <!-- Strategy handlers -->
+      <div class="pipe-node strategy-handler">
+        <div class="pipe-header">
+          <div class="pipe-num">↗</div>
+          <div class="pipe-name">Strategy Handlers</div>
+          <span class="pipe-tag">Post-persist · Async</span>
+        </div>
+        <div class="pipe-branch">
+          <div class="pipe-strategy">
+            <div class="ps-label">income_split</div>
+            <div class="ps-body">Gross-up net payout → charges / refunds / fees via ProcessorPayout reconciliation</div>
+          </div>
+          <div class="pipe-strategy">
+            <div class="ps-label">transfer</div>
+            <div class="ps-body">TransferMatchingService — debit/credit pair matching by amount + date gap</div>
+          </div>
+          <div class="pipe-strategy">
+            <div class="ps-label">check</div>
+            <div class="ps-body">Await CheckItem records from scanned PDFs; match by amount ± tolerance</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pipe-note">⟳ Rule generation feedback loop: TeamOnboardingWorkflow reads historical GL → GenerateSingleCapitalGLNode → IdentifyStaticRulesNode → DynamicRulesPipelineNode → writes RulesSnapshot to MongoDB → read by nodes 2 &amp; 3 on every run</div>
+    </div>
+  </div>
+
+  <!-- ── Section 3: Recipe ── -->
+  <div class="section" id="recipe">
+    <div class="sec-eyebrow">Section 3</div>
+    <div class="sec-title">Recipe Architecture</div>
+    <div class="sec-sub">Account-level configuration: which Intents map to which Strategies. No single model — emergent from RoutingRule + StrategyConfig composition.</div>
+
+    <div class="recipe-diagram">
+      <div class="recipe-row">
+        <div class="recipe-label">RoutingRule</div>
+        <div class="recipe-body">
+          <div class="recipe-body-title">Condition matcher — priority-ordered, first match wins</div>
+          <p>Carries a <code>conditions</code> JSONField evaluated AND-style. Missing key = wildcard.</p>
+          <div class="recipe-fields">
+            <span class="recipe-field key">description_pattern</span>
+            <span class="recipe-field key">counterparty_pattern</span>
+            <span class="recipe-field key">direction: inflow | outflow</span>
+            <span class="recipe-field key">amount_min / amount_max</span>
+            <span class="recipe-field">→ strategy_config FK</span>
+            <span class="recipe-field">→ target_module (fallback)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="recipe-row">
+        <div class="recipe-label">StrategyConfig</div>
+        <div class="recipe-body">
+          <div class="recipe-body-title">Bridge model — strategy_type derived from which FK is set</div>
+          <p>No <code>strategy_type</code> column in the DB. The type is inferred at runtime by inspecting which FK is non-null.</p>
+          <div class="recipe-fields">
+            <span class="recipe-field">processor_config → ProcessorConfig (income_split)</span>
+            <span class="recipe-field">transfer_config → TransferConfig (transfer)</span>
+            <span class="recipe-field">check_config → CheckMatchConfig (check)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="recipe-row">
+        <div class="recipe-label">Lifecycle</div>
+        <div class="recipe-body">
+          <div class="recipe-body-title">Onboard → Apply → Refine</div>
+          <p><strong>Phase 1:</strong> seed helpers create RoutingRule + StrategyConfig rows at client onboarding.<br/>
+          <strong>Phase 2:</strong> Every bank statement run evaluates rules priority-ASC; stamps <code>routing_intent</code>.<br/>
+          <strong>Phase 3:</strong> Admins add/edit RoutingRule rows as new transaction patterns emerge.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 4: Strategies ── -->
+  <div class="section" id="strategies">
+    <div class="sec-eyebrow">Section 4</div>
+    <div class="sec-title">Strategy Reference</div>
+    <div class="sec-sub">Every non-categorisation strategy has a concrete config model and a dedicated processing handler.</div>
+
+    <table class="strategy-table">
+      <tr>
+        <th>Strategy</th>
+        <th>DB value</th>
+        <th>Config model</th>
+        <th>Handler</th>
+        <th>Status</th>
+      </tr>
+      <tr>
+        <td><span class="strategy-badge sb-cat">categorisation</span></td>
+        <td><code>categorisation</code></td>
+        <td>—</td>
+        <td>Static → Dynamic → LLM pipeline (default path)</td>
+        <td>✅ Live</td>
+      </tr>
+      <tr>
+        <td><span class="strategy-badge sb-income">income_split</span></td>
+        <td><code>income_split</code></td>
+        <td>ProcessorConfig + IncomeConfig</td>
+        <td>Gross-up net payout → charges / refunds / fees; ProcessorPayout reconciliation</td>
+        <td>✅ Live</td>
+      </tr>
+      <tr>
+        <td><span class="strategy-badge sb-transfer">transfer</span></td>
+        <td><code>transfer</code></td>
+        <td>TransferConfig</td>
+        <td>TransferMatchingService — debit/credit pair matching by amount ± tolerance + date gap</td>
+        <td>✅ Live</td>
+      </tr>
+      <tr>
+        <td><span class="strategy-badge sb-check">check</span></td>
+        <td><code>check</code></td>
+        <td>CheckMatchConfig</td>
+        <td>Await CheckItem from scanned PDFs; match by amount tolerance + date gap</td>
+        <td>✅ Live</td>
+      </tr>
+      <tr>
+        <td><span class="strategy-badge sb-reserved">expense_split</span></td>
+        <td><code>expense_split</code></td>
+        <td>Not yet defined</td>
+        <td>Itemised receipt matching — reserved slot, no handler</td>
+        <td>🔲 Reserved</td>
+      </tr>
+      <tr>
+        <td><span class="strategy-badge sb-reserved">ask_my_accountant</span></td>
+        <td>—</td>
+        <td>—</td>
+        <td>Human escalation — referenced in design, not in codebase yet</td>
+        <td>📋 Planned</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ── Section 5: Workflow Engine ── -->
+  <div class="section" id="workflow">
+    <div class="sec-eyebrow">Section 5</div>
+    <div class="sec-title">Workflow Engine</div>
+    <div class="sec-sub">Node-graph orchestrator. Called "Agent" in product discussions — each workflow is a named agent with composable tool-nodes.</div>
+
+    <div class="engine-grid" style="margin-bottom:16px">
+      <div class="engine-card">
+        <div class="ec-title">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm0 8a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zm12 0a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
+          Node Graph
+        </div>
+        <div class="ec-body">Flat dictionary — not a DAG library. Nodes registered via <code>add_node()</code>, edges via <code>add_transition()</code>. First matching condition wins. <code>None</code> condition = unconditional edge. Self-loops handle pagination.</div>
+      </div>
+      <div class="engine-card">
+        <div class="ec-title">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          Context Blackboard
+        </div>
+        <div class="ec-body">Single mutable dict shared by all nodes. Serialised to <code>WorkflowExecution.context</code> (JSONField) after every node inside an <code>atomic()</code> block. Enables crash-resume without re-running prior nodes.</div>
+      </div>
+      <div class="engine-card">
+        <div class="ec-title">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Background vs Foreground
+        </div>
+        <div class="ec-body"><strong>Background</strong>: <code>execute_in_background=True</code> → Celery task dispatched. Worker reconstructs workflow from <code>workflow_class_path</code>.<br/><strong>Foreground</strong>: synchronous / human gate — blocks until explicit input via API.</div>
+      </div>
+      <div class="engine-card">
+        <div class="ec-title">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+          Versioning
+        </div>
+        <div class="ec-body"><code>AllowedWorkflow</code> gates per-tenant access. At creation, <code>workflow_class_path</code> is stamped (immutable). Celery uses path-based lookup — immune to registry ordering and mid-run deployments.</div>
+      </div>
+    </div>
+
+    <div class="code-block"><span class="cmt"># Version-stable Celery class resolution (workflows/tasks.py)</span>
+workflow_class = (
+    registry.<span class="fn">get_workflow_by_path</span>(<span class="kw">execution</span>.workflow_class_path)
+    <span class="kw">if</span> execution.workflow_class_path
+    <span class="kw">else None</span>
+) <span class="kw">or</span> registry.<span class="fn">get_workflow</span>(execution.workflow_name)  <span class="cmt"># fallback</span></div>
+  </div>
+
+  <!-- ── Section 6: Data Architecture ── -->
+  <div class="section" id="data">
+    <div class="sec-eyebrow">Section 6</div>
+    <div class="sec-title">Data Architecture</div>
+    <div class="sec-sub">Postgres for transactional consistency — MongoDB for large, versioned, append-only analytical snapshots.</div>
+
+    <div class="data-split">
+      <div class="data-card">
+        <div class="dc-header">
+          <div class="dc-icon pg">
+            <svg width="18" height="18" fill="none" stroke="#3b82f6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+          </div>
+          <div>
+            <div class="dc-title">Postgres</div>
+            <div class="dc-sub">Source of truth · schema-per-tenant</div>
+          </div>
+        </div>
+        <table class="dc-table">
+          <tr><td>bank_feeds_transaction</td><td>routing_intent, applied_strategy_config, COA FK, review_status</td></tr>
+          <tr><td>bank_feeds_capitalaccount</td><td>rules cache (Postgres fallback for MongoDB)</td></tr>
+          <tr><td>bank_feeds_routingrule</td><td>conditions JSONField, priority, strategy_config FK</td></tr>
+          <tr><td>reconciliation_strategyconfig</td><td>bridge → ProcessorConfig / TransferConfig / …</td></tr>
+          <tr><td>workflows_workflowexecution</td><td>context JSONField, workflow_class_path, current_node</td></tr>
+          <tr><td>workflows_allowedworkflow</td><td>per-team version pinning (team + workflow_path)</td></tr>
+        </table>
+      </div>
+
+      <div class="data-card">
+        <div class="dc-header">
+          <div class="dc-icon mg">
+            <svg width="18" height="18" fill="none" stroke="#16a34a" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+          </div>
+          <div>
+            <div class="dc-title">MongoDB</div>
+            <div class="dc-sub">Append-only snapshots · latest = sort by created_at DESC</div>
+          </div>
+        </div>
+        <table class="dc-table">
+          <tr><td>gl_snapshots</td><td>Filtered GL rows per capital account — read by rule generation</td></tr>
+          <tr><td>rules_snapshots</td><td>Static/dynamic rule lists; gl_entries_count; groups_flagged_for_review</td></tr>
+          <tr><td>coa_snapshots</td><td>COA account list at time of rule generation</td></tr>
+          <tr><td>counterparty_snapshots</td><td>Counterparty names + account mapping dict</td></tr>
+          <tr><td>bank_statement_lines</td><td>Raw rows (audit trail + duplicate detection)</td></tr>
+          <tr><td>entity_id_map</td><td>natural_key → stable UUID (prevents stale references on regeneration)</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 7: Multi-tenancy ── -->
+  <div class="section" id="multitenancy">
+    <div class="sec-eyebrow">Section 7</div>
+    <div class="sec-title">Multi-tenancy &amp; Operations</div>
+    <div class="sec-sub">Every firm gets a dedicated Postgres schema. Celery queues are per-tenant. Workflow versions are pinned at creation.</div>
+
+    <div class="engine-grid">
+      <div class="engine-card">
+        <div class="ec-title">Schema Isolation</div>
+        <div class="ec-body">
+          <code>django-tenants</code> activates schema via <code>HeaderTenantMiddleware</code> reading <code>X-Tenant-Schema</code>. All ORM queries automatically hit the correct search path — no app-level <code>tenant_id</code> filter required.
+        </div>
+      </div>
+      <div class="engine-card">
+        <div class="ec-title">Celery Queue Routing</div>
+        <div class="ec-body">
+          Queue name: <code>{app}-{env}-{schema}-{queue_suffix}</code><br/>
+          <code>TenantAndTeamAwareTask</code> injects <code>schema_name + team_id</code> into every payload. Worker restores both contexts before executing. Broker: Google Cloud Pub/Sub.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 8: Design Decisions ── -->
+  <div class="section" id="decisions">
+    <div class="sec-eyebrow">Section 8</div>
+    <div class="sec-title">Key Design Decisions</div>
+    <div class="sec-sub">Grounded in the codebase — not aspirational.</div>
+
+    <div class="decisions">
+      <div class="dec-row header">
+        <div class="dec-cell">Decision</div>
+        <div class="dec-cell">Choice</div>
+        <div class="dec-cell">Rationale</div>
+      </div>
+      <div class="dec-row">
+        <div class="dec-cell dec-decision">Rule matching order</div>
+        <div class="dec-cell dec-choice">Static (exact) → Dynamic (regex) → LLM (embedding)</div>
+        <div class="dec-rationale">Cheapest / most deterministic first. LLM only processes residual, minimising cost and latency.</div>
+      </div>
+      <div class="dec-row">
+        <div class="dec-cell dec-decision">Static match lock</div>
+        <div class="dec-cell dec-choice">"Rule Match Status" = "Single Match" — never overwritten</div>
+        <div class="dec-rationale">Prevents a weaker dynamic or LLM signal from degrading a deterministic exact match.</div>
+      </div>
+      <div class="dec-row">
+        <div class="dec-cell dec-decision">MongoDB append-only</div>
+        <div class="dec-cell dec-choice">Inserts only; current state = latest by created_at</div>
+        <div class="dec-rationale">Full version history retained; stale reads are safe; no migration drift on rule schema changes.</div>
+      </div>
+      <div class="dec-row">
+        <div class="dec-cell dec-decision">Postgres fallback cache</div>
+        <div class="dec-cell dec-choice">CapitalAccount.static_rules_cache / dynamic_rules_cache</div>
+        <div class="dec-rationale">MongoDB outage must not break the categorisation workflow. Self-healing write-back on first read.</div>
+      </div>
+      <div class="dec-row">
+        <div class="dec-cell dec-decision">workflow_class_path stamped at creation</div>
+        <div class="dec-cell dec-choice">Immutable on WorkflowExecution</div>
+        <div class="dec-rationale">Mid-flight executions are never affected by a new deployment registering a newer workflow version.</div>
+      </div>
+      <div class="dec-row">
+        <div class="dec-cell dec-decision">StrategyConfig bridge model</div>
+        <div class="dec-cell dec-choice">strategy_type derived from which FK is set — no enum column</div>
+        <div class="dec-rationale">Adding a new strategy = new concrete config model + new FK. No enum migration required.</div>
+      </div>
+      <div class="dec-row">
+        <div class="dec-cell dec-decision">LLM clustering: 4 rounds</div>
+        <div class="dec-cell dec-choice">0.85 → 0.90 → 0.95 → 0.98, force-accept on round 4</div>
+        <div class="dec-rationale">Coarse clusters handle obvious groups cheaply; tighter rounds resolve ambiguous descriptions; force-accept guarantees 100% coverage.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 9: Gaps ── -->
+  <div class="section" id="gaps">
+    <div class="sec-eyebrow">Section 9</div>
+    <div class="sec-title">Architecture Gaps &amp; Roadmap</div>
+    <div class="sec-sub">Honest gaps identified from the codebase — not from aspirational docs.</div>
+
+    <div class="gaps-grid">
+      <div class="gap-card">
+        <div class="gap-header">
+          <div class="gap-title">Intent Inference (InferIntentNode)</div>
+          <span class="gap-status gap-unmerged">Branch not merged</span>
+        </div>
+        <div class="gap-body">Currently all transactions take the CATEGORISATION path. The richer TransactionIntent model (purpose / medium / entity_type / confidence) and InferIntentNode exist in a branch but aren't in the main pipeline yet.</div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-header">
+          <div class="gap-title">Recipe as First-class Entity</div>
+          <span class="gap-status gap-planned">Planned</span>
+        </div>
+        <div class="gap-body">Currently emergent from RoutingRule + StrategyConfig rows. No version history, no diff view, no clone-for-new-client. A dedicated Recipe model would make this manageable at scale.</div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-header">
+          <div class="gap-title">RoutingRule Not Account-Scoped</div>
+          <span class="gap-status gap-unmerged">In-progress fix</span>
+        </div>
+        <div class="gap-body">Current RoutingRule has no CapitalAccount FK — rules are team-level. The planned IntentRoutingRule model carries a bookkeeping_account FK. Until merged, a matching rule in one account's feed would match another account's feed.</div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-header">
+          <div class="gap-title">expense_split Strategy</div>
+          <span class="gap-status gap-reserved">Reserved slot</span>
+        </div>
+        <div class="gap-body">Constant defined in RoutingModule.CHOICES. No concrete config model, no handler, no workflow node. Itemised receipt matching is the intended use case.</div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-header">
+          <div class="gap-title">Sub-workflow Invocation</div>
+          <span class="gap-status gap-planned">Planned</span>
+        </div>
+        <div class="gap-body">Nodes are currently copied explicitly across workflows. A SubWorkflowNode pattern would let a parent invoke a named child execution and merge context on completion — avoiding node duplication.</div>
+      </div>
+      <div class="gap-card">
+        <div class="gap-header">
+          <div class="gap-title">GL Context Size</div>
+          <span class="gap-status gap-planned">Planned</span>
+        </div>
+        <div class="gap-body">Large GL files (&gt;10K rows) stored inline in workflow context JSON. Should reference GCS object storage URL + metadata only. Known limitation for CSV onboarding path.</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<script>
+// Sidebar active state on scroll
+const links = document.querySelectorAll('.sb-link');
+const sections = document.querySelectorAll('.section[id]');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector('.sb-link[href="#' + e.target.id + '"]');
+      if (a) a.classList.add('active');
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
