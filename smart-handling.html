@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Smart Handling — Atlas</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary:       #6366f1;
+    --primary-light: #eef2ff;
+    --primary-dark:  #4f46e5;
+    --slate-50:  #f8fafc;
+    --slate-100: #f1f5f9;
+    --slate-200: #e2e8f0;
+    --slate-300: #cbd5e1;
+    --slate-400: #94a3b8;
+    --slate-500: #64748b;
+    --slate-600: #475569;
+    --slate-700: #334155;
+    --slate-800: #1e293b;
+    --slate-900: #0f172a;
+    --success-bg: #f0fdf4; --success-text: #15803d; --success-border: #bbf7d0;
+    --warning-bg: #fffbeb; --warning-text: #b45309; --warning-border: #fde68a;
+    --info-bg:    #eff6ff; --info-text:    #1d4ed8; --info-border:    #bfdbfe;
+    --radius: 12px; --radius-sm: 8px;
+    --shadow-md: 0 4px 16px rgb(0 0 0 / .08);
+  }
+
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 13px; background: var(--slate-50); color: var(--slate-900); min-height: 100vh; }
+
+  /* Shell */
+  .shell { display: flex; height: 100vh; overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar { width: 220px; flex-shrink: 0; background: white; border-right: 1px solid var(--slate-200); display: flex; flex-direction: column; }
+  .sidebar-logo { padding: 20px 20px 16px; border-bottom: 1px solid var(--slate-100); display: flex; align-items: center; gap: 10px; }
+  .logo-mark { width: 30px; height: 30px; background: linear-gradient(135deg, #6366f1, #4f46e5); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 13px; }
+  .logo-name { font-weight: 700; font-size: 15px; }
+  .sidebar-nav { padding: 12px 10px; flex: 1; }
+  .nav-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--slate-400); padding: 8px 10px 4px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 7px; color: var(--slate-600); font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; transition: background .15s, color .15s; }
+  .nav-item:hover { background: var(--slate-100); color: var(--slate-900); }
+  .nav-item.active { background: var(--primary-light); color: var(--primary-dark); }
+  .nav-icon { width: 16px; height: 16px; opacity: .7; flex-shrink: 0; }
+  .nav-item.active .nav-icon { opacity: 1; }
+  .nav-count { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--warning-text); background: var(--warning-bg); padding: 1px 7px; border-radius: 9999px; }
+  .sidebar-footer { padding: 14px 16px; border-top: 1px solid var(--slate-100); display: flex; align-items: center; gap: 10px; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #818cf8, #4f46e5); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+  .user-name { font-size: 13px; font-weight: 600; }
+  .user-role { font-size: 11px; color: var(--slate-400); }
+
+  /* Main */
+  .main { flex: 1; display: flex; min-width: 0; overflow: hidden; }
+
+  /* List pane */
+  .list-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; transition: flex .2s; }
+  .list-pane.with-panel { flex: 0 0 52%; }
+
+  /* Topbar */
+  .topbar { height: 52px; background: white; border-bottom: 1px solid var(--slate-200); display: flex; align-items: center; padding: 0 24px; gap: 12px; flex-shrink: 0; }
+  .topbar-title { font-size: 15px; font-weight: 700; }
+  .topbar-spacer { flex: 1; }
+  .btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 13px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; white-space: nowrap; }
+  .btn-ghost { background: transparent; color: var(--slate-600); border: 1px solid var(--slate-200); }
+  .btn-ghost:hover { background: var(--slate-50); }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-sm { padding: 5px 11px; font-size: 11px; }
+
+  /* Toolbar */
+  .toolbar { padding: 10px 24px; background: white; border-bottom: 1px solid var(--slate-200); display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .filter-tabs { display: flex; gap: 2px; }
+  .ftab { padding: 5px 12px; font-size: 12px; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; background: none; color: var(--slate-500); transition: all .15s; }
+  .ftab.active { background: var(--primary-light); color: var(--primary-dark); }
+  .ftab:hover:not(.active) { background: var(--slate-100); }
+  .toolbar-spacer { flex: 1; }
+  .summary-chips { display: flex; gap: 8px; }
+  .chip { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; }
+  .chip-amber { background: var(--warning-bg); color: var(--warning-text); }
+  .chip-green { background: var(--success-bg); color: var(--success-text); }
+  .chip-slate { background: var(--slate-100); color: var(--slate-600); }
+
+  /* List */
+  .list-scroll { flex: 1; overflow-y: auto; }
+  .list-table { width: 100%; border-collapse: collapse; }
+  .list-table thead th {
+    padding: 9px 16px; text-align: left; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em; color: var(--slate-400);
+    background: var(--slate-50); border-bottom: 1px solid var(--slate-200);
+    position: sticky; top: 0; z-index: 1;
+  }
+  .list-table thead th:first-child { padding-left: 24px; }
+  .list-table thead th:last-child { padding-right: 24px; text-align: right; }
+
+  .list-row { cursor: pointer; transition: background .1s; border-bottom: 1px solid var(--slate-100); }
+  .list-row:hover { background: var(--slate-50); }
+  .list-row.active { background: var(--primary-light); }
+  .list-row td { padding: 13px 16px; vertical-align: middle; }
+  .list-row td:first-child { padding-left: 24px; }
+  .list-row td:last-child { padding-right: 24px; text-align: right; }
+
+  /* Type pills */
+  .type-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 9999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .type-pill.categorisation { background: var(--slate-100); color: var(--slate-700); }
+  .type-pill.income-split   { background: var(--primary-light); color: var(--primary-dark); }
+  .type-pill.transfer       { background: var(--info-bg); color: var(--info-text); }
+  .type-pill.check          { background: var(--success-bg); color: var(--success-text); }
+
+  /* Status */
+  .status-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .dot-amber { background: #f59e0b; }
+  .dot-green { background: #22c55e; }
+  .dot-blue  { background: #3b82f6; }
+  .dot-slate { background: #94a3b8; }
+  .dot-pulse { animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+  .status-waiting { color: var(--warning-text); }
+  .status-action  { color: var(--success-text); }
+  .status-done    { color: var(--slate-400); }
+
+  .bucket-name { font-size: 13px; font-weight: 600; color: var(--slate-800); }
+  .bucket-sub  { font-size: 11px; color: var(--slate-400); margin-top: 2px; }
+
+  .amount { font-size: 13px; font-weight: 600; color: var(--slate-800); }
+  .txn-ct { font-size: 11px; color: var(--slate-400); margin-top: 1px; }
+
+  /* Action buttons in table */
+  .act-btn { font-size: 11px; font-weight: 600; padding: 4px 11px; border-radius: 6px; border: none; cursor: pointer; transition: all .15s; white-space: nowrap; }
+  .act-btn.review   { background: var(--success-bg); color: var(--success-text); border: 1px solid var(--success-border); }
+  .act-btn.review:hover { background: #dcfce7; }
+  .act-btn.upload   { background: var(--warning-bg); color: var(--warning-text); border: 1px solid var(--warning-border); }
+  .act-btn.upload:hover { background: #fef3c7; }
+  .act-btn.approve  { background: var(--primary-light); color: var(--primary-dark); border: 1px solid #c7d2fe; }
+  .act-btn.approve:hover { background: #e0e7ff; }
+  .act-btn.done     { background: var(--slate-100); color: var(--slate-400); border: 1px solid var(--slate-200); cursor: default; }
+
+  /* ── Detail panel ── */
+  .detail-panel {
+    width: 48%; flex-shrink: 0;
+    background: white; border-left: 1px solid var(--slate-200);
+    display: flex; flex-direction: column;
+    transform: translateX(100%); transition: transform .2s ease;
+    position: relative;
+  }
+  .detail-panel.open { transform: translateX(0); }
+
+  .dp-topbar { height: 52px; border-bottom: 1px solid var(--slate-200); display: flex; align-items: center; padding: 0 20px; gap: 10px; flex-shrink: 0; }
+  .dp-close { background: none; border: none; cursor: pointer; color: var(--slate-400); padding: 4px; border-radius: 6px; display: flex; align-items: center; }
+  .dp-close:hover { background: var(--slate-100); color: var(--slate-700); }
+  .dp-title { font-size: 14px; font-weight: 700; color: var(--slate-800); flex: 1; }
+
+  .dp-body { flex: 1; overflow-y: auto; padding: 20px; }
+
+  /* Detail meta row */
+  .dp-meta { display: flex; gap: 20px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--slate-100); flex-wrap: wrap; }
+  .dp-meta-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--slate-400); margin-bottom: 3px; }
+  .dp-meta-value { font-size: 13px; font-weight: 600; color: var(--slate-800); }
+
+  /* Status timeline */
+  .dp-timeline { display: flex; align-items: center; margin-bottom: 20px; }
+  .tl-step { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; position: relative; }
+  .tl-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; position: relative; z-index: 1; }
+  .tl-dot.done   { background: var(--success-bg); color: var(--success-text); border: 2px solid var(--success-border); }
+  .tl-dot.active { background: var(--primary-light); color: var(--primary-dark); border: 2px solid #c7d2fe; }
+  .tl-dot.future { background: var(--slate-100); color: var(--slate-400); border: 2px solid var(--slate-200); }
+  .tl-label { font-size: 10px; font-weight: 600; color: var(--slate-500); text-align: center; white-space: nowrap; }
+  .tl-label.done   { color: var(--success-text); }
+  .tl-label.active { color: var(--primary-dark); }
+  .tl-line { flex: 1; height: 1.5px; background: var(--slate-200); margin-bottom: 14px; }
+  .tl-line.done { background: var(--success-border); }
+
+  /* Section label inside panel */
+  .dp-section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--slate-400); margin-bottom: 8px; }
+  .dp-section { margin-bottom: 20px; }
+
+  /* Transaction rows inside panel */
+  .dp-txn { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: var(--slate-50); margin-bottom: 6px; }
+  .dp-txn-date { font-size: 11px; color: var(--slate-400); width: 64px; flex-shrink: 0; }
+  .dp-txn-desc { flex: 1; font-size: 12px; color: var(--slate-700); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dp-txn-tag { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 9999px; flex-shrink: 0; }
+  .dp-txn-tag.parked   { background: var(--warning-bg); color: var(--warning-text); }
+  .dp-txn-tag.matched  { background: var(--success-bg); color: var(--success-text); }
+  .dp-txn-tag.paired   { background: var(--info-bg); color: var(--info-text); }
+  .dp-txn-tag.reviewed { background: var(--slate-100); color: var(--slate-400); }
+  .dp-txn-amount { font-size: 12px; font-weight: 600; width: 80px; text-align: right; flex-shrink: 0; }
+  .dp-txn-amount.pos { color: var(--success-text); }
+  .dp-txn-amount.neg { color: var(--slate-700); }
+
+  /* Report items (e.g. Shopify pending reports) */
+  .report-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--slate-200); border-radius: 8px; margin-bottom: 8px; }
+  .report-item-info { flex: 1; }
+  .report-item-title { font-size: 12px; font-weight: 600; color: var(--slate-800); }
+  .report-item-sub   { font-size: 11px; color: var(--slate-400); margin-top: 2px; }
+  .report-item-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; background: var(--warning-bg); color: var(--warning-text); flex-shrink: 0; }
+  .report-item-btn   { font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 6px; border: 1px solid var(--warning-border); background: var(--warning-bg); color: var(--warning-text); cursor: pointer; flex-shrink: 0; white-space: nowrap; }
+  .report-item-btn:hover { background: #fef3c7; }
+
+  /* Split preview */
+  .split-preview { background: var(--slate-50); border-radius: 8px; padding: 12px; margin-bottom: 16px; }
+  .split-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 12px; }
+  .split-row + .split-row { border-top: 1px solid var(--slate-200); }
+  .split-coa { color: var(--slate-600); }
+  .split-amount { font-weight: 600; color: var(--slate-800); }
+  .split-amount.pos { color: var(--success-text); }
+  .split-amount.neg { color: #be123c; }
+
+  /* Transfer pair */
+  .transfer-pair { display: flex; gap: 10px; margin-bottom: 12px; }
+  .transfer-side { flex: 1; background: var(--slate-50); border-radius: 8px; padding: 12px; }
+  .transfer-side-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--slate-400); margin-bottom: 8px; }
+  .transfer-side-name { font-size: 12px; font-weight: 600; color: var(--slate-800); }
+  .transfer-side-date { font-size: 11px; color: var(--slate-400); margin-top: 2px; }
+  .transfer-side-amount { font-size: 16px; font-weight: 700; margin-top: 6px; }
+  .transfer-side-amount.neg { color: var(--slate-700); }
+  .transfer-side-amount.pos { color: var(--success-text); }
+  .transfer-arrow { display: flex; align-items: center; color: var(--slate-300); padding-top: 20px; }
+
+  /* Sub-section divider */
+  .dp-divider { border: none; border-top: 1px solid var(--slate-100); margin: 16px 0; }
+
+  /* Footer */
+  .dp-footer { padding: 16px 20px; border-top: 1px solid var(--slate-100); display: flex; gap: 10px; flex-shrink: 0; }
+  .dp-footer .btn { flex: 1; justify-content: center; }
+
+  /* Notice banners */
+  .notice { border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 12px; }
+  .notice-warning { background: var(--warning-bg); border: 1px solid var(--warning-border); color: var(--warning-text); }
+  .notice-info    { background: var(--info-bg);    border: 1px solid var(--info-border);    color: var(--info-text); }
+  .notice-success { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success-text); }
+  .notice-primary { background: var(--primary-light); border: 1px solid #c7d2fe; color: var(--primary-dark); }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">A</div>
+      <span class="logo-name">Atlas</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-label">Bookkeeping</div>
+      <a href="#" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 4h6m-6 4h4"/></svg>
+        Transactions
+      </a>
+      <a href="smart-handling.html" class="nav-item active">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        Smart Handling
+        <span class="nav-count">6</span>
+      </a>
+      <a href="#" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        Reconciliation
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="avatar">NP</div>
+      <div><div class="user-name">Neeraj P.</div><div class="user-role">Admin</div></div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="main" id="main">
+
+    <!-- List pane -->
+    <div class="list-pane" id="listPane">
+
+      <div class="topbar">
+        <div class="topbar-title">Transaction Buckets</div>
+        <span style="font-size:12px; color:var(--slate-400);">Chase Business Checking · Jan 2025</span>
+        <div class="topbar-spacer"></div>
+        <button class="btn btn-ghost btn-sm">
+          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+          Configure
+        </button>
+      </div>
+
+      <div class="toolbar">
+        <div class="filter-tabs">
+          <button class="ftab active" onclick="setFilter('all',this)">All</button>
+          <button class="ftab" onclick="setFilter('action',this)">Needs Action</button>
+          <button class="ftab" onclick="setFilter('waiting',this)">Waiting</button>
+          <button class="ftab" onclick="setFilter('done',this)">Done</button>
+        </div>
+        <div class="toolbar-spacer"></div>
+        <div class="summary-chips">
+          <span class="chip chip-amber">3 waiting</span>
+          <span class="chip chip-green">3 need action</span>
+          <span class="chip chip-slate">2 done</span>
+        </div>
+      </div>
+
+      <div class="list-scroll">
+        <table class="list-table">
+          <thead>
+            <tr>
+              <th style="width:38%">Bucket</th>
+              <th>Type</th>
+              <th>Transactions</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="bucketTbody">
+
+            <!-- Stripe — needs action (payout report arrived, splits ready to review) -->
+            <tr class="list-row" data-filter="action" data-bucket="stripe" onclick="openPanel('stripe', this)">
+              <td>
+                <div class="bucket-name">Stripe</div>
+                <div class="bucket-sub">8 transactions · payout report matched</div>
+              </td>
+              <td><span class="type-pill income-split">Income Split</span></td>
+              <td><div class="amount">8</div></td>
+              <td><div class="amount">$11,240</div></td>
+              <td>
+                <span class="status-pill status-action">
+                  <div class="dot dot-green"></div>Review Splits
+                </span>
+              </td>
+              <td><button class="act-btn review" onclick="event.stopPropagation(); openPanel('stripe', this.closest('tr'))">Review →</button></td>
+            </tr>
+
+            <!-- Shopify — waiting (2 payout reports outstanding) -->
+            <tr class="list-row" data-filter="waiting" data-bucket="shopify" onclick="openPanel('shopify', this)">
+              <td>
+                <div class="bucket-name">Shopify</div>
+                <div class="bucket-sub">20 transactions parked · 2 reports outstanding</div>
+              </td>
+              <td><span class="type-pill income-split">Income Split</span></td>
+              <td><div class="amount">20</div></td>
+              <td><div class="amount">$39,440</div></td>
+              <td>
+                <span class="status-pill status-waiting">
+                  <div class="dot dot-amber dot-pulse"></div>Waiting for Reports
+                </span>
+              </td>
+              <td><button class="act-btn upload" onclick="event.stopPropagation(); openPanel('shopify', this.closest('tr'))">Upload Report</button></td>
+            </tr>
+
+            <!-- PayPal — waiting -->
+            <tr class="list-row" data-filter="waiting" data-bucket="paypal" onclick="openPanel('paypal', this)">
+              <td>
+                <div class="bucket-name">PayPal</div>
+                <div class="bucket-sub">3 transactions parked · awaiting payout export</div>
+              </td>
+              <td><span class="type-pill income-split">Income Split</span></td>
+              <td><div class="amount">3</div></td>
+              <td><div class="amount">$4,200</div></td>
+              <td>
+                <span class="status-pill status-waiting">
+                  <div class="dot dot-amber dot-pulse"></div>Waiting for Report
+                </span>
+              </td>
+              <td><button class="act-btn upload" onclick="event.stopPropagation(); openPanel('paypal', this.closest('tr'))">Upload Report</button></td>
+            </tr>
+
+            <!-- Transfers — action (1 matched pair to confirm, 4 unmatched in panel) -->
+            <tr class="list-row" data-filter="action" data-bucket="transfers" onclick="openPanel('transfers', this)">
+              <td>
+                <div class="bucket-name">Transfers</div>
+                <div class="bucket-sub">1 pair matched · 4 unmatched (waiting for statement)</div>
+              </td>
+              <td><span class="type-pill transfer">Transfer</span></td>
+              <td><div class="amount">6</div></td>
+              <td><div class="amount">$13,500</div></td>
+              <td>
+                <span class="status-pill status-action">
+                  <div class="dot dot-green"></div>1 to Confirm
+                </span>
+              </td>
+              <td><button class="act-btn review" onclick="event.stopPropagation(); openPanel('transfers', this.closest('tr'))">Review →</button></td>
+            </tr>
+
+            <!-- Checks — waiting -->
+            <tr class="list-row" data-filter="waiting" data-bucket="checks" onclick="openPanel('checks', this)">
+              <td>
+                <div class="bucket-name">Checks</div>
+                <div class="bucket-sub">3 checks parked · payee unknown</div>
+              </td>
+              <td><span class="type-pill check">Check</span></td>
+              <td><div class="amount">3</div></td>
+              <td><div class="amount">$3,200</div></td>
+              <td>
+                <span class="status-pill status-waiting">
+                  <div class="dot dot-amber dot-pulse"></div>Waiting for Images
+                </span>
+              </td>
+              <td><button class="act-btn upload" onclick="event.stopPropagation(); openPanel('checks', this.closest('tr'))">Upload Images</button></td>
+            </tr>
+
+            <!-- Categorisation — action -->
+            <tr class="list-row" data-filter="action" data-bucket="cat" onclick="openPanel('cat', this)">
+              <td>
+                <div class="bucket-name">AI Categorisation</div>
+                <div class="bucket-sub">145 transactions · 12 flagged low confidence</div>
+              </td>
+              <td><span class="type-pill categorisation">Categorisation</span></td>
+              <td><div class="amount">145</div></td>
+              <td><div class="amount">$48,200</div></td>
+              <td>
+                <span class="status-pill" style="color:var(--info-text)">
+                  <div class="dot dot-blue"></div>Pending Approval
+                </span>
+              </td>
+              <td><button class="act-btn approve" onclick="event.stopPropagation(); openPanel('cat', this.closest('tr'))">Approve →</button></td>
+            </tr>
+
+            <!-- Done rows -->
+            <tr class="list-row" data-filter="done" onclick="openPanel('done-stripe', this)">
+              <td>
+                <div class="bucket-name">Stripe</div>
+                <div class="bucket-sub">Splits approved · Dec 22, 2024</div>
+              </td>
+              <td><span class="type-pill income-split">Income Split</span></td>
+              <td><div class="amount">6</div></td>
+              <td><div class="amount">$9,840</div></td>
+              <td><span class="status-pill status-done"><div class="dot dot-slate"></div>Done</span></td>
+              <td><button class="act-btn done">View</button></td>
+            </tr>
+            <tr class="list-row" data-filter="done" onclick="openPanel('done-shopify', this)">
+              <td>
+                <div class="bucket-name">Shopify</div>
+                <div class="bucket-sub">Splits approved · Dec 28, 2024</div>
+              </td>
+              <td><span class="type-pill income-split">Income Split</span></td>
+              <td><div class="amount">18</div></td>
+              <td><div class="amount">$31,100</div></td>
+              <td><span class="status-pill status-done"><div class="dot dot-slate"></div>Done</span></td>
+              <td><button class="act-btn done">View</button></td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+    </div><!-- /list-pane -->
+
+    <!-- Detail panel -->
+    <div class="detail-panel" id="detailPanel">
+      <div class="dp-topbar">
+        <button class="dp-close" onclick="closePanel()">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        <div class="dp-title" id="dpTitle">—</div>
+        <span id="dpTypePill"></span>
+      </div>
+      <div class="dp-body" id="dpBody"></div>
+      <div class="dp-footer" id="dpFooter"></div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+function txnRow(date, desc, amount, dir, tag) {
+  const tagLabels = { parked: "Parked", matched: "Matched", paired: "Paired", reviewed: "Done" };
+  return `<div class="dp-txn">
+    <span class="dp-txn-date">${date}</span>
+    <span class="dp-txn-desc">${desc}</span>
+    <span class="dp-txn-tag ${tag}">${tagLabels[tag]}</span>
+    <span class="dp-txn-amount ${dir}">${amount}</span>
+  </div>`;
+}
+
+function buildTimeline(steps, activeStep) {
+  let html = '<div class="dp-timeline">';
+  steps.forEach((label, i) => {
+    const idx = i + 1;
+    const state = idx < activeStep ? "done" : idx === activeStep ? "active" : "future";
+    const icon  = state === "done" ? "✓" : state === "active" ? "→" : idx;
+    if (i > 0) html += `<div class="tl-line ${idx <= activeStep ? 'done' : ''}"></div>`;
+    html += `<div class="tl-step">
+      <div class="tl-dot ${state}">${icon}</div>
+      <div class="tl-label ${state}">${label}</div>
+    </div>`;
+  });
+  return html + "</div>";
+}
+
+function buildMeta(items) {
+  return `<div class="dp-meta">${items.map(m =>
+    `<div class="dp-meta-item"><div class="dp-meta-label">${m.label}</div><div class="dp-meta-value">${m.value}</div></div>`
+  ).join("")}</div>`;
+}
+
+// ── Panel content definitions ──────────────────────────────────────────────
+
+const panels = {
+
+  // ── Stripe (income-split, payout report arrived, splits ready to approve) ──
+  stripe: {
+    title: "Stripe",
+    type: "income-split",
+    typeName: "Income Split",
+    meta: [
+      { label: "Account",      value: "Chase Business Checking" },
+      { label: "Period",       value: "Jan 1–15, 2025" },
+      { label: "Gross Revenue", value: "$12,480" },
+      { label: "Refunds",      value: "−$640" },
+      { label: "Fees",         value: "−$600" },
+      { label: "Net (banked)", value: "$11,240" },
+    ],
+    timeline: ["Detected", "Parked", "Report Arrived", "Splits Created", "Your Review"],
+    activeStep: 4,
+    bodyHtml: `
+      <div class="dp-section">
+        <div class="dp-section-label">8 transactions in this bucket</div>
+        ${txnRow("Jan 2",  "STRIPE PAYOUT ST-ABC123", "+$2,140", "pos", "matched")}
+        ${txnRow("Jan 4",  "STRIPE PAYOUT ST-DEF456", "+$1,890", "pos", "matched")}
+        ${txnRow("Jan 7",  "STRIPE PAYOUT ST-GHI789", "+$3,410", "pos", "matched")}
+        ${txnRow("Jan 10", "STRIPE PAYOUT ST-JKL012", "+$1,980", "pos", "matched")}
+        <div style="font-size:11px;color:var(--slate-400);padding:6px 12px;">+ 4 more transactions</div>
+      </div>
+      <div class="dp-section">
+        <div class="dp-section-label">How each payout will be split</div>
+        <div class="split-preview">
+          <div class="split-row"><span class="split-coa">Sales Revenue (gross charges)</span><span class="split-amount pos">+$12,480.00</span></div>
+          <div class="split-row"><span class="split-coa">Refunds</span><span class="split-amount neg">−$640.00</span></div>
+          <div class="split-row"><span class="split-coa">Merchant Fees</span><span class="split-amount neg">−$600.00</span></div>
+          <div class="split-row" style="padding-top:8px;font-weight:700;"><span class="split-coa" style="color:var(--slate-800)">Net (matches bank deposit)</span><span class="split-amount">$11,240.00</span></div>
+        </div>
+      </div>
+    `,
+    footer: `<button class="btn btn-primary">Approve All Splits</button><button class="btn btn-ghost">Review Individually</button>`
+  },
+
+  // ── Shopify (income-split, 2 payout reports outstanding) ──
+  shopify: {
+    title: "Shopify",
+    type: "income-split",
+    typeName: "Income Split",
+    meta: [
+      { label: "Account",          value: "Chase Business Checking" },
+      { label: "Parked",           value: "20 transactions" },
+      { label: "Total (net)",      value: "$39,440" },
+      { label: "Reports pending",  value: "2" },
+    ],
+    timeline: ["Detected", "Parked", "Awaiting Reports", "Splits Created", "Your Review"],
+    activeStep: 2,
+    bodyHtml: `
+      <div class="dp-section">
+        <div class="dp-section-label">2 payout reports needed</div>
+        <div class="report-item">
+          <div class="report-item-info">
+            <div class="report-item-title">Jan 1–15, 2025</div>
+            <div class="report-item-sub">8 transactions · $14,600 net · awaiting payout export</div>
+          </div>
+          <span class="report-item-badge">Waiting</span>
+          <button class="report-item-btn">Upload</button>
+        </div>
+        <div class="report-item">
+          <div class="report-item-info">
+            <div class="report-item-title">Jan 16–31, 2025</div>
+            <div class="report-item-sub">12 transactions · $24,840 net · awaiting payout export</div>
+          </div>
+          <span class="report-item-badge">Waiting</span>
+          <button class="report-item-btn">Upload</button>
+        </div>
+      </div>
+      <div class="dp-section">
+        <div class="dp-section-label">20 parked transactions</div>
+        ${txnRow("Jan 2",  "SHOPIFY PAYOUT", "+$2,100", "pos", "parked")}
+        ${txnRow("Jan 5",  "SHOPIFY PAYOUT", "+$3,400", "pos", "parked")}
+        ${txnRow("Jan 9",  "SHOPIFY PAYOUT", "+$4,800", "pos", "parked")}
+        ${txnRow("Jan 16", "SHOPIFY PAYOUT", "+$3,210", "pos", "parked")}
+        ${txnRow("Jan 18", "SHOPIFY PAYOUT", "+$1,980", "pos", "parked")}
+        <div style="font-size:11px;color:var(--slate-400);padding:6px 12px;">+ 15 more transactions</div>
+      </div>
+    `,
+    footer: `<button class="btn btn-primary">Upload Payout Report</button><button class="btn btn-ghost">View All Transactions</button>`
+  },
+
+  // ── PayPal (income-split, waiting) ──
+  paypal: {
+    title: "PayPal",
+    type: "income-split",
+    typeName: "Income Split",
+    meta: [
+      { label: "Account",     value: "Chase Business Checking" },
+      { label: "Parked",      value: "3 transactions" },
+      { label: "Total (net)", value: "$4,200" },
+    ],
+    timeline: ["Detected", "Parked", "Awaiting Report", "Splits Created", "Your Review"],
+    activeStep: 2,
+    bodyHtml: `
+      <div class="notice notice-warning">
+        <strong>Waiting for PayPal payout report.</strong><br>
+        <span style="opacity:.8">Once uploaded, the system will match each net deposit to its gross charges, refunds, and fees automatically.</span>
+      </div>
+      <div class="dp-section">
+        <div class="dp-section-label">3 parked transactions</div>
+        ${txnRow("Jan 6",  "PAYPAL TRANSFER", "+$1,800", "pos", "parked")}
+        ${txnRow("Jan 14", "PAYPAL TRANSFER", "+$1,400", "pos", "parked")}
+        ${txnRow("Jan 22", "PAYPAL TRANSFER", "+$1,000", "pos", "parked")}
+      </div>
+    `,
+    footer: `<button class="btn btn-primary">Upload Payout Report</button>`
+  },
+
+  // ── Transfers (1 matched pair to confirm + 4 unmatched) ──
+  transfers: {
+    title: "Transfers",
+    type: "transfer",
+    typeName: "Transfer",
+    meta: [
+      { label: "Account",   value: "Chase Business Checking" },
+      { label: "Total",     value: "6 transactions · $13,500" },
+      { label: "Matched",   value: "1 pair (ready to confirm)" },
+      { label: "Unmatched", value: "4 outflows (waiting)" },
+    ],
+    timeline: ["Detected", "Parked", "Match Attempted", "Pair Created", "Your Review"],
+    activeStep: 4,
+    bodyHtml: `
+      <div class="dp-section">
+        <div class="dp-section-label">Matched pair — confirm to book</div>
+        <div class="transfer-pair">
+          <div class="transfer-side">
+            <div class="transfer-side-label">Debit · Money Out</div>
+            <div class="transfer-side-name">ONLINE TRANSFER TO SAV ···4521</div>
+            <div class="transfer-side-date">Jan 8, 2025 · Chase Business Checking</div>
+            <div class="transfer-side-amount neg">−$5,000.00</div>
+          </div>
+          <div class="transfer-arrow">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </div>
+          <div class="transfer-side">
+            <div class="transfer-side-label">Credit · Money In</div>
+            <div class="transfer-side-name">ONLINE TRANSFER FROM CHK ···1379</div>
+            <div class="transfer-side-date">Jan 9, 2025 · Chase Savings ···4521</div>
+            <div class="transfer-side-amount pos">+$5,000.00</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--slate-500);background:var(--slate-50);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+          Amounts match exactly. 1-day gap within configured 3-day window. Will book to <strong>Transfer In / Transfer Out</strong>.
+        </div>
+        <button style="font-size:12px;font-weight:600;padding:7px 16px;border-radius:7px;border:none;background:var(--success-bg);color:var(--success-text);border:1px solid var(--success-border);cursor:pointer;width:100%;">Confirm This Transfer</button>
+      </div>
+
+      <hr class="dp-divider">
+
+      <div class="dp-section">
+        <div class="dp-section-label">4 unmatched outflows — waiting for savings statement</div>
+        <div class="notice notice-warning" style="margin-bottom:12px;">
+          Upload the Chase Savings ···4521 statement to find the credit side of these transfers.
+        </div>
+        ${txnRow("Jan 3",  "ONLINE TRANSFER TO SAV ···4521", "−$2,000", "neg", "parked")}
+        ${txnRow("Jan 12", "ONLINE TRANSFER TO SAV ···4521", "−$3,500", "neg", "parked")}
+        ${txnRow("Jan 19", "ONLINE TRANSFER TO SAV ···4521", "−$1,500", "neg", "parked")}
+        ${txnRow("Jan 25", "ONLINE TRANSFER TO SAV ···4521", "−$1,500", "neg", "parked")}
+      </div>
+    `,
+    footer: `<button class="btn btn-primary">Upload Savings Statement</button><button class="btn btn-ghost">Dismiss</button>`
+  },
+
+  // ── Checks (3 parked, awaiting images) ──
+  checks: {
+    title: "Checks",
+    type: "check",
+    typeName: "Check",
+    meta: [
+      { label: "Account", value: "Chase Business Checking" },
+      { label: "Parked",  value: "3 check transactions" },
+      { label: "Total",   value: "$3,200" },
+    ],
+    timeline: ["Detected", "Parked", "Images Received", "Payee Extracted", "Your Review"],
+    activeStep: 2,
+    bodyHtml: `
+      <div class="notice notice-warning">
+        <strong>Upload cheque images</strong> for each check below to extract the payee name and memo. The system will pre-fill the details for your final review.
+      </div>
+      <div class="dp-section">
+        <div class="dp-section-label">3 parked check transactions</div>
+        ${txnRow("Jan 5",  "CHECK #1041", "−$1,200", "neg", "parked")}
+        ${txnRow("Jan 11", "CHECK #1042", "−$850",   "neg", "parked")}
+        ${txnRow("Jan 21", "CHECK #1047", "−$1,150", "neg", "parked")}
+      </div>
+    `,
+    footer: `<button class="btn btn-primary">Upload Cheque Images</button>`
+  },
+
+  // ── AI Categorisation ──
+  cat: {
+    title: "AI Categorisation",
+    type: "categorisation",
+    typeName: "Categorisation",
+    meta: [
+      { label: "Account",          value: "Chase Business Checking" },
+      { label: "Total",            value: "145 transactions" },
+      { label: "High confidence",  value: "133" },
+      { label: "Needs review",     value: "12" },
+    ],
+    timeline: ["Imported", "Rules Applied", "AI Categorised", "Pending Approval"],
+    activeStep: 3,
+    bodyHtml: `
+      <div class="notice notice-primary">
+        133 transactions categorised with high confidence. <strong>12 flagged for your review</strong> — low confidence or ambiguous vendor.
+      </div>
+      <div class="dp-section">
+        <div class="dp-section-label">Flagged for review (12)</div>
+        ${txnRow("Jan 14", "MISC PAYMENT 8821940",    "−$340",   "neg", "parked")}
+        ${txnRow("Jan 17", "ACH DEBIT UNKNOWN",        "−$1,200", "neg", "parked")}
+        ${txnRow("Jan 22", "WIRE TRANSFER INTL 00142", "−$4,800", "neg", "parked")}
+        <div style="font-size:11px;color:var(--slate-400);padding:6px 12px;">+ 9 more flagged transactions</div>
+      </div>
+      <div class="dp-section">
+        <div class="dp-section-label">Sample high-confidence (133)</div>
+        ${txnRow("Jan 2", "AMAZON.COM PURCHASE", "−$142",   "neg", "reviewed")}
+        ${txnRow("Jan 3", "GOOGLE ADS",           "−$980",   "neg", "reviewed")}
+        ${txnRow("Jan 5", "GUSTO PAYROLL",        "−$8,400", "neg", "reviewed")}
+      </div>
+    `,
+    footer: `<button class="btn btn-primary">Review Flagged (12)</button><button class="btn btn-ghost">Bulk Approve All</button>`
+  },
+
+  // ── Done rows ──
+  "done-stripe": {
+    title: "Stripe · Dec 2024",
+    type: "income-split",
+    typeName: "Income Split",
+    meta: [
+      { label: "Account",  value: "Chase Business Checking" },
+      { label: "Approved", value: "Dec 22, 2024" },
+      { label: "Total",    value: "6 transactions · $9,840" },
+    ],
+    timeline: ["Detected", "Parked", "Report Arrived", "Splits Created", "Approved"],
+    activeStep: 5,
+    bodyHtml: `
+      <div class="notice notice-success">All splits approved on Dec 22, 2024.</div>
+      <div class="dp-section">
+        <div class="dp-section-label">6 transactions</div>
+        ${txnRow("Dec 17", "STRIPE PAYOUT ST-XYZ001", "+$1,840", "pos", "reviewed")}
+        ${txnRow("Dec 20", "STRIPE PAYOUT ST-XYZ002", "+$2,600", "pos", "reviewed")}
+        ${txnRow("Dec 23", "STRIPE PAYOUT ST-XYZ003", "+$5,400", "pos", "reviewed")}
+      </div>
+    `,
+    footer: `<button class="btn btn-ghost">Export</button>`
+  },
+
+  "done-shopify": {
+    title: "Shopify · Dec 2024",
+    type: "income-split",
+    typeName: "Income Split",
+    meta: [
+      { label: "Account",  value: "Chase Business Checking" },
+      { label: "Approved", value: "Dec 28, 2024" },
+      { label: "Total",    value: "18 transactions · $31,100" },
+    ],
+    timeline: ["Detected", "Parked", "Report Arrived", "Splits Created", "Approved"],
+    activeStep: 5,
+    bodyHtml: `
+      <div class="notice notice-success">All splits approved on Dec 28, 2024.</div>
+      <div class="dp-section">
+        <div class="dp-section-label">18 transactions</div>
+        ${txnRow("Dec 2",  "SHOPIFY PAYOUT", "+$4,200", "pos", "reviewed")}
+        ${txnRow("Dec 9",  "SHOPIFY PAYOUT", "+$5,800", "pos", "reviewed")}
+        ${txnRow("Dec 16", "SHOPIFY PAYOUT", "+$7,400", "pos", "reviewed")}
+        <div style="font-size:11px;color:var(--slate-400);padding:6px 12px;">+ 15 more transactions</div>
+      </div>
+    `,
+    footer: `<button class="btn btn-ghost">Export</button>`
+  }
+};
+
+// ── Open / close panel ─────────────────────────────────────────────────────
+
+let activePanelId = null;
+
+function openPanel(id, row) {
+  const p = panels[id];
+  if (!p) return;
+
+  activePanelId = id;
+
+  document.querySelectorAll('.list-row').forEach(r => r.classList.remove('active'));
+  if (row) row.classList.add('active');
+
+  document.getElementById('dpTitle').textContent = p.title;
+  document.getElementById('dpTypePill').innerHTML =
+    `<span class="type-pill ${p.type}">${p.typeName}</span>`;
+  document.getElementById('dpBody').innerHTML =
+    buildTimeline(p.timeline, p.activeStep) +
+    buildMeta(p.meta) +
+    (p.bodyHtml || "");
+  document.getElementById('dpFooter').innerHTML = p.footer || "";
+
+  document.getElementById('detailPanel').classList.add('open');
+  document.getElementById('listPane').classList.add('with-panel');
+}
+
+function closePanel() {
+  document.getElementById('detailPanel').classList.remove('open');
+  document.getElementById('listPane').classList.remove('with-panel');
+  document.querySelectorAll('.list-row').forEach(r => r.classList.remove('active'));
+  activePanelId = null;
+}
+
+// ── Filter ─────────────────────────────────────────────────────────────────
+
+function setFilter(mode, btn) {
+  document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#bucketTbody .list-row').forEach(row => {
+    const f = row.dataset.filter;
+    row.style.display = (mode === 'all' || f === mode) ? '' : 'none';
+  });
+  if (activePanelId) closePanel();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atlas — Transactions (Redesign)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Hanken+Grotesk:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f3ef;--surface:#ffffff;--ink:#1c2434;--ink-soft:#5a6376;--ink-faint:#8a91a0;
+    --line:#e7e5df;--line-soft:#eeece6;--accent:#2f5d50;--accent-soft:#e6efe9;
+    --out:#b4441f;--in:#2f6f4e;--in-soft:#e2f0e6;
+    --exact:#3a4a8c;--exact-soft:#e9ecf8;
+    --smart:#7a4ba0;--smart-soft:#f3ecf9;
+    --ai:#9a6b14;--ai-soft:#faf1da;--ai-line:#ecdcb8;
+    --radius:13px;--shadow:0 1px 2px rgba(28,36,52,.04),0 6px 22px rgba(28,36,52,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.45}
+  .app{display:grid;grid-template-columns:56px 288px 1fr;min-height:100vh}
+
+  /* rail */
+  .rail{background:#11161f;display:flex;flex-direction:column;align-items:center;padding:18px 0;gap:6px}
+  .rail .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#3aa988,#2f5d50);display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque';font-weight:700;color:#fff;font-size:17px;margin-bottom:14px}
+  .rail .ri{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#8b93a3;cursor:pointer}
+  .rail .ri svg{width:19px;height:19px}
+  .rail .ri.active{background:#222b3a;color:#fff}
+  .rail .ri:hover:not(.active){background:#1a2130;color:#cdd2dd}
+  .rail .av{margin-top:auto;width:34px;height:34px;border-radius:9px;background:#33405a;color:#cfd6e4;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+
+  /* left panel */
+  .panel{background:var(--surface);border-right:1px solid var(--line);padding:22px 18px;overflow:auto;max-height:100vh}
+  .progress{display:flex;align-items:center;gap:14px;padding:4px 4px 18px}
+  .ring{width:52px;height:52px;flex-shrink:0}
+  .progress .pmeta .pn{font-family:'Bricolage Grotesque';font-weight:600;font-size:15px}
+  .progress .pmeta .ps{font-size:12.5px;color:var(--ink-faint);margin-top:1px}
+  .progress .pmeta .pv{font-size:12.5px;color:var(--accent);font-weight:600;margin-top:3px}
+  .tabs{display:flex;background:#ece9e2;border-radius:9px;padding:3px;gap:2px;margin-bottom:18px}
+  .tabs button{flex:1;border:none;background:transparent;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink-soft);padding:7px 0;border-radius:7px;cursor:pointer}
+  .tabs button.active{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.07)}
+  .sec{margin-bottom:6px}
+  .sechead{display:flex;align-items:center;gap:8px;padding:9px 8px;cursor:pointer;border-radius:8px;font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint)}
+  .sechead:hover{background:#faf9f6}
+  .sechead .ch{transition:.2s;color:var(--ink-faint)}
+  .sechead.collapsed .ch{transform:rotate(-90deg)}
+  .sechead svg{width:13px;height:13px}
+  .sechead .cnt{margin-left:auto;font-weight:600;color:var(--ink-faint);letter-spacing:0;font-size:11.5px}
+  .seclist{overflow:hidden;transition:max-height .25s ease}
+  .cp{display:flex;align-items:center;gap:9px;padding:8px 10px 8px 16px;border-radius:8px;cursor:pointer;font-size:13.5px;color:var(--ink-soft);font-weight:500}
+  .cp:hover{background:#faf9f6;color:var(--ink)}
+  .cp.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
+  .cp .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cp .n{font-size:12px;color:var(--ink-faint);font-weight:600}
+  .cp.active .n{color:var(--accent)}
+  .cp .rdot{width:6px;height:6px;border-radius:50%;background:var(--ai);flex-shrink:0}
+
+  /* main */
+  .main{overflow:auto;max-height:100vh}
+  .toolbar{display:flex;align-items:center;gap:12px;padding:18px 32px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:20}
+  .toolbar h1{font-family:'Bricolage Grotesque';font-weight:600;font-size:20px;letter-spacing:-.02em;margin-right:6px}
+  .vtabs{display:inline-flex;background:#ece9e2;border-radius:9px;padding:3px;gap:2px}
+  .vtabs button{border:none;background:transparent;font-family:inherit;font-size:13px;font-weight:600;color:var(--ink-soft);padding:6px 16px;border-radius:7px;cursor:pointer}
+  .vtabs button.active{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.07)}
+  .search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:8px 12px;flex:1;max-width:320px}
+  .search input{border:none;outline:none;font-family:inherit;font-size:13.5px;width:100%;background:transparent}
+  .search svg{width:15px;height:15px;color:var(--ink-faint)}
+  .selbox{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:8px 13px;font-size:13.5px;font-weight:600;cursor:pointer}
+  .selbox svg{width:14px;height:14px;color:var(--ink-faint)}
+  .btn{font-family:inherit;font-size:13px;font-weight:600;padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+  .btn:hover{border-color:#cfccc3;background:#faf9f6}
+  .btn svg{width:14px;height:14px}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.primary:hover{background:#274d43}
+  .btn.import{background:#3949ab;color:#fff;border-color:#3949ab}
+  .btn.import:hover{background:#2f3d96}
+  .toolbar .spacer{margin-left:auto}
+
+  .content{padding:24px 32px 80px;max-width:1180px}
+  .ctx{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .ctx .h{font-family:'Bricolage Grotesque';font-weight:600;font-size:23px;letter-spacing:-.01em}
+  .ctx .meta{font-size:13px;color:var(--ink-faint);margin-top:3px}
+  .ctx .meta b{color:var(--ink-soft);font-weight:600}
+
+  /* review nudge */
+  .nudge{display:flex;align-items:center;gap:12px;background:var(--ai-soft);border:1px solid var(--ai-line);border-radius:12px;padding:13px 18px;margin-bottom:20px}
+  .nudge .ic{width:30px;height:30px;border-radius:8px;background:#fff;border:1px solid var(--ai-line);display:flex;align-items:center;justify-content:center;color:var(--ai);flex-shrink:0}
+  .nudge .ic svg{width:16px;height:16px}
+  .nudge .tx{font-size:13.5px;color:#6f4f11}
+  .nudge .tx b{color:#5b400c;font-weight:700}
+  .nudge .btn{margin-left:auto;background:var(--ai);color:#fff;border-color:var(--ai)}
+  .nudge .btn:hover{background:#7e5810}
+
+  /* groups */
+  .group{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:13px;box-shadow:var(--shadow);overflow:hidden}
+  .group.review{border-color:var(--ai-line)}
+  .ghead{display:flex;align-items:center;gap:13px;padding:15px 18px;cursor:pointer}
+  .group.review .ghead{background:linear-gradient(0deg,#fff,var(--ai-soft))}
+  .gbadge{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:6px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;letter-spacing:.02em}
+  .gbadge.exact{color:var(--exact);background:var(--exact-soft)}
+  .gbadge.smart{color:var(--smart);background:var(--smart-soft)}
+  .gbadge.ai{color:var(--ai);background:#fff;border:1px solid var(--ai-line)}
+  .gbadge svg{width:11px;height:11px}
+  .gtitle{min-width:0}
+  .gtitle .t{font-weight:700;font-size:15px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gtitle .s{font-size:12px;color:var(--ink-faint);margin-top:2px;font-family:'Spline Sans Mono',monospace}
+  .gtitle .desc{font-size:12.5px;color:#6f4f11;margin-top:3px}
+  .gright{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .gcount{font-size:12.5px;color:var(--ink-faint);font-weight:600;white-space:nowrap}
+  .gcount .ok{color:var(--in)}
+  .gear{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--ink-faint);cursor:pointer;position:relative}
+  .gear:hover{color:var(--accent);border-color:#cfccc3;background:#faf9f6}
+  .gear svg{width:15px;height:15px}
+  .gear .tip{position:absolute;bottom:calc(100% + 8px);right:0;background:#11161f;color:#fff;font-size:11.5px;font-weight:500;padding:6px 9px;border-radius:7px;white-space:nowrap;opacity:0;pointer-events:none;transition:.15s;font-family:'Hanken Grotesk'}
+  .gear:hover .tip{opacity:1}
+  .gchev{color:var(--ink-faint);transition:.2s}
+  .gchev svg{width:18px;height:18px;display:block}
+  .group.open .gchev{transform:rotate(180deg)}
+  .gactions{display:flex;gap:9px;padding:0 18px 15px;flex-wrap:wrap}
+
+  .gbody{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .group.open .gbody{max-height:2400px}
+  .thead,.trow{display:grid;grid-template-columns:104px 1fr 130px 180px 150px 110px 96px;gap:8px;align-items:center}
+  .thead{padding:9px 18px;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);background:#fbfaf7}
+  .thead .r{text-align:right}
+  .trow{padding:12px 18px;font-size:13px;border-bottom:1px solid var(--line-soft)}
+  .trow:last-child{border-bottom:none}
+  .trow:hover{background:#fbfaf7}
+  .trow .date{color:var(--ink-soft);font-weight:500;font-variant-numeric:tabular-nums}
+  .trow .desc{font-family:'Spline Sans Mono',monospace;font-size:12px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .trow .cp{font-weight:500;color:var(--ink-soft);padding:0}
+  .trow .coa{color:var(--ink-soft)}
+  .trow .ty{color:var(--ink-faint);font-size:12.5px}
+  .trow .amt{text-align:right;font-weight:600;color:var(--out);font-variant-numeric:tabular-nums}
+  .stat{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--in)}
+  .stat .d{width:6px;height:6px;border-radius:50%;background:var(--in)}
+
+  .morebtn{width:100%;text-align:center;padding:13px;font-size:13px;font-weight:600;color:var(--ink-soft);background:var(--surface);border:1px dashed var(--line);border-radius:var(--radius);cursor:pointer}
+  .morebtn:hover{background:#faf9f6;color:var(--ink)}
+
+  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:#11161f;color:#fff;font-size:13px;font-weight:500;padding:12px 20px;border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,.25);opacity:0;transition:.25s;z-index:50;display:flex;align-items:center;gap:9px}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast svg{width:15px;height:15px;color:#7fb8a3}
+  @media(max-width:1000px){.app{grid-template-columns:1fr}.rail,.panel{display:none}.thead,.trow{grid-template-columns:90px 1fr 110px 100px}.trow .coa,.trow .ty,.thead .coa,.thead .ty{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- rail -->
+  <nav class="rail">
+    <div class="logo">Z</div>
+    <div class="ri" title="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></div>
+    <div class="ri" title="Rules"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+    <div class="ri active" title="Transactions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></div>
+    <div class="ri" title="Receipts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+    <div class="ri" title="Workflows"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+    <div class="ri" title="Accounting"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-5"/></svg></div>
+    <div class="av">MW</div>
+  </nav>
+
+  <!-- left panel -->
+  <aside class="panel">
+    <div class="progress">
+      <svg class="ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.5" fill="none" stroke="#ece9e2" stroke-width="3.5"/><circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--accent)" stroke-width="3.5" stroke-dasharray="97.4 97.4" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 18 18)"/><text x="18" y="19" text-anchor="middle" dominant-baseline="middle" font-family="Bricolage Grotesque" font-size="8.5" font-weight="600" fill="#2f5d50">100%</text></svg>
+      <div class="pmeta"><div class="pn">435 reviewed</div><div class="ps">0 remaining</div><div class="pv">$298,447 processed</div></div>
+    </div>
+    <div class="tabs"><button class="active">All</button><button>For Review</button><button>Posted</button></div>
+    <div id="leftnav"></div>
+  </aside>
+
+  <!-- main -->
+  <main class="main">
+    <div class="toolbar">
+      <h1>Transactions</h1>
+      <div class="vtabs"><button class="active">Review</button><button>Ledger</button></div>
+      <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4-4"/></svg><input placeholder="Search transactions…"></div>
+      <div class="selbox">Chase CC 5770 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filters</button>
+      <div class="spacer" style="margin-left:auto"></div>
+      <button class="btn import"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>Import</button>
+    </div>
+
+    <div class="content">
+      <div class="ctx">
+        <div><div class="h">Chevron</div><div class="meta"><b>45</b> transactions · <b>31</b> auto-categorized · <b style="color:var(--ai)">14</b> suggested by AI</div></div>
+        <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Approve all 45</button>
+      </div>
+
+      <div class="nudge" id="nudge">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 4.6L18.5 9l-3.5 3 1 5L12 14.8 8 17l1-5L5.5 9l4.6-1.4L12 3z"/></svg></div>
+        <div class="tx"><b>14 transactions need a quick look.</b> The AI grouped these because they didn't match an existing rule — confirm the category and you're done.</div>
+        <button class="btn" onclick="document.getElementById('grp0').scrollIntoView({behavior:'smooth',block:'center'})">Review them</button>
+      </div>
+
+      <div id="groups"></div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 2"/></svg><span id="toastmsg"></span></div>
+
+<script>
+/* ---------- LEFT NAV DATA ---------- */
+const nav=[
+  {sec:"General", open:true, items:[
+    {nm:"Unknown Vendor",n:5,review:true},{nm:"Amazon",n:99},{nm:"Office Depot",n:52},
+    {nm:"Chevron",n:45,active:true},{nm:"Spectrum",n:23},{nm:"Chase C.C.",n:22},{nm:"PG&E",n:17},
+    {nm:"DB Diagnostics",n:14},{nm:"ADT Security",n:12},{nm:"Amazon Prime",n:12},{nm:"CNA Insurance",n:12},
+    {nm:"McKesson Medical",n:12},{nm:"Stericycle",n:12},{nm:"TID",n:12},{nm:"VPS Experity Inc",n:12},
+    {nm:"Henry Schein",n:11},{nm:"Primo Water",n:8},{nm:"The UPS Store",n:7}]},
+  {sec:"Checks", open:false, items:[
+    {nm:"Dr. Georgies",n:4},{nm:"City of Fresno",n:3},{nm:"Petty Cash",n:2},{nm:"State Farm",n:2}]},
+  {sec:"Payouts", open:false, items:[
+    {nm:"Gusto Payroll",n:6},{nm:"Stripe Payout",n:5},{nm:"Owner Draw",n:3}]},
+];
+document.getElementById('leftnav').innerHTML=nav.map((s,si)=>{
+  const total=s.items.reduce((a,b)=>a+b.n,0);
+  return `<div class="sec">
+    <div class="sechead ${s.open?'':'collapsed'}" onclick="toggleSec(${si})">
+      <span class="ch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span>
+      ${s.sec}<span class="cnt">${total}</span>
+    </div>
+    <div class="seclist" id="sec-${si}" style="max-height:${s.open?(s.items.length*40+'px'):'0'}">
+      ${s.items.map(it=>`<div class="cp ${it.active?'active':''}"><span class="nm">${it.nm}</span>${it.review?'<span class="rdot"></span>':''}<span class="n">${it.n}</span></div>`).join('')}
+    </div>
+  </div>`;
+}).join('');
+function toggleSec(i){
+  const h=document.querySelector(`#leftnav .sec:nth-child(${i+1}) .sechead`);
+  const l=document.getElementById('sec-'+i);
+  h.classList.toggle('collapsed');
+  l.style.maxHeight=l.style.maxHeight&&l.style.maxHeight!=='0px'?'0':(nav[i].items.length*40+'px');
+}
+
+/* ---------- GROUPS DATA ---------- */
+function txn(date,desc,amt){return {date,desc,coa:"Automobile Expense",type:"Credit Card Charge",amt};}
+function rep(desc,rows){return rows.map(r=>txn(r[0],desc,r[1]));}
+
+const groups=[
+  {kind:"ai",review:true,title:"Chevron fuel purchases on business trips in California",
+   desc:"Suggested by AI — these didn't match an existing rule.",count:14,
+   txns:[
+     txn("Oct 26, 2025","CHEVRON 0096074 SYLMAR CA","$79.18"),
+     txn("Oct 16, 2025","CHEVRON 0201164 ROCKLIN CA","$76.92"),
+     txn("Sep 12, 2025","CHEVRON 0090206 MILLBRAE CA","$69.03"),
+     txn("Sep 8, 2025","CHEVRON 0090838 SAN FRANCISCO CA","$97.89"),
+     txn("Sep 1, 2025","CHEVRON 0090838 SAN FRANCISCO CA","$99.74"),
+     txn("Aug 28, 2025","CHEVRON 0090838 SAN FRANCISCO CA","$96.08"),
+     txn("Aug 22, 2025","CHEVRON 0090838 SAN FRANCISCO CA","$94.41"),
+     txn("Aug 17, 2025","CHEVRON 0091909 BURLINGAME CA","$71.53"),
+     txn("Aug 13, 2025","CHEVRON 0097781 SAN MATEO CA","$103.10"),
+     txn("Aug 10, 2025","CHEVRON 0207679 LIVERMORE CA","$116.24"),
+     txn("Aug 7, 2025","CHEVRON 0091000 SAN FRANCISCO CA","$77.48"),
+     txn("Jul 28, 2025","CHEVRON 0385019 SACRAMENTO CA","$115.10"),
+     txn("Jul 5, 2025","CHEVRON 0207218 ELK GROVE CA","$106.05"),
+     txn("Mar 30, 2025","CHEVRON 0308316 ROSEVILLE CA","$98.92")]},
+  {kind:"exact",title:"Chevron — Stockton CA",sub:"CHEVRON 0096171 STOCKTON CA",count:13,ruleId:"chevron-stockton",
+   txns:rep("CHEVRON 0096171 STOCKTON CA",[["Oct 22, 2025","$99.66"],["Oct 9, 2025","$77.35"],["Sep 30, 2025","$88.20"],["Sep 18, 2025","$91.04"],["Sep 3, 2025","$84.77"],["Aug 19, 2025","$102.33"],["Aug 5, 2025","$79.90"],["Jul 22, 2025","$95.18"],["Jul 8, 2025","$87.46"],["Jun 24, 2025","$90.12"],["Jun 10, 2025","$83.55"],["May 27, 2025","$98.01"],["May 12, 2025","$81.74"]])},
+  {kind:"exact",title:"Chevron — Fresno CA",sub:"CHEVRON 0094275 FRESNO CA",count:5,ruleId:"chevron-fresno",
+   txns:rep("CHEVRON 0094275 FRESNO CA",[["Oct 14, 2025","$72.40"],["Sep 9, 2025","$68.15"],["Aug 4, 2025","$74.90"],["Jul 1, 2025","$70.22"],["Jun 3, 2025","$66.80"]])},
+  {kind:"exact",title:"Chevron — Sacramento CA",sub:"CHEVRON 0373274 SACRAMENTO CA",count:5,ruleId:"chevron-sac",
+   txns:rep("CHEVRON 0373274 SACRAMENTO CA",[["Oct 11, 2025","$85.30"],["Sep 6, 2025","$80.11"],["Aug 2, 2025","$88.44"],["Jun 28, 2025","$82.90"],["May 30, 2025","$79.05"]])},
+  {kind:"smart",title:"Chevron — pay-at-pump (rotating station IDs)",sub:"Smart match",count:4,ruleId:"chevron-pump",
+   txns:[txn("Oct 5, 2025","CHEVRON 00 4F2K9 PAYATPUMP CA","$54.20"),txn("Sep 2, 2025","CHEVRON 00 9XZ12 PAYATPUMP CA","$61.77"),txn("Aug 1, 2025","CHEVRON 00 K70QP PAYATPUMP CA","$58.33"),txn("Jun 30, 2025","CHEVRON 00 22LMN PAYATPUMP CA","$60.10")]},
+];
+
+function badge(k){
+  if(k==='exact')return `<span class="gbadge exact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Exact match</span>`;
+  if(k==='smart')return `<span class="gbadge smart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="12" r="2.5"/><path d="M8.5 6H15M8.5 18H13M15 12H8.5"/></svg>Smart match</span>`;
+  return `<span class="gbadge ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 4.6L18.5 9l-3.5 3 1 5L12 14.8 8 17l1-5L5.5 9l4.6-1.4L12 3z"/></svg>AI suggested</span>`;
+}
+function rows(txns){
+  return `<div class="thead"><span>Date</span><span>Description</span><span>Counterparty</span><span>Account (COA)</span><span>Type</span><span class="r">Amount</span><span>Status</span></div>`+
+    txns.map(t=>`<div class="trow"><span class="date">${t.date}</span><span class="desc">${t.desc}</span><span class="cp">Chevron</span><span class="coa">${t.coa}</span><span class="ty">${t.type}</span><span class="amt">(${t.amt})</span><span><span class="stat"><span class="d"></span>Posted</span></span></div>`).join('');
+}
+
+document.getElementById('groups').innerHTML=groups.map((g,i)=>{
+  const open=g.review;
+  return `<div class="group ${g.review?'review':''} ${open?'open':''}" id="grp${i}">
+    <div class="ghead" onclick="toggleGroup(${i})">
+      ${badge(g.kind)}
+      <div class="gtitle">
+        <div class="t">${g.title}</div>
+        ${g.kind==='ai'?`<div class="desc">${g.desc}</div>`:(g.sub&&g.kind==='exact'?`<div class="s">${g.sub}</div>`:'')}
+      </div>
+      <div class="gright">
+        <span class="gcount">${g.count} ${g.review?'transactions':'<span class="ok">auto-categorized</span>'}</span>
+        ${g.kind==='ai'
+          ? `<div class="gear" title="Save as a rule" onclick="event.stopPropagation();toast('Saved as a rule — future Chevron trips will auto-categorize')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span class="tip">Save as a rule</span></div>`
+          : `<div class="gear" onclick="event.stopPropagation();toast('Opening this rule in Categorization Rules →')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a7 7 0 0 0 .1-3l2-1.5-2-3.5-2.3 1a7 7 0 0 0-1.7-1L14.5 2h-5L9 4.5a7 7 0 0 0-1.7 1l-2.3-1-2 3.5 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.5 2.3-1a7 7 0 0 0 1.7 1L9.5 22h5l.5-2.5a7 7 0 0 0 1.7-1l2.3 1 2-3.5-2-1.5z"/></svg><span class="tip">Open this rule</span></div>`}
+        <span class="gchev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+      </div>
+    </div>
+    ${g.kind==='ai'?`<div class="gactions"><button class="btn primary" onclick="toast('14 transactions approved')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Approve all 14</button><button class="btn" onclick="toast('Saved as a rule')">Save as a rule</button><button class="btn">Change category</button></div>`:''}
+    <div class="gbody">${rows(g.txns)}</div>
+  </div>`;
+}).join('')+
+`<div class="morebtn" onclick="toast('Showing 5 smaller groups (4 transactions)')">Show 5 smaller groups · 4 transactions</div>`;
+
+function toggleGroup(i){document.getElementById('grp'+i).classList.toggle('open');}
+let tt;
+function toast(msg){const el=document.getElementById('toast');document.getElementById('toastmsg').textContent=msg;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2600);}
+</script>
+</body>
+</html>

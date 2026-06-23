@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Atlas — Tax Prep FY 2024 · Bright &amp; Bloom · Documents</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary: #6366f1; --primary-dark: #4f46e5; --primary-light: #eef2ff;
+  --slate-50:  #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1; --slate-400: #94a3b8; --slate-500: #64748b;
+  --slate-600: #475569; --slate-700: #334155; --slate-800: #1e293b; --slate-900: #0f172a;
+  --green-50: #f0fdf4; --green-100: #dcfce7; --green-500: #22c55e; --green-600: #16a34a; --green-700: #15803d;
+  --amber-50: #fffbeb; --amber-100: #fef3c7; --amber-300: #fcd34d; --amber-400: #fbbf24; --amber-500: #f59e0b; --amber-600: #d97706; --amber-700: #b45309; --amber-800: #92400e;
+  --red-50: #fff1f2; --red-100: #fee2e2; --red-500: #ef4444; --red-600: #dc2626;
+  --indigo-50: #eef2ff; --indigo-100: #e0e7ff; --indigo-500: #6366f1; --indigo-600: #4f46e5;
+  --blue-50: #eff6ff; --blue-100: #dbeafe; --blue-500: #3b82f6; --blue-600: #2563eb;
+  --violet-50: #f5f3ff; --violet-100: #ede9fe; --violet-500: #8b5cf6; --violet-600: #7c3aed;
+  --teal-50: #f0fdfa; --teal-100: #ccfbf1; --teal-600: #0d9488; --teal-700: #0f766e;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px; background: var(--slate-50); color: var(--slate-900);
+  display: flex; height: 100vh; overflow: hidden;
+}
+
+/* ── Sidebar ── */
+.sidebar { width: 220px; flex-shrink: 0; background: white; border-right: 1px solid var(--slate-200); display: flex; flex-direction: column; height: 100vh; }
+.sidebar-logo { padding: 20px 20px 16px; border-bottom: 1px solid var(--slate-100); display: flex; align-items: center; gap: 10px; }
+.sidebar-logo-mark { width: 30px; height: 30px; background: linear-gradient(135deg, #6366f1, #4f46e5); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 13px; }
+.sidebar-logo-name { font-weight: 700; font-size: 15px; color: var(--slate-900); }
+.sidebar-nav { padding: 12px 10px; flex: 1; overflow-y: auto; }
+.nav-section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--slate-400); padding: 8px 10px 4px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 7px; color: var(--slate-600); font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: none; width: 100%; text-align: left; transition: background .15s; text-decoration: none; }
+.nav-item:hover { background: var(--slate-100); color: var(--slate-900); }
+.nav-item.active { background: var(--indigo-50); color: var(--primary-dark); }
+.nav-icon { width: 16px; height: 16px; opacity: .65; flex-shrink: 0; }
+.nav-item.active .nav-icon { opacity: 1; }
+.sidebar-footer { padding: 14px 16px; border-top: 1px solid var(--slate-100); display: flex; align-items: center; gap: 10px; }
+.sidebar-avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #818cf8, #4f46e5); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 700; }
+.sidebar-user-name { font-size: 13px; font-weight: 600; color: var(--slate-800); }
+.sidebar-user-role { font-size: 11px; color: var(--slate-400); }
+
+/* ── Main ── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+/* ── Topbar ── */
+.topbar { height: 52px; background: white; border-bottom: 1px solid var(--slate-200); display: flex; align-items: center; padding: 0 20px; gap: 10px; flex-shrink: 0; }
+.breadcrumb { font-size: 12px; color: var(--slate-400); display: flex; align-items: center; gap: 5px; }
+.breadcrumb a { color: var(--slate-400); text-decoration: none; }
+.breadcrumb a:hover { color: var(--primary); }
+.bc-sep { color: var(--slate-300); }
+.bc-cur { color: var(--slate-700); font-weight: 600; }
+.tb-spacer { flex: 1; }
+.period-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--teal-50); color: var(--teal-700); font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--teal-100); }
+.status-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 9999px; }
+.sp-gather { background: var(--violet-100); color: var(--violet-600); }
+.sp-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; animation: pulse-dot 2s ease-in-out infinite; }
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.4} }
+.tb-btn { font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 7px; border: 1px solid var(--slate-200); background: white; color: var(--slate-600); cursor: pointer; text-decoration: none; transition: border-color .12s; display: inline-flex; align-items: center; gap: 5px; }
+.tb-btn:hover { border-color: var(--slate-300); color: var(--slate-900); }
+.tb-btn.primary { background: var(--primary-dark); color: white; border-color: transparent; }
+.tb-btn.primary:hover { background: #4338ca; }
+.tb-btn.teal { background: var(--teal-600); color: white; border-color: transparent; }
+.tb-btn.teal:hover { background: var(--teal-700); }
+
+/* ── Body split ── */
+.body { flex: 1; display: flex; overflow: hidden; }
+.content { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+
+/* ── Phase strip ── */
+.phase-bar { background: white; border-bottom: 1px solid var(--slate-200); padding: 12px 20px; display: flex; align-items: center; gap: 0; flex-shrink: 0; }
+.phase-node { display: flex; align-items: center; gap: 8px; }
+.phase-dot { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; flex-shrink: 0; }
+.phase-dot.done   { background: var(--green-500); color: white; }
+.phase-dot.active { background: var(--violet-500); color: white; }
+.phase-dot.ahead  { background: white; border: 2px solid var(--slate-200); color: var(--slate-400); }
+.phase-label { font-size: 11px; font-weight: 600; }
+.phase-label.done   { color: var(--green-700); }
+.phase-label.active { color: var(--violet-600); }
+.phase-label.ahead  { color: var(--slate-400); }
+.phase-line { width: 32px; height: 2px; flex-shrink: 0; margin: 0 4px; }
+.phase-line.done   { background: var(--green-500); }
+.phase-line.active { background: linear-gradient(90deg, var(--violet-500), var(--slate-200)); }
+.phase-line.ahead  { background: var(--slate-200); }
+.phase-spacer { flex: 1; }
+.deadline-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--red-50); border: 1px solid var(--red-100); border-radius: 6px; padding: 4px 10px; }
+.deadline-label { font-size: 10px; font-weight: 600; color: var(--red-600); }
+.deadline-val { font-size: 11px; font-weight: 700; color: var(--red-600); }
+
+/* ── Alert banner ── */
+.alert-banner {
+  background: var(--amber-50); border: 1px solid var(--amber-400); border-radius: 10px;
+  padding: 12px 16px; display: flex; align-items: flex-start; gap: 10px;
+}
+.alert-icon { width: 20px; height: 20px; border-radius: 50%; background: var(--amber-400); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.alert-body { flex: 1; }
+.alert-title { font-size: 13px; font-weight: 700; color: var(--amber-800); }
+.alert-sub   { font-size: 11px; color: var(--amber-700); margin-top: 2px; line-height: 1.5; }
+.alert-items { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.alert-item-chip { display: inline-flex; align-items: center; gap: 5px; background: white; border: 1px solid var(--amber-300); border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: 600; color: var(--amber-800); cursor: pointer; }
+.alert-item-chip:hover { background: var(--amber-100); }
+
+/* ── Section header ── */
+.section-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.section-title { font-size: 13px; font-weight: 700; color: var(--slate-800); }
+.section-meta  { font-size: 11px; color: var(--slate-400); }
+
+/* ── Document checklist card ── */
+.checklist-card { background: white; border: 1px solid var(--slate-200); border-radius: 12px; overflow: hidden; }
+.checklist-header { padding: 14px 18px; border-bottom: 1px solid var(--slate-100); display: flex; align-items: center; gap: 12px; }
+.ch-title { font-size: 13px; font-weight: 700; color: var(--slate-800); flex: 1; }
+.progress-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 9999px; }
+.pc-green  { background: var(--green-100); color: var(--green-700); }
+.pc-amber  { background: var(--amber-100); color: var(--amber-700); }
+.pc-violet { background: var(--violet-100); color: var(--violet-600); }
+
+.checklist-progress { padding: 10px 18px; border-bottom: 1px solid var(--slate-100); display: flex; align-items: center; gap: 12px; }
+.cp-bar-wrap { flex: 1; height: 6px; background: var(--slate-100); border-radius: 9999px; overflow: hidden; }
+.cp-bar-fill { height: 100%; border-radius: 9999px; transition: width .3s; }
+.cp-fill-green  { background: var(--green-500); }
+.cp-fill-amber  { background: var(--amber-400); }
+.cp-label { font-size: 11px; font-weight: 600; color: var(--slate-600); white-space: nowrap; }
+
+/* ── Checklist table ── */
+.doc-table { width: 100%; border-collapse: collapse; }
+.doc-table th { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--slate-400); padding: 8px 18px; background: var(--slate-50); border-bottom: 1px solid var(--slate-100); text-align: left; }
+.doc-table th:last-child { text-align: right; }
+.doc-table td { padding: 10px 18px; border-bottom: 1px solid var(--slate-100); vertical-align: middle; }
+.doc-table tr:last-child td { border-bottom: none; }
+.doc-table tr:hover td { background: var(--slate-50); }
+.doc-table tr.missing-row td { background: var(--amber-50); }
+.doc-table tr.missing-row:hover td { background: var(--amber-100); }
+
+.doc-check { width: 17px; height: 17px; border-radius: 4px; border: 2px solid; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.doc-check.received { border-color: var(--green-500); background: var(--green-500); }
+.doc-check.missing  { border-color: var(--amber-400); background: transparent; }
+.doc-check.na       { border-color: var(--slate-200); background: var(--slate-100); }
+
+.doc-name { font-size: 12px; font-weight: 600; color: var(--slate-800); }
+.doc-sub  { font-size: 10px; color: var(--slate-400); margin-top: 1px; }
+.doc-name.missing { color: var(--amber-800); }
+.doc-sub.missing  { color: var(--amber-600); }
+
+.doc-source { font-size: 11px; color: var(--slate-500); }
+.doc-date   { font-size: 11px; color: var(--slate-400); white-space: nowrap; }
+
+.doc-status-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; }
+.dsb-received { background: var(--green-100); color: var(--green-700); }
+.dsb-missing  { background: var(--amber-100); color: var(--amber-700); }
+.dsb-on-file  { background: var(--indigo-50); color: var(--indigo-600); }
+.dsb-na       { background: var(--slate-100); color: var(--slate-400); }
+
+.doc-actions { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
+.doc-action-btn { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 5px; border: 1px solid; cursor: pointer; text-decoration: none; }
+.dab-request { border-color: var(--amber-300); color: var(--amber-700); background: white; }
+.dab-request:hover { background: var(--amber-50); }
+.dab-view    { border-color: var(--indigo-200); color: var(--indigo-600); background: var(--indigo-50); }
+.dab-view:hover { background: var(--indigo-100); }
+.dab-upload  { border-color: var(--slate-200); color: var(--slate-500); background: white; }
+.dab-upload:hover { background: var(--slate-50); }
+
+/* ── Category divider row ── */
+.cat-divider td { background: var(--slate-50); padding: 6px 18px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--slate-400); border-bottom: 1px solid var(--slate-100); }
+
+/* ── Questionnaire card ── */
+.questionnaire-card { background: white; border: 1px solid var(--slate-200); border-radius: 12px; padding: 16px 18px; }
+.qc-header { display: flex; align-items: flex-start; gap: 12px; }
+.qc-icon { width: 36px; height: 36px; border-radius: 9px; background: var(--teal-50); display: flex; align-items: center; justify-content: center; color: var(--teal-600); flex-shrink: 0; }
+.qc-body { flex: 1; }
+.qc-title { font-size: 13px; font-weight: 700; color: var(--slate-800); }
+.qc-sub { font-size: 11px; color: var(--slate-500); margin-top: 2px; line-height: 1.5; }
+.qc-meta { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
+.qc-meta-item { display: flex; flex-direction: column; gap: 1px; }
+.qc-meta-label { font-size: 10px; color: var(--slate-400); text-transform: uppercase; letter-spacing: .04em; }
+.qc-meta-val { font-size: 12px; font-weight: 600; color: var(--slate-700); }
+.qc-meta-val.green { color: var(--green-700); }
+.qc-meta-val.amber { color: var(--amber-700); }
+.qc-divider { height: 1px; background: var(--slate-100); margin: 14px 0; }
+.qc-followups { display: flex; flex-direction: column; gap: 8px; }
+.qc-followup { background: var(--amber-50); border: 1px solid var(--amber-200); border-radius: 8px; padding: 10px 12px; display: flex; align-items: flex-start; gap: 8px; }
+.qcf-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--amber-500); flex-shrink: 0; margin-top: 4px; }
+.qcf-text { font-size: 11px; color: var(--amber-800); line-height: 1.5; flex: 1; }
+.qcf-action { font-size: 10px; font-weight: 600; color: var(--amber-700); text-decoration: none; border: 1px solid var(--amber-300); border-radius: 5px; padding: 2px 7px; white-space: nowrap; flex-shrink: 0; background: white; }
+.qcf-action:hover { background: var(--amber-100); }
+
+/* ── Right meta panel ── */
+.meta-panel { width: 256px; flex-shrink: 0; overflow-y: auto; border-left: 1px solid var(--slate-200); background: white; }
+.mp-section { padding: 16px; border-bottom: 1px solid var(--slate-100); }
+.mp-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--slate-400); margin-bottom: 10px; }
+.mp-row { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; }
+.mp-key { font-size: 11px; color: var(--slate-500); }
+.mp-val { font-size: 12px; font-weight: 600; color: var(--slate-700); }
+.mp-val.green { color: var(--green-700); }
+.mp-val.amber { color: var(--amber-700); }
+.mp-val.red   { color: var(--red-600); }
+
+.deadline-block { background: var(--red-50); border: 1px solid var(--red-100); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
+.db-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--red-600); }
+.db-date  { font-size: 16px; font-weight: 800; color: var(--red-600); margin-top: 2px; }
+.db-countdown { font-size: 10px; color: var(--red-500); margin-top: 2px; }
+
+.filing-type-block { background: var(--teal-50); border: 1px solid var(--teal-100); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+.ftb-type { font-size: 13px; font-weight: 700; color: var(--teal-700); }
+.ftb-sub  { font-size: 10px; color: var(--teal-600); margin-top: 2px; }
+
+.extension-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-top: 1px solid var(--slate-100); margin-top: 4px; }
+.ext-label { font-size: 11px; color: var(--slate-500); }
+.ext-val   { font-size: 11px; font-weight: 600; color: var(--slate-600); }
+.ext-btn   { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 5px; border: 1px solid var(--slate-200); background: white; color: var(--slate-500); cursor: pointer; }
+.ext-btn:hover { border-color: var(--slate-300); background: var(--slate-50); }
+
+.doc-summary-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.dsb-card { background: var(--slate-50); border-radius: 7px; padding: 8px 10px; }
+.dsb-val  { font-size: 16px; font-weight: 700; color: var(--slate-800); }
+.dsb-val.green { color: var(--green-700); }
+.dsb-val.amber { color: var(--amber-700); }
+.dsb-key  { font-size: 10px; color: var(--slate-400); }
+
+.contact-block { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+.contact-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #f0abfc, #818cf8); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.contact-name { font-size: 12px; font-weight: 600; color: var(--slate-800); }
+.contact-role { font-size: 10px; color: var(--slate-400); }
+.contact-actions { display: flex; gap: 6px; margin-top: 8px; }
+.contact-btn { flex: 1; font-size: 10px; font-weight: 600; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--slate-200); background: white; color: var(--slate-500); cursor: pointer; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.contact-btn:hover { border-color: var(--slate-300); background: var(--slate-50); }
+
+.notes-area { font-size: 11px; color: var(--slate-500); background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 7px; padding: 8px 10px; line-height: 1.6; min-height: 60px; }
+.notes-add { font-size: 10px; font-weight: 600; color: var(--primary); cursor: pointer; margin-top: 6px; }
+
+/* ── Activity feed ── */
+.activity-item { display: flex; gap: 8px; padding: 6px 0; }
+.act-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.act-dot.green  { background: var(--green-500); }
+.act-dot.violet { background: var(--violet-500); }
+.act-dot.amber  { background: var(--amber-500); }
+.act-dot.slate  { background: var(--slate-300); }
+.act-body { font-size: 11px; color: var(--slate-600); line-height: 1.5; }
+.act-time { font-size: 10px; color: var(--slate-400); }
+</style>
+</head>
+<body>
+
+<!-- ── Sidebar ── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-mark">A</div>
+    <span class="sidebar-logo-name">Atlas</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Workspace</div>
+    <a class="nav-item" href="dashboard.html">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item" href="agent-hub.html">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+      Inbox
+    </a>
+    <a class="nav-item active" href="projects-list.html">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      Projects
+    </a>
+    <a class="nav-item" href="clients-list.html">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Clients
+    </a>
+    <a class="nav-item" href="workflow-live.html">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      Workflows
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-avatar">SK</div>
+    <div>
+      <div class="sidebar-user-name">Sarah K.</div>
+      <div class="sidebar-user-role">Sr. Bookkeeper</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── Main ── -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a href="projects-list.html">Projects</a>
+      <span class="bc-sep">/</span>
+      <a href="clients-list.html">Bright &amp; Bloom LLC</a>
+      <span class="bc-sep">/</span>
+      <span class="bc-cur">Tax Prep — FY 2024</span>
+    </div>
+    <div class="tb-spacer"></div>
+    <div class="period-badge">
+      <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      FY 2024 · Jan 1 – Dec 31
+    </div>
+    <span class="status-pill sp-gather"><span class="sp-dot"></span>Gathering documents</span>
+    <a class="tb-btn teal" href="#">
+      <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+      Request documents
+    </a>
+  </div>
+
+  <!-- Phase strip -->
+  <div class="phase-bar">
+    <div class="phase-node">
+      <div class="phase-dot done">
+        <svg width="10" height="10" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <span class="phase-label done">Project setup</span>
+    </div>
+    <div class="phase-line done"></div>
+    <div class="phase-node">
+      <div class="phase-dot active">2</div>
+      <span class="phase-label active">Gather documents</span>
+    </div>
+    <div class="phase-line active"></div>
+    <div class="phase-node">
+      <div class="phase-dot ahead">3</div>
+      <span class="phase-label ahead">Organize &amp; review</span>
+    </div>
+    <div class="phase-line ahead"></div>
+    <div class="phase-node">
+      <div class="phase-dot ahead">4</div>
+      <span class="phase-label ahead">Prepare return</span>
+    </div>
+    <div class="phase-line ahead"></div>
+    <div class="phase-node">
+      <div class="phase-dot ahead">5</div>
+      <span class="phase-label ahead">File</span>
+    </div>
+    <div class="phase-spacer"></div>
+    <div class="deadline-badge">
+      <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:#dc2626"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span class="deadline-label">Filing deadline</span>
+      <span class="deadline-val">Apr 15, 2025</span>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="body">
+    <div class="content">
+
+      <!-- Alert: missing docs -->
+      <div class="alert-banner">
+        <div class="alert-icon">
+          <svg width="11" height="11" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <div class="alert-body">
+          <div class="alert-title">3 documents still pending from client</div>
+          <div class="alert-sub">Last document request sent Apr 2, 2025. A follow-up reminder is recommended before the filing deadline.</div>
+          <div class="alert-items">
+            <span class="alert-item-chip">
+              <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              1099-DIV from Fidelity
+            </span>
+            <span class="alert-item-chip">
+              <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              K-1 from Bloom Partners LP
+            </span>
+            <span class="alert-item-chip">
+              <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              WF brokerage statement Dec
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Document Checklist -->
+      <div>
+        <div class="section-hd">
+          <span class="section-title">Document Checklist</span>
+          <span class="section-meta">10 of 13 received</span>
+        </div>
+
+        <div class="checklist-card">
+          <div class="checklist-progress">
+            <div class="cp-bar-wrap">
+              <div class="cp-bar-fill cp-fill-green" style="width: 77%"></div>
+            </div>
+            <span class="cp-label">10 / 13 received</span>
+            <span class="progress-chip pc-amber">3 pending</span>
+          </div>
+
+          <table class="doc-table">
+            <thead>
+              <tr>
+                <th style="width:28px"></th>
+                <th>Document</th>
+                <th>Source / Issuer</th>
+                <th>Received</th>
+                <th>Status</th>
+                <th style="width:120px"></th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <!-- Income documents -->
+              <tr class="cat-divider"><td colspan="6">Income documents</td></tr>
+
+              <tr>
+                <td>
+                  <div class="doc-check received">
+                    <svg width="9" height="9" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                  </div>
+                </td>
+                <td>
+                  <div class="doc-name">W-2</div>
+                  <div class="doc-sub">Wages, Jane Morrison</div>
+                </td>
+                <td class="doc-source">Bright &amp; Bloom Payroll</td>
+                <td class="doc-date">Mar 12, 2025</td>
+                <td><span class="doc-status-badge dsb-received">Received</span></td>
+                <td class="doc-actions">
+                  <a class="doc-action-btn dab-view" href="#">View</a>
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <div class="doc-check received">
+                    <svg width="9" height="9" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                  </div>
+                </td>
+                <td>
+                  <div class="doc-name">W-2</div>
+                  <div class="doc-sub">Wages, Michael Morrison</div>
+                </td>
+                <td class="doc-source">Acme Corp</td>
+                <td class="doc-date">Mar 18, 2025</td>
+                <td><span class="doc-status-badge dsb-received">Received</span></td>
+                <td class="doc-actions">
+                  <a class="doc-action-btn dab-view" href="#">View</a>
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <div class="doc-check received">
+                    <svg width="9" height="9" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                  </div>
+                </td>
+                <td>
+                  <div class="doc-name">1099-INT</div>
+                  <div class="doc-sub">Interest income</div>
+                </td>
+                <td class="doc-source">Chase Bank ****4951</td>
+                <td class="doc-date">Mar 22, 2025</td>
+                <td><span class="doc-status-badge dsb-received">Received</span></td>
+                <td class="doc-actions">
+                  <a class="doc-action-btn dab-view" href="#">View</a>
+                </td>
+              </tr>
+
+              <tr class="missing-row">
+                <td>
+                  <div class="doc-check missing"></div>
+                </td>
+                <td>
+                  <div class="doc-name missing">1099-DIV</div>
+                  <div class="doc-sub missing">Dividend income — not yet received</div>
+                </td>
+                <td class="doc-source">Fidelity Investments</td>
+                <td class="doc-date">—</td>
+                <td><span class="doc-status-badge dsb-missing">Pending client</span></td>
+                <td class="doc-actions">
+                  <a class="doc-action-btn dab-request" href="#">Remind</a>
+                  <a class="doc-action-btn dab-upload" href="#">Upload</a>
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <div class="doc-check received">
+                    <svg width="9" height="9" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                  </div>
+                </td>
+                <td>
+                  <div class="doc-name">1099-MISC ×3</div>
+                  <div class="doc-sub">Consulting income, vendor payments</div>
+                </td>
+                <td class="doc-source">Multiple issuers</td>
+                <td class="doc-date">Apr 1, 2025</td>
+                <td><span class="doc-status-badge dsb-received">Received</span></td>
+                <td class="doc-actions">
+                  <a class="doc-action-btn dab-view" href="#">View all</a>
+                </td>
+              </tr>
+
+              <!-- Business / pass-through -->
+              <tr class="cat-divider"><td colspan="6">Business &amp; pass-through</td></tr>
+
+              <tr class="missing-row">
+                <td>
+                  <div class="doc-check missing"></div>
+                </td>
+                <td>
+                  <div class="doc-name missing">K-1 (Form 1065)</div>
+                  <div class="doc-sub missing">Partnership income — not yet received</div>
+                </td>
+                <td class="doc-source">Bloom Partners LP</td>
+                <td class="doc-date">—</td>
+                <td><span class="doc-status-badge dsb-missing">Pending client</span></td>
+                <td class="doc-actions">
+                  <a class="doc-action-btn dab-request" href="#">Remind</a>
+                  <a class="doc-action-btn dab-upload" href="#">Upload</a>
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <div class="doc-check received">
+                    <svg width="9" height="9" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                  </div>
+                </td>
+                <td>
+                  <div class="doc-name">K-1 (Form 1120-S)</div>
+                  <div class="doc-sub">S-Corp distribution</div>
+                </td>
+                <td class="doc-source">Bright &amp; Bloom LLC</td>
+                <td class="doc-date">Mar 29, 2025</td>
+                <td><span class="doc-status-badge dsb-received">Received</span></td>
+                <td class="doc-actions">
+                  <a class="doc-action-btn dab-view" href="#">View</a>
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <div class="doc-check received">
+                    <svg width="9" height="9" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                  </div>
+                </td>
+                <td>
+                  <div class="doc-name">P&amp;L Statement (FY 2024)</div>
+                  <div class="doc-sub">Atlas-generated from book close</div>
+                </td>
+                <td class="doc-source">Atlas · Book Close Q4</td>
+                <td class="doc-date">Apr 3, 2025</td>
+                <td><span class="doc-status-badge dsb-on-file">On file</span></td>
+                <td class="doc-actions">
+                  <a class="doc-action-btn dab-view" href="#">View</a>
+                </td>
+              </tr>
+
+              <!-- Banking & investments -->
+              <tr class="cat-divider"><td colspan="6">Banking &amp; investments</td></tr>
+
+              <tr>
+                <td>
+                  <div class="doc-check received">
+                    <svg width="9" height="9" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                  </div>
+                </td>
+                <td>
+                  <div class="doc-name">Bank statement — year-end</div>
+                  <div class="doc-sub">Chase checking ****4951 (Jan–Nov)</div>
+                </td>
+                <td class="doc-source">Chase Bank</td>
+                <td class="doc-date">Apr 2, 2025</td>
+                <td><span class="doc-status-badge dsb-received">Received</span></td>
+                <td class="doc-actions">
+                  <a class="doc-action-btn dab-view" href="#">View</a>
+                </td>
+              </tr>
+
+              <tr class="missing-row">
+                <td>
+                  <div class="doc-check missing"></div>
+                </td>
+                <td>
+                  <div class="doc-name missing">Brokerage statement — Dec 2024</div>
+                  <div class="doc-sub missing">Year-end brokerage summary missing</div>
+                </td>
+                <td class="doc-source">Wells Fargo Advisors</td>
+                <td class="doc-date">—</td>
+                <td><span class="doc-status-badge dsb-missing">Pending client</span></td>
+                <td class="doc-actions">
+                  <a class="doc-action-btn dab-request" href="#">Remind</a>
+                  <a class="doc-action-btn dab-upload" href="#">Upload</a>
+                </td>
+              </tr>
+
+              <!-- Entity & prior year -->
+              <tr class="cat-divider"><td colspan="6">Entity &amp; prior year</td></tr>
+
+              <tr>
+                <td>
+                  <div class="doc-check received">
+                    <svg width="9" height="9" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                  </div>
+                </td>
+                <td>
+                  <div class="doc-name">Prior year return (FY 2023)</div>
+                  <div class="doc-sub">Form 1040 + schedules</div>
+                </td>
+                <td class="doc-source">On file from last year</td>
+                <td class="doc-date">On file</td>
+                <td><span class="doc-status-badge dsb-on-file">On file</span></td>
+                <td class="doc-actions">
+                  <a class="doc-action-btn dab-view" href="#">View</a>
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <div class="doc-check received">
+                    <svg width="9" height="9" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                  </div>
+                </td>
+                <td>
+                  <div class="doc-name">Entity documents</div>
+                  <div class="doc-sub">Articles, EIN letter, operating agreement</div>
+                </td>
+                <td class="doc-source">On file from formation</td>
+                <td class="doc-date">On file</td>
+                <td><span class="doc-status-badge dsb-on-file">On file</span></td>
+                <td class="doc-actions">
+                  <a class="doc-action-btn dab-view" href="#">View all</a>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Client Questionnaire -->
+      <div>
+        <div class="section-hd">
+          <span class="section-title">Client Questionnaire</span>
+        </div>
+        <div class="questionnaire-card">
+          <div class="qc-header">
+            <div class="qc-icon">
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div class="qc-body">
+              <div class="qc-title">Annual Tax Questionnaire — FY 2024</div>
+              <div class="qc-sub">Sent to Jane Morrison (jane@brightbloom.co) on Mar 15, 2025. Client responded Apr 2, 2025. Two follow-up items require clarification.</div>
+              <div class="qc-meta">
+                <div class="qc-meta-item">
+                  <span class="qc-meta-label">Status</span>
+                  <span class="qc-meta-val green">Responded</span>
+                </div>
+                <div class="qc-meta-item">
+                  <span class="qc-meta-label">Sent</span>
+                  <span class="qc-meta-val">Mar 15, 2025</span>
+                </div>
+                <div class="qc-meta-item">
+                  <span class="qc-meta-label">Responded</span>
+                  <span class="qc-meta-val">Apr 2, 2025</span>
+                </div>
+                <div class="qc-meta-item">
+                  <span class="qc-meta-label">Open items</span>
+                  <span class="qc-meta-val amber">2 follow-ups</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qc-divider"></div>
+          <div class="qc-followups">
+            <div class="qc-followup">
+              <div class="qcf-dot"></div>
+              <div class="qcf-text"><strong>Home office deduction:</strong> Client indicated home office use but did not provide square footage or year-in-use detail. Need exact figures to calculate deduction.</div>
+              <a class="qcf-action" href="#">Follow up</a>
+            </div>
+            <div class="qc-followup">
+              <div class="qcf-dot"></div>
+              <div class="qcf-text"><strong>Vehicle mileage log:</strong> Business use of personal vehicle claimed for 2024. Mileage log or GPS export needed to substantiate deduction.</div>
+              <a class="qcf-action" href="#">Follow up</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+
+    <!-- ── Right meta panel ── -->
+    <aside class="meta-panel">
+
+      <!-- Filing deadline -->
+      <div class="mp-section">
+        <div class="mp-label">Filing deadline</div>
+        <div class="deadline-block">
+          <div class="db-label">Due date</div>
+          <div class="db-date">Apr 15, 2025</div>
+          <div class="db-countdown">14 days remaining</div>
+        </div>
+        <div class="filing-type-block">
+          <div class="ftb-type">Form 1040</div>
+          <div class="ftb-sub">Individual + Schedule C, E</div>
+        </div>
+        <div class="extension-row">
+          <span class="ext-label">Extension filed</span>
+          <span class="ext-val">No</span>
+          <button class="ext-btn">File 4868</button>
+        </div>
+      </div>
+
+      <!-- Document summary -->
+      <div class="mp-section">
+        <div class="mp-label">Documents</div>
+        <div class="doc-summary-bar">
+          <div class="dsb-card">
+            <div class="dsb-val green">10</div>
+            <div class="dsb-key">Received</div>
+          </div>
+          <div class="dsb-card">
+            <div class="dsb-val amber">3</div>
+            <div class="dsb-key">Pending</div>
+          </div>
+        </div>
+        <div class="mp-row">
+          <span class="mp-key">Income docs</span>
+          <span class="mp-val">4 / 5</span>
+        </div>
+        <div class="mp-row">
+          <span class="mp-key">Business docs</span>
+          <span class="mp-val">2 / 2</span>
+        </div>
+        <div class="mp-row">
+          <span class="mp-key">Bank &amp; investments</span>
+          <span class="mp-val green">1 / 2</span>
+        </div>
+        <div class="mp-row">
+          <span class="mp-key">Entity &amp; prior year</span>
+          <span class="mp-val">2 / 2</span>
+        </div>
+      </div>
+
+      <!-- Filing info -->
+      <div class="mp-section">
+        <div class="mp-label">Filing info</div>
+        <div class="mp-row">
+          <span class="mp-key">Tax year</span>
+          <span class="mp-val">FY 2024</span>
+        </div>
+        <div class="mp-row">
+          <span class="mp-key">Filing status</span>
+          <span class="mp-val">Married jointly</span>
+        </div>
+        <div class="mp-row">
+          <span class="mp-key">Return type</span>
+          <span class="mp-val">1040 + Sch C, E</span>
+        </div>
+        <div class="mp-row">
+          <span class="mp-key">State filing</span>
+          <span class="mp-val">CA — due Apr 15</span>
+        </div>
+        <div class="mp-row">
+          <span class="mp-key">Prior year AGI</span>
+          <span class="mp-val">$218,400</span>
+        </div>
+      </div>
+
+      <!-- Client contact -->
+      <div class="mp-section">
+        <div class="mp-label">Client</div>
+        <div class="contact-block">
+          <div class="contact-avatar">JM</div>
+          <div>
+            <div class="contact-name">Jane Morrison</div>
+            <div class="contact-role">Primary contact · Bright &amp; Bloom LLC</div>
+          </div>
+        </div>
+        <div class="contact-actions">
+          <a class="contact-btn" href="#">
+            <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            Email
+          </a>
+          <a class="contact-btn" href="#">
+            <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            Message
+          </a>
+          <a class="contact-btn" href="#">
+            <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Portal
+          </a>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="mp-section">
+        <div class="mp-label">Notes</div>
+        <div class="notes-area">Client is expecting a refund this year. Watch for carryover loss from 2023 Schedule E — confirm with prior return before finalizing.</div>
+        <div class="notes-add">+ Add note</div>
+      </div>
+
+      <!-- Activity -->
+      <div class="mp-section">
+        <div class="mp-label">Recent activity</div>
+        <div class="activity-item">
+          <div class="act-dot green"></div>
+          <div>
+            <div class="act-body">P&amp;L statement linked from Book Close</div>
+            <div class="act-time">Apr 3, 2025</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="act-dot violet"></div>
+          <div>
+            <div class="act-body">Questionnaire response received</div>
+            <div class="act-time">Apr 2, 2025</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="act-dot amber"></div>
+          <div>
+            <div class="act-body">Document request sent to client</div>
+            <div class="act-time">Mar 15, 2025</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="act-dot slate"></div>
+          <div>
+            <div class="act-body">Project created from template</div>
+            <div class="act-time">Mar 10, 2025</div>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+  </div><!-- /body -->
+
+</div><!-- /main -->
+</body>
+</html>

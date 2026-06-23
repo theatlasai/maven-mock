@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atlas — Categorization Rules (Redesign v2)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Hanken+Grotesk:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f3ef;--surface:#ffffff;--ink:#1c2434;--ink-soft:#5a6376;--ink-faint:#8a91a0;
+    --line:#e7e5df;--line-soft:#eeece6;--accent:#2f5d50;--accent-soft:#e6efe9;
+    --out:#b4441f;--out-soft:#fbe9e2;--in:#2f6f4e;--in-soft:#e2f0e6;
+    --review:#9a6b14;--review-soft:#f6ecd6;--vary:#7a4ba0;--vary-soft:#f1e8f8;
+    --radius:14px;--shadow:0 1px 2px rgba(28,36,52,.04),0 8px 24px rgba(28,36,52,.06);
+    --shadow-lg:0 12px 40px rgba(28,36,52,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Hanken Grotesk',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.45}
+  .app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+  .side{background:#11161f;color:#cdd2dd;padding:22px 16px;display:flex;flex-direction:column;gap:6px}
+  .brand{display:flex;align-items:center;gap:11px;padding:6px 8px 22px}
+  .brand .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#3aa988,#2f5d50);display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque';font-weight:700;color:#fff;font-size:18px}
+  .brand b{font-family:'Bricolage Grotesque';font-weight:600;color:#fff;font-size:18px;letter-spacing:-.01em}
+  .side .label{font-size:10.5px;letter-spacing:.12em;color:#5b6271;text-transform:uppercase;padding:14px 8px 6px;font-weight:600}
+  .client{display:flex;align-items:center;justify-content:space-between;background:#1b2230;border:1px solid #262e3d;border-radius:10px;padding:11px 12px;color:#e7eaf0;font-weight:600;font-size:14px;margin-bottom:4px}
+  .navitem{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;font-size:14px;color:#aab1bf;cursor:pointer;font-weight:500}
+  .navitem svg{width:17px;height:17px;opacity:.85}
+  .navitem.active{background:#222b3a;color:#fff}
+  .navitem:hover:not(.active){background:#1a2130;color:#dfe3ea}
+  .side .foot{margin-top:auto;display:flex;flex-direction:column;gap:2px;padding-top:12px}
+  .main{overflow:auto;max-height:100vh}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:22px 40px;border-bottom:1px solid var(--line);background:var(--bg);position:sticky;top:0;z-index:20}
+  .topbar h1{font-family:'Bricolage Grotesque';font-weight:600;font-size:22px;letter-spacing:-.02em}
+  .topbar .right{display:flex;align-items:center;gap:14px;font-size:13px;color:var(--ink-soft)}
+  .topbar .who{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 12px 5px 6px;font-weight:600;color:var(--ink)}
+  .topbar .who i{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;font-weight:700}
+  .wrap{padding:30px 40px 80px;max-width:1080px}
+  .breadcrumb{display:inline-flex;align-items:center;gap:7px;color:var(--ink-soft);font-size:13.5px;font-weight:500;cursor:pointer;margin-bottom:18px}
+  .breadcrumb:hover{color:var(--ink)}
+  .breadcrumb svg{width:15px;height:15px}
+  .pagehead h2{font-family:'Bricolage Grotesque';font-weight:600;font-size:27px;letter-spacing:-.02em}
+  .pagehead p{color:var(--ink-soft);font-size:14.5px;margin-top:4px;max-width:680px}
+
+  /* overview */
+  .acctgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:26px}
+  .acct{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;cursor:pointer;transition:.18s;box-shadow:var(--shadow)}
+  .acct:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:#d8d5cc}
+  .acct .top{display:flex;align-items:flex-start;justify-content:space-between}
+  .acct .nm{font-weight:700;font-size:16px;letter-spacing:-.01em}
+  .acct .kind{font-size:12px;color:var(--ink-faint);font-weight:600;margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
+  .acct .pill{font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:4px 10px;border-radius:999px}
+  .acct .stats{display:flex;gap:26px;margin-top:18px}
+  .acct .stat .n{font-family:'Bricolage Grotesque';font-weight:600;font-size:21px}
+  .acct .stat .l{font-size:12px;color:var(--ink-faint);font-weight:500}
+  .acct .meta{display:flex;align-items:center;justify-content:space-between;margin-top:18px;padding-top:14px;border-top:1px solid var(--line-soft);font-size:12.5px;color:var(--ink-faint)}
+  .acct .review-flag{color:var(--review);font-weight:600;display:inline-flex;gap:6px;align-items:center}
+
+  /* rules list */
+  .summary-row{display:flex;gap:14px;margin:22px 0 8px;flex-wrap:wrap}
+  .sumcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px;flex:1;min-width:150px;box-shadow:var(--shadow)}
+  .sumcard .n{font-family:'Bricolage Grotesque';font-weight:600;font-size:24px;line-height:1}
+  .sumcard .l{font-size:12.5px;color:var(--ink-soft);margin-top:6px;font-weight:500}
+  .sumcard.warn{background:var(--review-soft);border-color:#ecdcb8}
+  .sumcard.warn .n{color:var(--review)}
+  .toolbar{display:flex;align-items:center;justify-content:space-between;margin:26px 0 14px;gap:14px;flex-wrap:wrap}
+  .segmented{display:inline-flex;background:#ece9e2;border-radius:10px;padding:3px;gap:2px}
+  .seg{border:none;background:transparent;font-family:inherit;font-size:13px;font-weight:600;color:var(--ink-soft);padding:7px 15px;border-radius:8px;cursor:pointer;transition:.15s}
+  .seg.active{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 13px;min-width:230px}
+  .search input{border:none;outline:none;font-family:inherit;font-size:13.5px;width:100%;background:transparent;color:var(--ink)}
+  .search svg{width:16px;height:16px;color:var(--ink-faint)}
+  .rule{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:13px;box-shadow:var(--shadow);overflow:hidden;transition:.15s}
+  .rule.off{opacity:.62}
+  .rule:hover{border-color:#dcd9d0}
+  .rule .head{display:grid;grid-template-columns:1fr auto;gap:18px;padding:18px 22px;cursor:pointer;align-items:center}
+  .rule .left{min-width:0}
+  .vendorline{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .vendor{font-weight:700;font-size:16.5px;letter-spacing:-.01em}
+  .flow{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:7px}
+  .flow.out{color:var(--out);background:var(--out-soft)}
+  .flow.in{color:var(--in);background:var(--in-soft)}
+  .flow svg{width:12px;height:12px}
+  .badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:7px;display:inline-flex;align-items:center;gap:5px}
+  .badge.exact{color:#3a4a8c;background:#e7ebf8}
+  .badge.smart{color:var(--vary);background:var(--vary-soft)}
+  .badge.review{color:var(--review);background:var(--review-soft)}
+  .badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.8}
+  .booking{display:flex;align-items:center;gap:7px;margin-top:9px;font-size:14px;color:var(--ink-soft);flex-wrap:wrap}
+  .booking .cat{font-weight:600;color:var(--ink);background:var(--accent-soft);padding:3px 10px;border-radius:7px}
+  .booking .arrow{color:var(--ink-faint)}
+  .booking .type{color:var(--ink-soft);font-size:13px}
+  .matchdesc{margin-top:9px;font-size:13px;color:var(--ink-faint)}
+  .matchdesc b{color:var(--ink-soft);font-weight:600}
+  .right-col{display:flex;flex-direction:column;align-items:flex-end;gap:10px;min-width:170px}
+  .consist{width:160px}
+  .consist .clabel{font-size:11.5px;color:var(--ink-faint);display:flex;justify-content:space-between;margin-bottom:5px;font-weight:600}
+  .consist .bar{height:6px;background:#eceae3;border-radius:99px;overflow:hidden}
+  .consist .fill{height:100%;border-radius:99px;background:var(--accent)}
+  .consist.low .fill{background:var(--review)}
+  .consist.low .clabel{color:var(--review)}
+  .toggle{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-soft);font-weight:600;cursor:pointer}
+  .switch{width:36px;height:20px;border-radius:99px;background:#cfccc3;position:relative;transition:.18s}
+  .switch::after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:2px;left:2px;transition:.18s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+  .toggle.on .switch{background:var(--accent)}
+  .toggle.on .switch::after{left:18px}
+  .chev{color:var(--ink-faint);transition:.2s}
+  .chev svg{width:18px;height:18px;display:block}
+  .detail{border-top:1px solid var(--line-soft);background:#fbfaf7;padding:0 22px;max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .rule.open .detail{max-height:900px}
+  .rule.open .chev{transform:rotate(180deg)}
+  .detail-inner{padding:22px 0 24px}
+  .dsection{margin-bottom:20px}
+  .dsection .dh{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:9px}
+  .examples{display:flex;flex-direction:column;gap:7px}
+  .ex{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:9px 13px;font-size:13px}
+  .ex .tick{width:18px;height:18px;border-radius:50%;background:var(--in-soft);color:var(--in);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .ex .tick svg{width:11px;height:11px}
+  .ex .desc{font-family:'Spline Sans Mono',monospace;font-size:12.5px;color:var(--ink);flex:1}
+  .bookgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:11px;overflow:hidden}
+  .bookcell{background:var(--surface);padding:14px 16px}
+  .bookcell .bl{font-size:11px;color:var(--ink-faint);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+  .bookcell .bv{font-weight:600;font-size:14.5px;margin-top:5px}
+  .actions{display:flex;gap:10px;align-items:center;margin-top:4px;flex-wrap:wrap}
+  .btn{font-family:inherit;font-size:13px;font-weight:600;padding:9px 16px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+  .btn:hover{border-color:#cfccc3;background:#faf9f6}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.primary:hover{background:#274d43}
+  .btn svg{width:14px;height:14px}
+  .helpnote{background:var(--accent-soft);border:1px solid #cfe1d6;border-radius:11px;padding:13px 16px;font-size:13px;color:#234c40;display:flex;gap:10px;align-items:flex-start;margin-bottom:22px}
+  .helpnote svg{width:18px;height:18px;flex-shrink:0;margin-top:1px}
+  .hidden{display:none}
+
+  /* ===== EDIT SCREEN ===== */
+  .editgrid{display:grid;grid-template-columns:1.3fr .9fr;gap:22px;margin-top:24px;align-items:start}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);margin-bottom:18px}
+  .panel h3{font-family:'Bricolage Grotesque';font-weight:600;font-size:16px;margin-bottom:4px}
+  .panel .sub{font-size:13px;color:var(--ink-soft);margin-bottom:16px}
+  .warnstrip{background:var(--review-soft);border:1px solid #ecdcb8;color:#7a5410;border-radius:10px;padding:11px 14px;font-size:13px;display:flex;gap:9px;align-items:flex-start;margin-bottom:16px}
+  .warnstrip svg{width:16px;height:16px;flex-shrink:0;margin-top:1px}
+  .opt{display:flex;align-items:center;gap:13px;padding:13px 15px;border:1.5px solid var(--line);border-radius:11px;cursor:pointer;margin-bottom:9px;transition:.13s}
+  .opt:hover{border-color:#cfccc3;background:#faf9f6}
+  .opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+  .radio{width:19px;height:19px;border-radius:50%;border:2px solid #c4c0b6;flex-shrink:0;position:relative;transition:.13s}
+  .opt.sel .radio{border-color:var(--accent)}
+  .opt.sel .radio::after{content:"";position:absolute;width:9px;height:9px;border-radius:50%;background:var(--accent);top:3px;left:3px}
+  .opt .ocat{font-weight:600;font-size:14.5px;flex:1}
+  .opt .obar{width:90px;height:5px;background:#eceae3;border-radius:99px;overflow:hidden;margin-right:4px}
+  .opt .obar i{display:block;height:100%;background:var(--ink-faint);border-radius:99px}
+  .opt.sel .obar i{background:var(--accent)}
+  .opt .opct{font-weight:700;font-size:13px;width:42px;text-align:right}
+  .opt .ocount{font-size:12px;color:var(--ink-faint);width:62px;text-align:right}
+  .field{margin-bottom:15px}
+  .field label{display:block;font-size:12px;font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
+  .field .control{display:flex;align-items:center;justify-content:space-between;border:1.5px solid var(--line);border-radius:10px;padding:11px 14px;font-size:14px;font-weight:600;background:var(--surface);cursor:pointer}
+  .field .control svg{width:16px;height:16px;color:var(--ink-faint)}
+  .field input.control{font-family:inherit;width:100%;outline:none}
+  .matchbox{border:1.5px dashed var(--line);border-radius:11px;padding:15px;background:#faf9f6}
+  .matchbox .mtxt{font-family:'Spline Sans Mono',monospace;font-size:13px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:9px 0 13px}
+  .check{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13.5px;color:var(--ink-soft)}
+  .check .box{width:19px;height:19px;border-radius:6px;border:2px solid #c4c0b6;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.12s}
+  .check .box svg{width:11px;height:11px;color:#fff;opacity:0}
+  .check.on .box{background:var(--accent);border-color:var(--accent)}
+  .check.on .box svg{opacity:1}
+  .advlink{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--vary);font-weight:600;margin-top:13px;cursor:pointer}
+  .advlink svg{width:12px;height:12px}
+  .previewcard{background:#11161f;color:#dfe3ea;border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow)}
+  .previewcard .pl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#6b7384;font-weight:700;margin-bottom:12px}
+  .previewcard .prow{display:flex;justify-content:space-between;font-size:13.5px;padding:8px 0;border-bottom:1px solid #232b3a}
+  .previewcard .prow span:first-child{color:#9aa1b0}
+  .previewcard .prow b{font-weight:600}
+  .previewcard .big{font-family:'Bricolage Grotesque';font-size:22px;font-weight:600;margin:14px 0 2px}
+  .savebar{display:flex;gap:10px;margin-top:6px}
+
+  /* ===== CLUSTER SCREEN ===== */
+  .clusterhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px}
+  .patternviz{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:26px 24px;box-shadow:var(--shadow);margin:22px 0}
+  .pv-label{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:18px}
+  .pv-string{font-family:'Spline Sans Mono',monospace;font-size:19px;display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px;line-height:2}
+  .seg-const{color:var(--ink);font-weight:500}
+  .seg-vary{position:relative;color:var(--vary);font-weight:600;background:var(--vary-soft);border:1.5px solid #ddc7ec;border-radius:8px;padding:3px 10px}
+  .seg-vary .tag{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;font-family:'Hanken Grotesk';font-size:11px;font-weight:600;color:var(--vary);background:var(--vary-soft);padding:3px 8px;border-radius:6px}
+  .pv-legend{display:flex;gap:22px;margin-top:42px;font-size:12.5px;color:var(--ink-soft)}
+  .pv-legend .lg{display:flex;align-items:center;gap:7px}
+  .pv-legend .sw{width:13px;height:13px;border-radius:4px}
+  .resultbar{display:flex;align-items:center;gap:11px;background:var(--accent-soft);border:1px solid #cfe1d6;border-radius:11px;padding:14px 18px;font-size:14px;color:#234c40;margin-bottom:22px}
+  .resultbar b{color:var(--ink)}
+  .resultbar svg{width:18px;height:18px;flex-shrink:0}
+  .txtable{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+  .txhead{display:grid;grid-template-columns:80px 1fr 100px 90px;gap:14px;padding:13px 20px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);border-bottom:1px solid var(--line)}
+  .txrow{display:grid;grid-template-columns:80px 1fr 100px 90px;gap:14px;padding:14px 20px;align-items:center;border-bottom:1px solid var(--line-soft);font-size:13.5px}
+  .txrow:last-child{border-bottom:none}
+  .txrow:hover{background:#faf9f6}
+  .txrow .date{color:var(--ink-soft);font-weight:500}
+  .txrow .tdesc{font-family:'Spline Sans Mono',monospace;font-size:12.5px;color:var(--ink)}
+  .txrow .tdesc .v{color:var(--vary);background:var(--vary-soft);border-radius:4px;padding:1px 4px;font-weight:600}
+  .txrow .amt{font-weight:600;color:var(--out);text-align:right}
+  .txrow .excl{font-size:12px;color:var(--ink-faint);font-weight:600;text-align:right;cursor:pointer}
+  .txrow .excl:hover{color:var(--out)}
+  .codeblock{background:#1b2230;color:#cfe3da;font-family:'Spline Sans Mono',monospace;font-size:12.5px;padding:13px 15px;border-radius:9px;overflow-x:auto;line-height:1.6;margin-top:12px}
+  .codeblock .tok{color:#7fb8a3}
+  .adv-body2{max-height:0;overflow:hidden;transition:max-height .25s ease}
+  .adv-body2.open{max-height:200px}
+  @media(max-width:880px){.app{grid-template-columns:1fr}.side{display:none}.acctgrid,.bookgrid,.editgrid{grid-template-columns:1fr}.rule .head{grid-template-columns:1fr}.txhead,.txrow{grid-template-columns:70px 1fr 80px}.txrow .excl,.txhead span:last-child{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="logo">Z</div><b>Zipserinc</b></div>
+    <div class="label">Client</div>
+    <div class="client">CUCC <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
+    <div class="navitem active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Categorization Rules</div>
+    <div class="navitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>Transactions</div>
+    <div class="navitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Receipt Matching</div>
+    <div class="navitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>Workflows</div>
+    <div class="navitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-5"/></svg>Accounting</div>
+    <div class="navitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Integrations</div>
+    <div class="foot">
+      <div class="navitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a7 7 0 0 0 .1-3l2-1.5-2-3.5-2.3 1a7 7 0 0 0-1.7-1L14.5 2h-5L9 4.5a7 7 0 0 0-1.7 1l-2.3-1-2 3.5 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.5 2.3-1a7 7 0 0 0 1.7 1L9.5 22h5l.5-2.5a7 7 0 0 0 1.7-1l2.3 1 2-3.5-2-1.5z"/></svg>Settings</div>
+      <div class="navitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Logout</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <h1>Categorization Rules</h1>
+      <div class="right"><span style="color:var(--accent);font-weight:600">AtlasAI</span><div class="who"><i>A</i>Admin Admin</div></div>
+    </div>
+
+    <!-- SCREEN 1: OVERVIEW -->
+    <div class="wrap" id="screen-overview">
+      <div class="pagehead"><h2>Your accounts</h2><p>We learned how you code transactions last year and built rules for each account. Open one to review what we'll do automatically.</p></div>
+      <div class="acctgrid" id="acctgrid"></div>
+    </div>
+
+    <!-- SCREEN 2: ACCOUNT -->
+    <div class="wrap hidden" id="screen-account">
+      <div class="breadcrumb" onclick="show('overview')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> All accounts</div>
+      <div class="pagehead"><h2>Chase Ink 0358</h2><p>These rules run automatically on new transactions for this card. Review anything marked <b style="color:var(--review)">Needs review</b>.</p></div>
+      <div class="summary-row">
+        <div class="sumcard"><div class="n">38</div><div class="l">Active rules</div></div>
+        <div class="sumcard"><div class="n">94%</div><div class="l">Of last year's spend covered</div></div>
+        <div class="sumcard"><div class="n">31</div><div class="l">Vendors recognized</div></div>
+        <div class="sumcard warn"><div class="n">3</div><div class="l">Need your review</div></div>
+      </div>
+      <div class="helpnote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><div>Each rule says: <b>when a transaction looks like this → book it as that</b>. The bar on the right shows how <b>consistently</b> you coded that vendor last year — a low score is why something needs review.</div></div>
+      <div class="toolbar">
+        <div class="segmented" id="segmented">
+          <button class="seg active" data-f="all">All rules</button>
+          <button class="seg" data-f="exact">Exact match</button>
+          <button class="seg" data-f="smart">Smart match</button>
+          <button class="seg" data-f="review">Needs review</button>
+        </div>
+        <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4-4"/></svg><input id="searchInput" placeholder="Search by vendor or category…"></div>
+      </div>
+      <div id="rulesList"></div>
+    </div>
+
+    <!-- SCREEN 3: EDIT RULE -->
+    <div class="wrap hidden" id="screen-edit"></div>
+
+    <!-- SCREEN 4: CLUSTER -->
+    <div class="wrap hidden" id="screen-cluster"></div>
+  </main>
+</div>
+
+<script>
+/* ---------- DATA ---------- */
+const accounts = [
+  {nm:"First Citizens Bank — 9370", kind:"Bank account", rules:24, coverage:91, vendors:19, review:0, updated:"Mar 10, 2026"},
+  {nm:"Chase Ink 0358", kind:"Credit card", rules:38, coverage:94, vendors:31, review:3, updated:"Feb 27, 2026", open:true},
+  {nm:"Chase Business Checking — 4951", kind:"Bank account", rules:17, coverage:88, vendors:14, review:1, updated:"Mar 10, 2026"},
+  {nm:"Chase — 9705 · Payroll", kind:"Bank account", rules:9, coverage:97, vendors:6, review:0, updated:"Mar 18, 2026"},
+  {nm:"PNC Checking — 4646", kind:"Bank account", rules:21, coverage:85, vendors:16, review:2, updated:"Mar 18, 2026"},
+  {nm:"FCB C.C. — 6483", kind:"Credit card", rules:29, coverage:90, vendors:23, review:0, updated:"Mar 18, 2026"},
+];
+
+const rules = [
+  {vendor:"Henry Schein", flow:"out", type:"exact", review:true, cat:"Medical Records and Supplies", qb:"Credit Card Charge", payee:"Henry Schein", consist:40,
+   matchText:"& HENRY SCHEIN 800-472-4346 NY",
+   examples:["& HENRY SCHEIN 800-472-4346 NY","HENRY SCHEIN INC 800-472-4346 NY"],
+   outputs:[{cat:"Medical Records and Supplies",pct:40,n:18},{cat:"Medical Supplies",pct:28,n:13},{cat:"Office Supplies",pct:19,n:9},{cat:"Lab Fees",pct:13,n:6}]},
+  {vendor:"DELK Pest Control", flow:"out", type:"exact", review:false, cat:"Pest Control", qb:"Credit Card Charge", payee:"DELK", consist:56,
+   matchText:"DELK PEST CONTROL 209-465-5656 CA", examples:["DELK PEST CONTROL 209-465-5656 CA"],
+   outputs:[{cat:"Pest Control",pct:56,n:9},{cat:"Repairs and Maintenance",pct:44,n:7}]},
+  {vendor:"D B Diagnostic", flow:"out", type:"exact", review:false, cat:"Laboratory Fees", qb:"Credit Card Charge", payee:"D B Diagnostic", consist:77,
+   matchText:"IN DB DIAGNOSTICS 919-6457914 TN", examples:["IN DB DIAGNOSTICS 919-6457914 TN"],
+   outputs:[{cat:"Laboratory Fees",pct:77,n:24},{cat:"Medical Supplies",pct:15,n:5},{cat:"Misc Expenses",pct:8,n:2}]},
+  {vendor:"Adobe", flow:"out", type:"exact", review:false, cat:"Computer and Internet Expenses", qb:"Credit Card Charge", payee:"Adobe", consist:19,
+   matchText:"ADOBE 800-833-6687 800-833-6687 CA", examples:["ADOBE 800-833-6687 800-833-6687 CA"],
+   outputs:[{cat:"Computer and Internet Expenses",pct:19,n:4},{cat:"Dues and Subscriptions",pct:33,n:7},{cat:"Software",pct:24,n:5},{cat:"Office Supplies",pct:14,n:3},{cat:"Advertising and Promotion",pct:10,n:2}]},
+  {vendor:"Stamps.com", flow:"out", type:"exact", review:false, cat:"Postage and Shipping", qb:"Credit Card Charge", payee:"Stamps.com", consist:25,
+   matchText:"STAMPS.COM USPOSTAGE TX", examples:["STAMPS.COM USPOSTAGE TX"],
+   outputs:[{cat:"Postage and Shipping",pct:25,n:6},{cat:"Shipping",pct:30,n:7},{cat:"Office Supplies",pct:25,n:6},{cat:"Misc Expenses",pct:20,n:5}]},
+  {vendor:"Travitor", flow:"out", type:"exact", review:false, cat:"Computer and Internet Expenses", qb:"Credit Card Charge", payee:"Travitor", consist:100,
+   matchText:"TRAVITOR HTTPSTRAVITOR NV", examples:["TRAVITOR HTTPSTRAVITOR NV"],
+   outputs:[{cat:"Computer and Internet Expenses",pct:100,n:12}]},
+  {vendor:"Amazon Marketplace", flow:"out", type:"smart", review:true, confidence:"High", cat:"Office Supplies", qb:"Credit Card Charge", payee:"Amazon", consist:62,
+   matchText:"Amazon charges ending in “Amzn.com/bill WA”, with a changing order code in the middle",
+   examples:["Amazon.com R094S2Q40 Amzn.com/bill WA","Amazon.com R02048811 Amzn.com/bill WA"],
+   outputs:[{cat:"Office Supplies",pct:62,n:31},{cat:"Computer and Internet Expenses",pct:23,n:11},{cat:"Misc Expenses",pct:15,n:7}],
+   pattern:'(?i)^Amazon\\.com ?\\*?[A-Z0-9]{9} Amzn\\.com/bill WA$',
+   segs:[{t:"Amazon.com",v:false},{t:"R094S2Q40",v:true,tag:"order code — changes every time"},{t:"Amzn.com/bill WA",v:false}],
+   cluster:[
+     {date:"Mar 14",pre:"Amazon.com ",vary:"R094S2Q40",post:" Amzn.com/bill WA",amt:"$142.18"},
+     {date:"Mar 02",pre:"Amazon.com ",vary:"R02048811",post:" Amzn.com/bill WA",amt:"$58.99"},
+     {date:"Feb 21",pre:"Amazon.com ",vary:"R7X4K2P10",post:" Amzn.com/bill WA",amt:"$213.40"},
+     {date:"Feb 09",pre:"Amazon.com ",vary:"R55LM9Q22",post:" Amzn.com/bill WA",amt:"$34.75"},
+     {date:"Jan 28",pre:"Amazon.com ",vary:"R10QW83KP",post:" Amzn.com/bill WA",amt:"$96.20"},
+     {date:"Jan 12",pre:"Amazon.com ",vary:"R88ZX4M01",post:" Amzn.com/bill WA",amt:"$167.55"}]},
+  {vendor:"ADT Alarm Services", flow:"out", type:"smart", review:false, confidence:"High", cat:"Security", qb:"Credit Card Charge", payee:"ADT Alarm Services", consist:100,
+   matchText:"ADT Security charges, optionally with “WWW.ADT.COM”, from FL",
+   examples:["ADT SECURITY 8552380746 WWW.ADT.COM FL","ADT SECURITY 8002382455 FL"],
+   outputs:[{cat:"Security",pct:100,n:12}],
+   pattern:'(?i)^ADT SECURITY \\d+( WWW\\.ADT\\.COM)? FL$',
+   segs:[{t:"ADT SECURITY",v:false},{t:"8552380746",v:true,tag:"phone digits — vary"},{t:"WWW.ADT.COM",v:true,tag:"sometimes present"},{t:"FL",v:false}],
+   cluster:[
+     {date:"Mar 11",pre:"ADT SECURITY ",vary:"8552380746",post:" WWW.ADT.COM FL",amt:"$52.99"},
+     {date:"Feb 11",pre:"ADT SECURITY ",vary:"8002382455",post:" FL",amt:"$52.99"},
+     {date:"Jan 11",pre:"ADT SECURITY ",vary:"8552380746",post:" WWW.ADT.COM FL",amt:"$52.99"}]},
+  {vendor:"San Joaquin Magazine", flow:"out", type:"exact", review:false, cat:"Advertising and Promotion", qb:"Credit Card Charge", payee:"San Joaquin Magazine", consist:100,
+   matchText:"IN SAN JOAQUIN MAG 510-7190475 CA", examples:["IN SAN JOAQUIN MAG 510-7190475 CA"],
+   outputs:[{cat:"Advertising and Promotion",pct:100,n:8}]},
+  {vendor:"Payment Thank You — Mobile", flow:"in", type:"exact", review:false, cat:"Capital Cont. — Dr. Georgies", qb:"Credit Card Credit", payee:"Payment Thank You — Mobile", consist:79,
+   matchText:"Payment Thank You-Mobile", examples:["Payment Thank You-Mobile"],
+   outputs:[{cat:"Capital Cont. — Dr. Georgies",pct:79,n:11},{cat:"Owner Draw",pct:21,n:3}]},
+];
+
+const CATEGORIES = ["Medical Records and Supplies","Medical Supplies","Office Supplies","Lab Fees","Laboratory Fees","Computer and Internet Expenses","Dues and Subscriptions","Software","Postage and Shipping","Shipping","Pest Control","Repairs and Maintenance","Security","Advertising and Promotion","Misc Expenses","Capital Cont. — Dr. Georgies","Owner Draw"];
+
+/* ---------- OVERVIEW ---------- */
+document.getElementById('acctgrid').innerHTML = accounts.map(a=>`
+  <div class="acct" onclick="${a.open?"show('account')":""}">
+    <div class="top"><div><div class="nm">${a.nm}</div><div class="kind">${a.kind}</div></div><div class="pill">${a.coverage}% covered</div></div>
+    <div class="stats"><div class="stat"><div class="n">${a.rules}</div><div class="l">rules</div></div><div class="stat"><div class="n">${a.vendors}</div><div class="l">vendors</div></div></div>
+    <div class="meta"><span>Updated ${a.updated}</span>${a.review?`<span class="review-flag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>${a.review} need review</span>`:`<span style="color:var(--in);font-weight:600">All good</span>`}</div>
+  </div>`).join('');
+
+/* ---------- helpers ---------- */
+function arrow(f){return f==='out'?`<span class="flow out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Money out</span>`:`<span class="flow in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Money in</span>`;}
+function badge(r){return r.type==='exact'?`<span class="badge exact"><span class="dot"></span>Exact match</span>`:`<span class="badge smart"><span class="dot"></span>Smart match · ${r.confidence} confidence</span>`;}
+
+/* ---------- RULES LIST ---------- */
+function renderRules(filter='all',q=''){
+  const list=document.getElementById('rulesList');
+  const filtered=rules.filter(r=>{
+    if(filter==='exact'&&r.type!=='exact')return false;
+    if(filter==='smart'&&r.type!=='smart')return false;
+    if(filter==='review'&&!r.review)return false;
+    if(q){const s=(r.vendor+' '+r.cat+' '+r.payee).toLowerCase();if(!s.includes(q.toLowerCase()))return false;}
+    return true;});
+  list.innerHTML=filtered.map(r=>{
+    const idx=rules.indexOf(r);const low=r.consist<60;
+    const clabel=r.consist===100?'Always coded this way':(r.consist>=70?'Usually this way':'Mixed history');
+    return `<div class="rule" id="rule-${idx}">
+      <div class="head" onclick="toggleRule(${idx})">
+        <div class="left">
+          <div class="vendorline"><span class="vendor">${r.vendor}</span>${arrow(r.flow)}${badge(r)}${r.review?`<span class="badge review"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>Needs review</span>`:''}</div>
+          <div class="booking"><span style="font-size:13px;color:var(--ink-faint)">Book to</span><span class="cat">${r.cat}</span><span class="arrow">·</span><span class="type">as ${r.qb}</span></div>
+          <div class="matchdesc">Matches: <b>${r.matchText}</b></div>
+        </div>
+        <div class="right-col">
+          <div class="consist ${low?'low':''}"><div class="clabel"><span>${clabel}</span><span>${r.consist}%</span></div><div class="bar"><div class="fill" style="width:${r.consist}%"></div></div></div>
+          <div style="display:flex;align-items:center;gap:14px"><div class="toggle on" onclick="event.stopPropagation();this.classList.toggle('on');this.closest('.rule').classList.toggle('off')"><span class="switch"></span>On</div><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+        </div>
+      </div>
+      <div class="detail"><div class="detail-inner">
+        <div class="dsection"><div class="dh">What we'll record in QuickBooks</div>
+          <div class="bookgrid"><div class="bookcell"><div class="bl">Category (account)</div><div class="bv">${r.cat}</div></div><div class="bookcell"><div class="bl">QuickBooks type</div><div class="bv">${r.qb}</div></div><div class="bookcell"><div class="bl">Payee</div><div class="bv">${r.payee}</div></div></div></div>
+        <div class="dsection"><div class="dh">${r.type==='smart'?'A few of the transactions this rule catches':'Transactions this rule will catch'}</div>
+          <div class="examples">${r.examples.map(e=>`<div class="ex"><span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span><span class="desc">${e}</span></div>`).join('')}</div></div>
+        <div class="actions">
+          <button class="btn primary" onclick="show('edit',${idx})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Edit rule</button>
+          ${r.type==='smart'?`<button class="btn" onclick="show('cluster',${idx})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="12" r="3"/><path d="M9 6h6M9 18h4M15 12H9"/></svg>See grouped transactions</button>`:''}
+          ${r.review?`<button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Looks right</button>`:''}
+        </div>
+      </div></div>
+    </div>`;}).join('');
+  if(!filtered.length)list.innerHTML=`<div style="text-align:center;padding:50px;color:var(--ink-faint)">No rules match your filter.</div>`;
+}
+
+/* ---------- EDIT SCREEN ---------- */
+let editSel=0;
+function renderEdit(idx){
+  const r=rules[idx];editSel=0;
+  const multi=r.outputs.length>1;
+  const el=document.getElementById('screen-edit');
+  el.innerHTML=`
+    <div class="breadcrumb" onclick="show('account')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Chase Ink 0358</div>
+    <div class="pagehead"><div class="vendorline" style="margin-bottom:4px"><h2 style="font-size:25px">${r.vendor}</h2>${arrow(r.flow)}${badge(r)}</div><p>Set how we should categorize this vendor on every future transaction.</p></div>
+    <div class="editgrid">
+      <div>
+        <div class="panel">
+          <h3>How you coded this vendor last year</h3>
+          <div class="sub">${multi?`This vendor was coded <b>${r.outputs.length} different ways</b>. Pick the one we should use going forward.`:`You coded this vendor the same way every time. Nothing to decide here.`}</div>
+          ${multi&&r.consist<60?`<div class="warnstrip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><div>The top choice was only used <b>${r.consist}%</b> of the time, so we flagged this for you to confirm.</div></div>`:''}
+          <div id="optList">${r.outputs.map((o,i)=>`
+            <div class="opt ${i===0?'sel':''}" onclick="selOpt(${i})">
+              <div class="radio"></div><div class="ocat">${o.cat}</div>
+              <div class="obar"><i style="width:${o.pct}%"></i></div><div class="opct">${o.pct}%</div><div class="ocount">${o.n} txns</div>
+            </div>`).join('')}</div>
+        </div>
+        <div class="panel">
+          <h3>What we'll record</h3>
+          <div class="field"><label>Category (chart of account)</label><div class="control" id="catControl">${r.outputs[0].cat}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div></div>
+          <div class="field"><label>QuickBooks type</label><div class="control">${r.qb}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div></div>
+          <div class="field"><label>Payee</label><input class="control" value="${r.payee}"></div>
+        </div>
+        <div class="panel">
+          <h3>When this rule runs</h3>
+          ${r.type==='exact'?`
+            <div class="matchbox">
+              <div style="font-size:13px;color:var(--ink-soft)">Runs when a transaction's description is exactly:</div>
+              <div class="mtxt">${r.matchText}</div>
+              <div class="check" onclick="this.classList.toggle('on')"><div class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg></div>Also catch small variations of this name <span style="color:var(--ink-faint)">(turns this into a Smart match)</span></div>
+            </div>
+            <div class="advlink" onclick="document.getElementById('advEdit').classList.toggle('open');this.querySelector('svg').style.transform=document.getElementById('advEdit').classList.contains('open')?'rotate(90deg)':''"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>Advanced: edit the matching rule manually</div>
+            <div class="adv-body2" id="advEdit"><div class="codeblock"><span class="tok">match</span> = exact("${r.matchText}")</div></div>`
+          :`
+            <div class="matchbox">
+              <div style="font-size:13px;color:var(--ink-soft);margin-bottom:9px">This is a <b>Smart match</b> — it catches a whole family of similar transactions:</div>
+              <div style="font-size:14px;font-weight:600;color:var(--ink)">${r.matchText}</div>
+              <div style="margin-top:13px"><button class="btn" onclick="show('cluster',${idx})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="12" r="3"/><path d="M9 6h6M9 18h4M15 12H9"/></svg>See the ${r.cluster.length}+ transactions it groups</button></div>
+            </div>`}
+        </div>
+      </div>
+      <div style="position:sticky;top:90px">
+        <div class="previewcard">
+          <div class="pl">Live preview</div>
+          <div style="font-size:13px;color:#9aa1b0">On future transactions from ${r.vendor}, we'll book:</div>
+          <div class="big" id="pvCat">${r.outputs[0].cat}</div>
+          <div style="color:#7fb8a3;font-size:13px;font-weight:600">${r.flow==='out'?'Money out':'Money in'} · ${r.qb}</div>
+          <div style="margin-top:16px">
+            <div class="prow"><span>Payee</span><b>${r.payee}</b></div>
+            <div class="prow"><span>Match type</span><b>${r.type==='exact'?'Exact match':'Smart match'}</b></div>
+            <div class="prow" style="border:none"><span>Est. per year</span><b>~${r.outputs.reduce((s,o)=>s+o.n,0)} transactions</b></div>
+          </div>
+        </div>
+        <div class="savebar"><button class="btn primary" style="flex:1;justify-content:center" onclick="show('account')">Save changes</button><button class="btn" onclick="show('account')">Cancel</button></div>
+      </div>
+    </div>`;
+}
+function selOpt(i){
+  editSel=i;const r=rules[currentRule];
+  document.querySelectorAll('#optList .opt').forEach((o,j)=>o.classList.toggle('sel',j===i));
+  document.getElementById('catControl').childNodes[0].nodeValue=r.outputs[i].cat;
+  document.getElementById('pvCat').textContent=r.outputs[i].cat;
+}
+
+/* ---------- CLUSTER SCREEN ---------- */
+function renderCluster(idx){
+  const r=rules[idx];
+  const total=r.outputs.reduce((s,o)=>s+o.n,0);
+  const el=document.getElementById('screen-cluster');
+  el.innerHTML=`
+    <div class="breadcrumb" onclick="show('account')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Chase Ink 0358</div>
+    <div class="pagehead"><div class="clusterhead" style="margin-bottom:6px"><h2 style="font-size:25px">${r.vendor}</h2>${arrow(r.flow)}${badge(r)}</div>
+      <p>We grouped <b>${total} transactions</b> together because they're the same vendor — only a small part of the description changes each time. They all get booked the same way.</p></div>
+
+    <div class="patternviz">
+      <div class="pv-label">What stays the same, and what changes</div>
+      <div class="pv-string">${r.segs.map(s=>s.v?`<span class="seg-vary">${s.t}<span class="tag">${s.tag}</span></span>`:`<span class="seg-const">${s.t}</span>`).join(' ')}</div>
+      <div class="pv-legend"><div class="lg"><span class="sw" style="background:#dfe2dc"></span>Stays the same — this is how we know it's ${r.vendor}</div><div class="lg"><span class="sw" style="background:var(--vary-soft);border:1px solid #ddc7ec"></span>Changes every time — we ignore this part</div></div>
+    </div>
+
+    <div class="resultbar"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><div>All ${total} transactions in this group are booked to <b>${r.cat}</b> as <b>${r.qb}</b>.</div></div>
+
+    <div class="txtable">
+      <div class="txhead"><span>Date</span><span>Description on the statement</span><span style="text-align:right">Amount</span><span></span></div>
+      ${r.cluster.map(t=>`<div class="txrow"><div class="date">${t.date}</div><div class="tdesc">${t.pre}<span class="v">${t.vary}</span>${t.post}</div><div class="amt">${t.amt}</div><div class="excl" title="Remove this transaction from the group">Not this one?</div></div>`).join('')}
+    </div>
+
+    <div class="actions" style="margin-top:20px">
+      <button class="btn primary" onclick="show('edit',${idx})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Change how this group is booked</button>
+      <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M21 8l-5 5-4-4-5 5"/></svg>Split into separate groups</button>
+    </div>
+
+    <div style="margin-top:18px;border-top:1px dashed var(--line);padding-top:14px">
+      <button class="adv-toggle" style="display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-faint);font-weight:600;cursor:pointer;background:none;border:none;font-family:inherit" onclick="const b=document.getElementById('advClus');b.classList.toggle('open');this.querySelector('svg').style.transform=b.classList.contains('open')?'rotate(90deg)':''"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>Advanced: view the technical pattern</button>
+      <div class="adv-body2" id="advClus"><div class="codeblock"><span class="tok">pattern</span> = ${r.pattern.replace(/</g,'&lt;')}</div></div>
+    </div>`;
+}
+
+/* ---------- NAV ---------- */
+let currentRule=0;
+function show(s,idx){
+  if(idx!==undefined)currentRule=idx;
+  ['overview','account','edit','cluster'].forEach(name=>document.getElementById('screen-'+name).classList.toggle('hidden',name!==s));
+  if(s==='account')renderRules();
+  if(s==='edit')renderEdit(currentRule);
+  if(s==='cluster')renderCluster(currentRule);
+  document.querySelector('.main').scrollTo(0,0);
+}
+function toggleRule(i){document.getElementById('rule-'+i).classList.toggle('open');}
+document.getElementById('segmented').addEventListener('click',e=>{const b=e.target.closest('.seg');if(!b)return;document.querySelectorAll('.seg').forEach(s=>s.classList.remove('active'));b.classList.add('active');renderRules(b.dataset.f,document.getElementById('searchInput').value);});
+document.getElementById('searchInput').addEventListener('input',e=>renderRules(document.querySelector('.seg.active').dataset.f,e.target.value));
+</script>
+</body>
+</html>

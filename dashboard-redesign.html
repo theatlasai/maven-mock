@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard – AtlasAI</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f5f7; color: #1a1a2e; min-height: 100vh; }
+
+  /* ── NAV ── */
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; background: #fff; border-bottom: 1px solid #e8e8ee; }
+  nav .brand { font-size: 17px; font-weight: 700; color: #1a1a2e; }
+  nav .nav-right { display: flex; align-items: center; gap: 18px; }
+  nav .atlas-label { font-size: 13px; color: #94a3b8; font-weight: 500; }
+  nav .user-badge { font-size: 13px; font-weight: 600; color: #1a1a2e; background: #f1f5f9; padding: 5px 12px; border-radius: 20px; }
+
+  /* ── MAIN CONTAINER ── */
+  main { max-width: 1320px; margin: 0 auto; padding: 28px 28px 48px; }
+
+  /* ── GREETING ── */
+  .greeting-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+  .greeting { font-size: 22px; font-weight: 700; }
+  .greeting span { font-weight: 400; color: #94a3b8; font-size: 16px; margin-left: 10px; }
+  .refresh-btn { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #64748b; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 7px 14px; cursor: pointer; }
+  .refresh-btn svg { width: 14px; height: 14px; }
+
+  /* ── STAT STRIP ── */
+  .stat-strip { display: flex; gap: 1px; background: #e2e8f0; border-radius: 14px; overflow: hidden; margin-bottom: 28px; border: 1px solid #e2e8f0; }
+  .stat-cell { flex: 1; background: #fff; padding: 18px 22px; display: flex; align-items: center; gap: 14px; }
+  .stat-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .stat-icon.blue   { background: #eff6ff; color: #3b82f6; }
+  .stat-icon.red    { background: #fff1f2; color: #f43f5e; }
+  .stat-icon.orange { background: #fff7ed; color: #f97316; }
+  .stat-icon.green  { background: #f0fdf4; color: #22c55e; }
+  .stat-icon.slate  { background: #f1f5f9; color: #64748b; }
+  .stat-icon svg { width: 18px; height: 18px; }
+  .stat-num { font-size: 26px; font-weight: 800; line-height: 1; }
+  .stat-label { font-size: 12px; color: #94a3b8; margin-top: 2px; font-weight: 500; }
+
+  /* ── SECTION HEADER ── */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .section-title { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: #94a3b8; text-transform: uppercase; }
+  .onboard-btn { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #fff; background: linear-gradient(135deg, #f97316, #ef4444); border: none; border-radius: 20px; padding: 8px 18px; cursor: pointer; }
+  .onboard-btn svg { width: 14px; height: 14px; }
+
+  /* ── BOARD ── */
+  .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: start; }
+
+  /* ── COLUMN ── */
+  .col { background: #fff; border-radius: 16px; border: 1px solid #e8e8ee; overflow: hidden; }
+  .col-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 2px solid transparent; }
+  .col-header.red    { border-color: #f43f5e; }
+  .col-header.orange { border-color: #f97316; }
+  .col-header.green  { border-color: #22c55e; }
+  .col-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+  .col-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .col-dot.red    { background: #f43f5e; }
+  .col-dot.orange { background: #f97316; }
+  .col-dot.green  { background: #22c55e; }
+  .col-count { font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 12px; }
+  .col-count.red    { background: #fff1f2; color: #f43f5e; }
+  .col-count.orange { background: #fff7ed; color: #f97316; }
+  .col-count.green  { background: #f0fdf4; color: #22c55e; }
+  .col-body { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+
+  /* ── CARD ── */
+  .card { border: 1px solid #e8e8ee; border-radius: 12px; padding: 16px; background: #fff; }
+  .card-name { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+  .card-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
+  .card-row .val { font-size: 12px; font-weight: 600; color: #1a1a2e; }
+  .progress-bar-bg { height: 5px; background: #f1f5f9; border-radius: 99px; margin: 6px 0 10px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; border-radius: 99px; }
+  .fill-red    { background: #f43f5e; }
+  .fill-orange { background: #f97316; }
+  .fill-green  { background: #22c55e; }
+  .dots-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 12px; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .dot.green  { background: #22c55e; }
+  .dot.orange { background: #f97316; }
+  .dot.gray   { background: #e2e8f0; }
+
+  /* CTA BUTTON */
+  .cta-btn { width: 100%; padding: 10px; border-radius: 9px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 4px; }
+  .cta-btn svg { width: 13px; height: 13px; }
+  .cta-red    { background: #fff1f2; color: #f43f5e; }
+  .cta-orange { background: #fff7ed; color: #f97316; }
+  .cta-green  { background: #f0fdf4; color: #22c55e; }
+  .cta-slate  { background: #f1f5f9; color: #475569; }
+
+  /* DUAL CTA ROW */
+  .cta-row { display: flex; gap: 8px; margin-top: 4px; }
+  .cta-row .cta-btn { margin-top: 0; }
+
+  /* DATA RECEIVED BADGE */
+  .data-received { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 5px 8px; margin-bottom: 10px; }
+  .data-received .recv-count { font-weight: 700; color: #3b82f6; }
+  .data-received svg { width: 11px; height: 11px; color: #3b82f6; flex-shrink: 0; }
+
+  /* ACCOUNT NAME LIST */
+  .account-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+  .account-item { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; }
+  .account-item .acct-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .account-item.received { color: #16a34a; }
+  .account-item.received .acct-dot { background: #22c55e; }
+  .account-item.awaiting { color: #dc2626; }
+  .account-item.awaiting .acct-dot { background: #f43f5e; }
+
+  /* PDF PARSING SPECIAL */
+  .pdf-highlight { background: #fef9ec; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; font-size: 12px; color: #92400e; display: flex; align-items: center; justify-content: space-between; }
+  .pdf-highlight .pages { font-weight: 700; font-size: 14px; color: #d97706; }
+
+  /* BOOKS CLOSED 100% badge */
+  .posted-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: #16a34a; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 3px 8px; }
+
+  /* ── INACTIVE SECTION ── */
+  .inactive-section { margin-top: 32px; }
+  .inactive-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .inactive-title { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: #94a3b8; text-transform: uppercase; }
+  .inactive-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .inactive-card { background: #fff; border: 1px solid #e8e8ee; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .inactive-card .card-name { font-size: 14px; font-weight: 700; margin-bottom: 0; color: #64748b; }
+  .inactive-meta { display: flex; flex-direction: column; gap: 4px; }
+  .inactive-meta-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #94a3b8; }
+  .inactive-meta-row svg { width: 11px; height: 11px; flex-shrink: 0; }
+  .inactive-meta-row .meta-val { font-weight: 600; color: #475569; }
+  .inactive-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: #94a3b8; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 2px 7px; width: fit-content; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="brand">Dashboard</span>
+  <div class="nav-right">
+    <span class="atlas-label">AtlasAI</span>
+    <span class="user-badge">Admin Dev</span>
+  </div>
+</nav>
+
+<main>
+
+  <!-- GREETING -->
+  <div class="greeting-row">
+    <div class="greeting">Good afternoon <span>Wednesday, June 3, 2026</span></div>
+    <button class="refresh-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+      Refresh
+    </button>
+  </div>
+
+  <!-- STAT STRIP -->
+  <div class="stat-strip">
+    <div class="stat-cell">
+      <div class="stat-icon blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div><div class="stat-num">15</div><div class="stat-label">Clients</div></div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-icon red">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div><div class="stat-num" style="color:#f43f5e">5</div><div class="stat-label">In Progress</div></div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-icon orange">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      </div>
+      <div><div class="stat-num" style="color:#f97316">3</div><div class="stat-label">Awaiting Review</div></div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-icon green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div><div class="stat-num" style="color:#22c55e">3</div><div class="stat-label">Books Closed</div></div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-icon slate">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <div><div class="stat-num" style="color:#64748b">4</div><div class="stat-label">Inactive</div></div>
+    </div>
+  </div>
+
+  <!-- SECTION HEADER -->
+  <div class="section-header">
+    <span class="section-title">Client Overview</span>
+    <button class="onboard-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Onboard New Client
+    </button>
+  </div>
+
+  <!-- BOARD -->
+  <div class="board">
+
+    <!-- ══════════════════ IN PROGRESS (formerly Yet to Start) ══════════════════ -->
+    <div class="col">
+      <div class="col-header red">
+        <div class="col-title"><span class="col-dot red"></span> In Progress</div>
+        <span class="col-count red">5</span>
+      </div>
+      <div class="col-body">
+
+        <!-- Card 1: Riverside Bakery — 3/4 received -->
+        <div class="card">
+          <div class="card-name">Riverside Bakery</div>
+          <div class="data-received">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Data received: <span class="recv-count">3 / 4 accounts</span>
+          </div>
+          <div class="account-list">
+            <div class="account-item received"><span class="acct-dot"></span>Checking Account</div>
+            <div class="account-item received"><span class="acct-dot"></span>Savings Account</div>
+            <div class="account-item received"><span class="acct-dot"></span>Credit Card – Amex</div>
+            <div class="account-item awaiting"><span class="acct-dot"></span>Merchant Account</div>
+          </div>
+          <div class="cta-row">
+            <button class="cta-btn cta-red">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload Data
+            </button>
+            <button class="cta-btn cta-slate">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.69h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 17z"/></svg>
+              Request Data
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 2: Oak Street Dental — 1/3 received -->
+        <div class="card">
+          <div class="card-name">Oak Street Dental</div>
+          <div class="data-received">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Data received: <span class="recv-count">1 / 3 accounts</span>
+          </div>
+          <div class="account-list">
+            <div class="account-item received"><span class="acct-dot"></span>Business Checking</div>
+            <div class="account-item awaiting"><span class="acct-dot"></span>Credit Card – Visa</div>
+            <div class="account-item awaiting"><span class="acct-dot"></span>Petty Cash</div>
+          </div>
+          <div class="cta-row">
+            <button class="cta-btn cta-red">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload Data
+            </button>
+            <button class="cta-btn cta-slate">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.69h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 17z"/></svg>
+              Request Data
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 3: Maple Grove Realty — 2/2 received -->
+        <div class="card">
+          <div class="card-name">Maple Grove Realty</div>
+          <div class="data-received">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Data received: <span class="recv-count">2 / 2 accounts</span>
+          </div>
+          <div class="account-list">
+            <div class="account-item received"><span class="acct-dot"></span>Operating Account</div>
+            <div class="account-item received"><span class="acct-dot"></span>Escrow Account</div>
+          </div>
+          <div class="cta-row">
+            <button class="cta-btn cta-red">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload Data
+            </button>
+            <button class="cta-btn cta-slate">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.69h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 17z"/></svg>
+              Request Data
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 4: Harbor View Inn — 4/6 received -->
+        <div class="card">
+          <div class="card-name">Harbor View Inn</div>
+          <div class="data-received">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Data received: <span class="recv-count">4 / 6 accounts</span>
+          </div>
+          <div class="account-list">
+            <div class="account-item received"><span class="acct-dot"></span>Front Desk Cash</div>
+            <div class="account-item received"><span class="acct-dot"></span>F&amp;B Revenue Account</div>
+            <div class="account-item received"><span class="acct-dot"></span>Business Checking</div>
+            <div class="account-item received"><span class="acct-dot"></span>Credit Card – Mastercard</div>
+            <div class="account-item awaiting"><span class="acct-dot"></span>Payroll Account</div>
+            <div class="account-item awaiting"><span class="acct-dot"></span>Security Deposits</div>
+          </div>
+          <div class="cta-row">
+            <button class="cta-btn cta-red">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload Data
+            </button>
+            <button class="cta-btn cta-slate">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.69h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 17z"/></svg>
+              Request Data
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 5: Summit Auto Group — 2/5 received -->
+        <div class="card">
+          <div class="card-name">Summit Auto Group</div>
+          <div class="data-received">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Data received: <span class="recv-count">2 / 5 accounts</span>
+          </div>
+          <div class="account-list">
+            <div class="account-item received"><span class="acct-dot"></span>Floor Plan Account</div>
+            <div class="account-item received"><span class="acct-dot"></span>Service Revenue</div>
+            <div class="account-item awaiting"><span class="acct-dot"></span>Parts Inventory</div>
+            <div class="account-item awaiting"><span class="acct-dot"></span>Credit Card – Chase</div>
+            <div class="account-item awaiting"><span class="acct-dot"></span>Payroll Account</div>
+          </div>
+          <div class="cta-row">
+            <button class="cta-btn cta-red">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload Data
+            </button>
+            <button class="cta-btn cta-slate">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.69h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 17z"/></svg>
+              Request Data
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════ AWAITING REVIEW (formerly In Progress) ══════════════════ -->
+    <div class="col">
+      <div class="col-header orange">
+        <div class="col-title"><span class="col-dot orange"></span> Awaiting Review</div>
+        <span class="col-count orange">3</span>
+      </div>
+      <div class="col-body">
+
+        <!-- Card: Review PDF Parsing -->
+        <div class="card">
+          <div class="card-name">Blue Ridge Consulting</div>
+          <div class="pdf-highlight">
+            <span>Pages to review</span>
+            <span class="pages">4 / 100</span>
+          </div>
+          <div class="card-row"><span>Transactions</span><span class="val">0 / 0 posted</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill fill-orange" style="width:0%"></div></div>
+          <div class="card-row" style="margin-bottom:8px"><span></span><span class="val">0%</span></div>
+          <div class="card-row"><span>Accounts</span><span class="val">1 / 4 done</span></div>
+          <div class="dots-row"><span class="dot green"></span><span class="dot gray"></span><span class="dot gray"></span><span class="dot gray"></span></div>
+          <button class="cta-btn cta-orange">Review PDF Parsing →</button>
+        </div>
+
+        <!-- Card: Review Transactions -->
+        <div class="card">
+          <div class="card-name">Clearwater Medical</div>
+          <div class="card-row"><span>Transactions</span><span class="val">3834 / 3940 posted</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill fill-orange" style="width:97%"></div></div>
+          <div class="card-row" style="margin-bottom:8px"><span></span><span class="val">97%</span></div>
+          <div class="card-row"><span>Accounts</span><span class="val">5 / 8 done</span></div>
+          <div class="dots-row">
+            <span class="dot green"></span><span class="dot green"></span><span class="dot orange"></span>
+            <span class="dot green"></span><span class="dot green"></span><span class="dot orange"></span>
+            <span class="dot green"></span><span class="dot orange"></span>
+          </div>
+          <button class="cta-btn cta-orange">Review Transactions →</button>
+        </div>
+
+        <!-- Card: Review New Rules -->
+        <div class="card">
+          <div class="card-name">Pine Valley Foods</div>
+          <div class="card-row"><span>Transactions</span><span class="val">1703 / 1703 posted</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill fill-green" style="width:100%"></div></div>
+          <div class="card-row" style="margin-bottom:8px"><span></span><span class="val">100%</span></div>
+          <div class="card-row"><span>Accounts</span><span class="val">3 / 3 done</span></div>
+          <div class="dots-row">
+            <span class="dot green"></span><span class="dot green"></span><span class="dot green"></span>
+          </div>
+          <button class="cta-btn cta-orange">Review New Rules →</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════ BOOKS CLOSED ══════════════════ -->
+    <div class="col">
+      <div class="col-header green">
+        <div class="col-title"><span class="col-dot green"></span> Books Closed</div>
+        <span class="col-count green">3</span>
+      </div>
+      <div class="col-body">
+
+        <div class="card">
+          <div class="card-name">Lakeview Diner</div>
+          <div class="card-row"><span>Transactions</span><span class="val">2140 / 2140 posted</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill fill-green" style="width:100%"></div></div>
+          <div class="card-row" style="margin-bottom:8px"><span></span><span class="posted-badge">✓ 100% Posted</span></div>
+          <div class="card-row"><span>Accounts</span><span class="val">4 / 4 done</span></div>
+          <div class="dots-row">
+            <span class="dot green"></span><span class="dot green"></span><span class="dot green"></span><span class="dot green"></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-name">Northgate Pharmacy</div>
+          <div class="card-row"><span>Transactions</span><span class="val">876 / 876 posted</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill fill-green" style="width:100%"></div></div>
+          <div class="card-row" style="margin-bottom:8px"><span></span><span class="posted-badge">✓ 100% Posted</span></div>
+          <div class="card-row"><span>Accounts</span><span class="val">2 / 2 done</span></div>
+          <div class="dots-row">
+            <span class="dot green"></span><span class="dot green"></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-name">Elm Street Fitness</div>
+          <div class="card-row"><span>Transactions</span><span class="val">3012 / 3012 posted</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill fill-green" style="width:100%"></div></div>
+          <div class="card-row" style="margin-bottom:8px"><span></span><span class="posted-badge">✓ 100% Posted</span></div>
+          <div class="card-row"><span>Accounts</span><span class="val">5 / 5 done</span></div>
+          <div class="dots-row">
+            <span class="dot green"></span><span class="dot green"></span><span class="dot green"></span><span class="dot green"></span><span class="dot green"></span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /board -->
+
+  <!-- ══════════════════ INACTIVE SECTION ══════════════════ -->
+  <div class="inactive-section">
+    <div class="inactive-header">
+      <span class="inactive-title">Inactive Clients</span>
+    </div>
+    <div class="inactive-grid">
+
+      <div class="inactive-card">
+        <div class="card-name">Birchwood Cafe</div>
+        <span class="inactive-tag">No active tasks</span>
+        <div class="inactive-meta">
+          <div class="inactive-meta-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Scheduled start: <span class="meta-val">Jul 1, 2026</span>
+          </div>
+          <div class="inactive-meta-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            3 accounts
+          </div>
+        </div>
+        <button class="cta-btn cta-slate" style="margin-top:0">Start Working →</button>
+      </div>
+
+      <div class="inactive-card">
+        <div class="card-name">Greenfield Veterinary</div>
+        <span class="inactive-tag">No active tasks</span>
+        <div class="inactive-meta">
+          <div class="inactive-meta-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Scheduled start: <span class="meta-val">Jul 5, 2026</span>
+          </div>
+          <div class="inactive-meta-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            2 accounts
+          </div>
+        </div>
+        <button class="cta-btn cta-slate" style="margin-top:0">Start Working →</button>
+      </div>
+
+      <div class="inactive-card">
+        <div class="card-name">Westside Printing Co.</div>
+        <span class="inactive-tag">No active tasks</span>
+        <div class="inactive-meta">
+          <div class="inactive-meta-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Scheduled start: <span class="meta-val">Jul 10, 2026</span>
+          </div>
+          <div class="inactive-meta-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            4 accounts
+          </div>
+        </div>
+        <button class="cta-btn cta-slate" style="margin-top:0">Start Working →</button>
+      </div>
+
+      <div class="inactive-card">
+        <div class="card-name">Cedar Point Insurance</div>
+        <span class="inactive-tag">No active tasks</span>
+        <div class="inactive-meta">
+          <div class="inactive-meta-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Scheduled start: <span class="meta-val">Jul 15, 2026</span>
+          </div>
+          <div class="inactive-meta-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            5 accounts
+          </div>
+        </div>
+        <button class="cta-btn cta-slate" style="margin-top:0">Start Working →</button>
+      </div>
+
+    </div>
+  </div><!-- /inactive -->
+
+</main>
+</body>
+</html>

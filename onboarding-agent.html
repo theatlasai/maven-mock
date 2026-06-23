@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Onboarding Agent — Atlas</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary: #6366f1; --primary-light: #eef2ff; --primary-dark: #4f46e5;
+    --slate-50: #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0;
+    --slate-300: #cbd5e1; --slate-400: #94a3b8; --slate-500: #64748b;
+    --slate-600: #475569; --slate-700: #334155; --slate-800: #1e293b; --slate-900: #0f172a;
+    --success-bg: #f0fdf4; --success-text: #15803d; --success-border: #bbf7d0;
+    --warning-bg: #fffbeb; --warning-text: #b45309; --warning-border: #fde68a;
+    --info-bg: #eff6ff; --info-text: #1d4ed8; --info-border: #bfdbfe;
+    --radius: 12px; --radius-sm: 8px;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 13px; background: var(--slate-50); color: var(--slate-900); min-height: 100vh; }
+
+  .shell { display: flex; height: 100vh; overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar { width: 220px; flex-shrink: 0; background: white; border-right: 1px solid var(--slate-200); display: flex; flex-direction: column; }
+  .sidebar-logo { padding: 20px 20px 16px; border-bottom: 1px solid var(--slate-100); display: flex; align-items: center; gap: 10px; }
+  .logo-mark { width: 30px; height: 30px; background: linear-gradient(135deg, #6366f1, #4f46e5); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 13px; }
+  .logo-name { font-weight: 700; font-size: 15px; }
+  .sidebar-nav { padding: 12px 10px; flex: 1; }
+  .nav-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--slate-400); padding: 8px 10px 4px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 7px; color: var(--slate-600); font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; transition: background .15s; }
+  .nav-item:hover { background: var(--slate-100); color: var(--slate-900); }
+  .nav-item.active { background: var(--primary-light); color: var(--primary-dark); }
+  .nav-icon { width: 16px; height: 16px; opacity: .7; flex-shrink: 0; }
+  .nav-item.active .nav-icon { opacity: 1; }
+  .sidebar-footer { padding: 14px 16px; border-top: 1px solid var(--slate-100); display: flex; align-items: center; gap: 10px; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #818cf8, #4f46e5); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+  .user-name { font-size: 13px; font-weight: 600; }
+  .user-role { font-size: 11px; color: var(--slate-400); }
+
+  /* Chat area */
+  .chat-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+  .chat-header { height: 52px; background: white; border-bottom: 1px solid var(--slate-200); display: flex; align-items: center; padding: 0 28px; gap: 12px; flex-shrink: 0; }
+  .chat-header-title { font-size: 15px; font-weight: 700; }
+  .chat-header-sub { font-size: 11px; color: var(--slate-400); margin-top: 1px; }
+  .chat-header-spacer { flex: 1; }
+  .btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 13px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; white-space: nowrap; }
+  .btn-ghost { background: transparent; color: var(--slate-600); border: 1px solid var(--slate-200); }
+  .btn-ghost:hover { background: var(--slate-50); }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-success { background: var(--success-bg); color: var(--success-text); border: 1px solid var(--success-border); }
+  .btn-success:hover { background: #dcfce7; }
+
+  /* Messages */
+  .messages { flex: 1; overflow-y: auto; padding: 28px; display: flex; flex-direction: column; gap: 20px; }
+
+  /* Message rows */
+  .msg { display: flex; gap: 12px; max-width: 780px; }
+  .msg.agent { align-self: flex-start; }
+  .msg.user  { align-self: flex-end; flex-direction: row-reverse; }
+
+  .msg-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+  .msg.agent .msg-avatar { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; }
+  .msg.user  .msg-avatar { background: var(--slate-200); color: var(--slate-600); }
+
+  .msg-bubble { background: white; border: 1px solid var(--slate-200); border-radius: 12px; padding: 14px 16px; line-height: 1.6; color: var(--slate-800); font-size: 13px; }
+  .msg.user .msg-bubble { background: var(--primary); border-color: var(--primary); color: white; }
+  .msg-bubble p + p { margin-top: 8px; }
+  .msg-bubble ul { padding-left: 18px; margin-top: 6px; }
+  .msg-bubble li { margin-bottom: 3px; }
+  .msg-bubble strong { font-weight: 700; }
+
+  /* Thinking animation */
+  .thinking-dots { display: flex; gap: 5px; padding: 4px 2px; align-items: center; }
+  .thinking-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--slate-300); animation: blink 1.4s infinite; }
+  .thinking-dots span:nth-child(2) { animation-delay: .2s; }
+  .thinking-dots span:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
+
+  /* Inline cards */
+  .msg-card { background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 10px; padding: 14px; margin-top: 12px; }
+  .msg-card-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--slate-400); margin-bottom: 10px; }
+  .mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; }
+  .mc-row { display: flex; flex-direction: column; gap: 2px; }
+  .mc-key { font-size: 10px; color: var(--slate-400); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+  .mc-val { font-size: 13px; font-weight: 600; color: var(--slate-800); }
+
+  /* Quote from meeting */
+  .meeting-quote { border-left: 3px solid var(--primary-light); padding: 8px 12px; margin: 4px 0; background: var(--slate-50); border-radius: 0 6px 6px 0; }
+  .meeting-quote-text { font-size: 12px; color: var(--slate-700); font-style: italic; }
+  .meeting-quote-attr { font-size: 10px; color: var(--slate-400); margin-top: 3px; }
+
+  /* Type pills */
+  .type-pill { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 700; }
+  .type-pill.income-split { background: var(--primary-light); color: var(--primary-dark); }
+  .type-pill.transfer     { background: var(--info-bg); color: var(--info-text); }
+  .type-pill.check        { background: var(--success-bg); color: var(--success-text); }
+  .type-pill.categorisation { background: var(--slate-100); color: var(--slate-600); }
+
+  /* Strategy proposal cards */
+  .strategy-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .strategy-card { background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 10px; padding: 12px 14px; }
+  .sc-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .sc-name { font-size: 13px; font-weight: 700; color: var(--slate-800); }
+  .sc-rows { display: flex; flex-direction: column; gap: 4px; }
+  .sc-row { font-size: 12px; color: var(--slate-600); display: flex; gap: 6px; }
+  .sc-label { color: var(--slate-400); font-size: 11px; width: 56px; flex-shrink: 0; padding-top: 1px; }
+  code { font-family: "SF Mono", "Fira Code", monospace; font-size: 11px; background: var(--slate-100); padding: 1px 5px; border-radius: 4px; color: var(--slate-700); }
+
+  /* Entity table */
+  .entity-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+  .entity-table th { text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--slate-400); padding: 4px 8px 8px; }
+  .entity-table td { padding: 7px 8px; border-top: 1px solid var(--slate-100); color: var(--slate-700); vertical-align: top; }
+  .entity-table td:first-child { font-weight: 600; color: var(--slate-800); }
+  .entity-tag { font-size: 10px; font-weight: 600; padding: 1px 7px; border-radius: 9999px; background: var(--slate-100); color: var(--slate-500); }
+
+  /* Routing rules list */
+  .rules-list { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
+  .rule-row { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: var(--slate-50); border-radius: 7px; border: 1px solid var(--slate-100); font-size: 12px; }
+  .rule-priority { font-size: 10px; font-weight: 700; color: var(--slate-400); width: 16px; flex-shrink: 0; }
+  .rule-pattern { flex: 1; color: var(--slate-700); }
+  .rule-arrow { color: var(--slate-300); font-size: 12px; }
+
+  /* Config summary (done state) */
+  .config-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .cs-item { background: var(--success-bg); border: 1px solid var(--success-border); border-radius: 8px; padding: 10px 12px; }
+  .cs-count { font-size: 20px; font-weight: 800; color: var(--success-text); }
+  .cs-label { font-size: 11px; color: var(--success-text); margin-top: 2px; opacity: .8; }
+
+  /* Apply progress */
+  .apply-progress { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; }
+  .apply-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--slate-700); }
+  .apply-check { width: 16px; height: 16px; border-radius: 50%; background: var(--success-bg); border: 1.5px solid var(--success-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 9px; color: var(--success-text); font-weight: 700; }
+
+  /* Upload zone */
+  .upload-zone { border: 1.5px dashed var(--slate-300); border-radius: 10px; padding: 20px; margin-top: 12px; display: flex; gap: 12px; }
+  .upload-slot { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: var(--slate-50); border-radius: 8px; padding: 16px; cursor: pointer; transition: background .15s; border: 1px solid var(--slate-200); }
+  .upload-slot:hover { background: var(--primary-light); border-color: var(--primary); }
+  .upload-slot-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .upload-slot-label { font-size: 12px; font-weight: 600; color: var(--slate-700); text-align: center; }
+  .upload-slot-sub { font-size: 11px; color: var(--slate-400); text-align: center; }
+  .upload-btn-row { margin-top: 14px; display: flex; justify-content: center; }
+
+  /* File chips */
+  .file-chip { display: inline-flex; align-items: center; gap: 7px; background: var(--slate-100); border: 1px solid var(--slate-200); border-radius: 8px; padding: 7px 12px; font-size: 12px; color: var(--slate-700); }
+  .file-chip-icon { width: 22px; height: 22px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: white; flex-shrink: 0; }
+  .file-chip-name { font-weight: 600; }
+  .file-chip-size { color: var(--slate-400); font-size: 11px; }
+  .file-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+
+  /* Divider label */
+  .section-divider { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--slate-400); margin: 4px 0 10px; }
+
+  /* Input area */
+  .input-area { padding: 16px 28px 20px; background: white; border-top: 1px solid var(--slate-200); flex-shrink: 0; }
+  .input-wrap { display: flex; align-items: center; gap: 10px; background: var(--slate-50); border: 1.5px solid var(--slate-200); border-radius: 10px; padding: 10px 14px; transition: border-color .15s; }
+  .input-wrap:focus-within { border-color: var(--primary); }
+  .input-wrap input { flex: 1; border: none; background: none; font-size: 13px; color: var(--slate-800); outline: none; }
+  .input-wrap input::placeholder { color: var(--slate-400); }
+  .input-send { width: 28px; height: 28px; border-radius: 7px; border: none; cursor: pointer; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .15s; }
+  .input-send:hover { background: var(--primary-dark); }
+
+  /* Fade-in animation */
+  .fade-in { animation: fadeUp .3s ease forwards; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">A</div>
+      <span class="logo-name">Atlas</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-label">Clients</div>
+      <a href="#" class="nav-item active">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+        Onboarding
+      </a>
+      <a href="#" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        All Clients
+      </a>
+      <div class="nav-label">Bookkeeping</div>
+      <a href="#" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        Smart Handling
+      </a>
+      <a href="#" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Transactions
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="avatar">SC</div>
+      <div><div class="user-name">Sarah Chen</div><div class="user-role">CPA</div></div>
+    </div>
+  </nav>
+
+  <!-- Chat area -->
+  <div class="chat-area">
+    <div class="chat-header">
+      <div>
+        <div class="chat-header-title">Client Onboarding</div>
+        <div class="chat-header-sub">Acme Retail Co. · New client</div>
+      </div>
+      <div class="chat-header-spacer"></div>
+      <button class="btn btn-ghost" style="font-size:12px;">
+        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 4v16m8-8H4"/></svg>
+        New Client
+      </button>
+    </div>
+
+    <div class="messages" id="messages">
+
+      <!-- ── MSG 0: Agent welcome (always visible) ── -->
+      <div class="msg agent" id="msg-0">
+        <div class="msg-avatar">A</div>
+        <div class="msg-bubble">
+          <p>Hi Sarah! I'll help you onboard <strong>Acme Retail Co.</strong> and configure their bookkeeping automatically.</p>
+          <p>To get started, please share:</p>
+          <ul>
+            <li><strong>General Ledger or Chart of Accounts</strong> — Excel or CSV, any period</li>
+            <li><strong>Kickoff call recording</strong> — helps me understand the business and catch edge cases your client mentioned</li>
+          </ul>
+          <div class="upload-zone" id="upload-zone">
+            <div class="upload-slot" onclick="simulateUpload()">
+              <div class="upload-slot-icon" style="background:#dcfce7;">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#15803d" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              </div>
+              <div class="upload-slot-label">General Ledger</div>
+              <div class="upload-slot-sub">Excel · CSV · up to 50MB</div>
+            </div>
+            <div class="upload-slot" onclick="simulateUpload()">
+              <div class="upload-slot-icon" style="background:#eff6ff;">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#1d4ed8" stroke-width="2"><path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              </div>
+              <div class="upload-slot-label">Kickoff Recording</div>
+              <div class="upload-slot-sub">MP4 · Google Meet link</div>
+            </div>
+          </div>
+          <div class="upload-btn-row">
+            <button class="btn btn-primary" id="btn-analyze" onclick="startAnalysis()">
+              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              Upload &amp; Analyze
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MSG 1: User uploads files ── -->
+      <div class="msg user hidden" id="msg-1">
+        <div class="msg-avatar">SC</div>
+        <div class="msg-bubble" style="background:white;border-color:var(--slate-200);color:var(--slate-800);">
+          <div class="file-chips">
+            <div class="file-chip">
+              <div class="file-chip-icon" style="background:#15803d;">XL</div>
+              <div><div class="file-chip-name">GL_2024.xlsx</div><div class="file-chip-size">847 KB</div></div>
+            </div>
+            <div class="file-chip">
+              <div class="file-chip-icon" style="background:#1d4ed8;">MP</div>
+              <div><div class="file-chip-name">kickoff-jan2025.mp4</div><div class="file-chip-size">124 MB</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MSG 2: Thinking ── -->
+      <div class="msg agent hidden" id="msg-thinking-1">
+        <div class="msg-avatar">A</div>
+        <div class="msg-bubble">
+          <div class="thinking-dots"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+
+      <!-- ── MSG 3: Business analysis ── -->
+      <div class="msg agent hidden" id="msg-analysis">
+        <div class="msg-avatar">A</div>
+        <div class="msg-bubble">
+          <p>I've analyzed the general ledger (<strong>Jan–Dec 2024 · 1,847 transactions</strong>) and the kickoff recording (<strong>38 min</strong>). Here's what I found:</p>
+          <div class="msg-card">
+            <div class="msg-card-label">Business Profile</div>
+            <div class="mc-grid">
+              <div class="mc-row"><div class="mc-key">Industry</div><div class="mc-val">E-commerce · Retail</div></div>
+              <div class="mc-row"><div class="mc-key">Est. Revenue</div><div class="mc-val">~$1.4M / yr</div></div>
+              <div class="mc-row"><div class="mc-key">Monthly Volume</div><div class="mc-val">~290 transactions</div></div>
+              <div class="mc-row"><div class="mc-key">Payroll</div><div class="mc-val">Gusto · ~$31K/mo</div></div>
+              <div class="mc-row"><div class="mc-key">Bank Account</div><div class="mc-val">Chase Business Checking</div></div>
+              <div class="mc-row"><div class="mc-key">Sales Channels</div><div class="mc-val">Shopify · Stripe · PayPal</div></div>
+            </div>
+          </div>
+          <p style="margin-top:12px;font-size:12px;color:var(--slate-500);">From the recording I captured a few useful details:</p>
+          <div style="margin-top:6px;display:flex;flex-direction:column;gap:6px;">
+            <div class="meeting-quote"><div class="meeting-quote-text">"Shopify is the main storefront, Stripe handles our subscription products"</div><div class="meeting-quote-attr">Finance Head · 4:12</div></div>
+            <div class="meeting-quote"><div class="meeting-quote-text">"PayPal comes up for some of our older wholesale buyers"</div><div class="meeting-quote-attr">Finance Head · 7:48</div></div>
+            <div class="meeting-quote"><div class="meeting-quote-text">"Every Friday we move a chunk to the savings account — usually $5K to $10K"</div><div class="meeting-quote-attr">Finance Head · 14:03</div></div>
+            <div class="meeting-quote"><div class="meeting-quote-text">"Checks are rare now, maybe two or three a month from older vendors who haven't switched to ACH"</div><div class="meeting-quote-attr">Finance Head · 21:37</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MSG 4: Money movements ── -->
+      <div class="msg agent hidden" id="msg-movements">
+        <div class="msg-avatar">A</div>
+        <div class="msg-bubble">
+          <p>I found <strong>5 transaction patterns</strong> that need custom handling. Here's how I'm planning to route each one:</p>
+          <div class="strategy-list">
+
+            <div class="strategy-card">
+              <div class="sc-header"><span class="type-pill income-split">Income Split</span><span class="sc-name">Stripe</span></div>
+              <div class="sc-rows">
+                <div class="sc-row"><span class="sc-label">Pattern</span><code>"STRIPE PAYOUT"</code> · 62 transactions in GL</div>
+                <div class="sc-row"><span class="sc-label">Split</span>Charges → Sales Revenue · Refunds → Refunds · Fees → Merchant Fees</div>
+              </div>
+            </div>
+
+            <div class="strategy-card">
+              <div class="sc-header"><span class="type-pill income-split">Income Split</span><span class="sc-name">Shopify</span></div>
+              <div class="sc-rows">
+                <div class="sc-row"><span class="sc-label">Pattern</span><code>"SHOPIFY PAYOUT"</code> · 87 transactions in GL</div>
+                <div class="sc-row"><span class="sc-label">Split</span>Charges → Sales Revenue · Refunds → Refunds · Fees → Merchant Fees</div>
+              </div>
+            </div>
+
+            <div class="strategy-card">
+              <div class="sc-header"><span class="type-pill income-split">Income Split</span><span class="sc-name">PayPal</span></div>
+              <div class="sc-rows">
+                <div class="sc-row"><span class="sc-label">Pattern</span><code>"PAYPAL TRANSFER"</code> · 11 transactions in GL</div>
+                <div class="sc-row"><span class="sc-label">Split</span>Charges → Sales Revenue · Refunds → Refunds · Fees → Merchant Fees</div>
+              </div>
+            </div>
+
+            <div class="strategy-card">
+              <div class="sc-header"><span class="type-pill transfer">Transfer</span><span class="sc-name">Chase → Savings</span></div>
+              <div class="sc-rows">
+                <div class="sc-row"><span class="sc-label">Pattern</span><code>"ONLINE TRANSFER TO SAV"</code> · weekly, ~$7K avg</div>
+                <div class="sc-row"><span class="sc-label">Config</span>Match window: 3 days · Amount tolerance: $0 · COA: Transfer In / Transfer Out</div>
+              </div>
+            </div>
+
+            <div class="strategy-card">
+              <div class="sc-header"><span class="type-pill check">Check</span><span class="sc-name">Check Payments</span></div>
+              <div class="sc-rows">
+                <div class="sc-row"><span class="sc-label">Pattern</span><code>"CHECK #"</code> · 28 transactions in GL · avg $950</div>
+                <div class="sc-row"><span class="sc-label">Config</span>Park until cheque images uploaded · system extracts payee + memo</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MSG 5: Entity findings ── -->
+      <div class="msg agent hidden" id="msg-entities">
+        <div class="msg-avatar">A</div>
+        <div class="msg-bubble">
+          <p>I identified <strong>24 key entities</strong> to add to the AI's knowledge base. This will improve categorisation accuracy for recurring vendors and counterparties.</p>
+          <div class="msg-card">
+            <div class="msg-card-label">Sample entities (5 of 24)</div>
+            <table class="entity-table">
+              <thead><tr><th>Entity</th><th>Type</th><th>Instruction</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>Gusto</td>
+                  <td><span class="entity-tag">Vendor</span></td>
+                  <td>Always → Payroll Expense · counterparty = Gusto</td>
+                </tr>
+                <tr>
+                  <td>Google Ads</td>
+                  <td><span class="entity-tag">Vendor</span></td>
+                  <td>Always → Marketing &amp; Advertising</td>
+                </tr>
+                <tr>
+                  <td>Amazon Business</td>
+                  <td><span class="entity-tag">Vendor</span></td>
+                  <td>Purchases → Office Supplies; note: not Amazon Seller</td>
+                </tr>
+                <tr>
+                  <td>Chase Savings ···4521</td>
+                  <td><span class="entity-tag">Account</span></td>
+                  <td>Internal transfer target only; never expense</td>
+                </tr>
+                <tr>
+                  <td>Shopify Capital</td>
+                  <td><span class="entity-tag">Lender</span></td>
+                  <td>Inflows = Loan Proceeds · repayments = Loan Repayment, not COGS</td>
+                </tr>
+              </tbody>
+            </table>
+            <div style="font-size:11px;color:var(--slate-400);margin-top:8px;padding-top:8px;border-top:1px solid var(--slate-200);">+ 19 more entities: utilities, insurance, software subscriptions, and known check payees</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MSG 6: Config proposal + confirm button ── -->
+      <div class="msg agent hidden" id="msg-proposal">
+        <div class="msg-avatar">A</div>
+        <div class="msg-bubble">
+          <p>Here's the complete configuration I'll apply. <strong>8 routing rules</strong> will run in priority order before AI categorisation:</p>
+          <div class="msg-card" style="margin-bottom:12px;">
+            <div class="msg-card-label">Routing Rules — priority order</div>
+            <div class="rules-list">
+              <div class="rule-row"><span class="rule-priority">1</span><span class="rule-pattern">Pattern: <code>"STRIPE PAYOUT"</code></span><span class="rule-arrow">→</span><span class="type-pill income-split" style="font-size:10px;">Stripe Split</span></div>
+              <div class="rule-row"><span class="rule-priority">2</span><span class="rule-pattern">Pattern: <code>"SHOPIFY PAYOUT"</code></span><span class="rule-arrow">→</span><span class="type-pill income-split" style="font-size:10px;">Shopify Split</span></div>
+              <div class="rule-row"><span class="rule-priority">3</span><span class="rule-pattern">Pattern: <code>"PAYPAL TRANSFER"</code></span><span class="rule-arrow">→</span><span class="type-pill income-split" style="font-size:10px;">PayPal Split</span></div>
+              <div class="rule-row"><span class="rule-priority">4</span><span class="rule-pattern">Pattern: <code>"ONLINE TRANSFER TO SAV"</code> · outflow</span><span class="rule-arrow">→</span><span class="type-pill transfer" style="font-size:10px;">Transfer</span></div>
+              <div class="rule-row"><span class="rule-priority">5</span><span class="rule-pattern">Pattern: <code>"ONLINE TRANSFER FROM CHK"</code> · inflow</span><span class="rule-arrow">→</span><span class="type-pill transfer" style="font-size:10px;">Transfer</span></div>
+              <div class="rule-row"><span class="rule-priority">6</span><span class="rule-pattern">Pattern: <code>"CHECK #"</code> · outflow</span><span class="rule-arrow">→</span><span class="type-pill check" style="font-size:10px;">Check</span></div>
+              <div class="rule-row"><span class="rule-priority">7</span><span class="rule-pattern">Pattern: <code>"GUSTO"</code> or <code>"DIRECT DEP"</code></span><span class="rule-arrow">→</span><span class="type-pill categorisation" style="font-size:10px;">Categorisation</span></div>
+              <div class="rule-row"><span class="rule-priority">8</span><span class="rule-pattern">All remaining transactions</span><span class="rule-arrow">→</span><span class="type-pill categorisation" style="font-size:10px;">Categorisation</span></div>
+            </div>
+          </div>
+          <p><strong>5 strategies</strong>, <strong>8 routing rules</strong>, and <strong>24 entity records</strong> are ready to apply.</p>
+          <div style="margin-top:14px;display:flex;gap:10px;">
+            <button class="btn btn-success" onclick="applyConfigs()">
+              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              Apply All Configurations
+            </button>
+            <button class="btn btn-ghost">Review &amp; Edit</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MSG 7: User confirms ── -->
+      <div class="msg user hidden" id="msg-confirm">
+        <div class="msg-avatar">SC</div>
+        <div class="msg-bubble">Looks good, apply all.</div>
+      </div>
+
+      <!-- ── MSG 8: Thinking - applying ── -->
+      <div class="msg agent hidden" id="msg-thinking-2">
+        <div class="msg-avatar">A</div>
+        <div class="msg-bubble">
+          <div class="thinking-dots"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+
+      <!-- ── MSG 9: Done ── -->
+      <div class="msg agent hidden" id="msg-done">
+        <div class="msg-avatar">A</div>
+        <div class="msg-bubble">
+          <p>All done! <strong>Acme Retail Co.</strong> is configured and ready to process transactions.</p>
+          <div class="apply-progress" id="apply-items">
+            <div class="apply-item"><div class="apply-check">✓</div>Income Split — Stripe</div>
+            <div class="apply-item"><div class="apply-check">✓</div>Income Split — Shopify</div>
+            <div class="apply-item"><div class="apply-check">✓</div>Income Split — PayPal</div>
+            <div class="apply-item"><div class="apply-check">✓</div>Transfer Matching — Chase → Savings</div>
+            <div class="apply-item"><div class="apply-check">✓</div>Check Handling</div>
+            <div class="apply-item"><div class="apply-check">✓</div>8 Routing Rules (priority order)</div>
+            <div class="apply-item"><div class="apply-check">✓</div>24 Entity Knowledge Records</div>
+          </div>
+          <div class="config-summary">
+            <div class="cs-item"><div class="cs-count">5</div><div class="cs-label">Strategies configured</div></div>
+            <div class="cs-item"><div class="cs-count">8</div><div class="cs-label">Routing rules active</div></div>
+            <div class="cs-item"><div class="cs-count">24</div><div class="cs-label">Entity records added</div></div>
+            <div class="cs-item"><div class="cs-count">1,847</div><div class="cs-label">Transactions ready to reprocess</div></div>
+          </div>
+          <p style="margin-top:14px;font-size:12px;color:var(--slate-500);">You can review or adjust any rule from <a href="smart-handling.html" style="color:var(--primary);font-weight:600;">Smart Handling</a>. Want me to kick off a reprocessing run on the 2024 data?</p>
+        </div>
+      </div>
+
+    </div><!-- /messages -->
+
+    <!-- Input area -->
+    <div class="input-area">
+      <div class="input-wrap">
+        <input type="text" placeholder="Ask a question or give instructions…" />
+        <button class="input-send">
+          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /chat-area -->
+</div><!-- /shell -->
+
+<script>
+const $ = id => document.getElementById(id);
+const messages = $('messages');
+
+function scrollBottom() {
+  messages.scrollTo({ top: messages.scrollHeight, behavior: 'smooth' });
+}
+
+function show(id, delay = 0) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      const el = $(id);
+      if (el) { el.classList.remove('hidden'); el.classList.add('fade-in'); scrollBottom(); }
+      resolve();
+    }, delay);
+  });
+}
+
+function hide(id) { const el = $(id); if (el) el.classList.add('hidden'); }
+
+let analysisStarted = false;
+
+function simulateUpload() {
+  if (!analysisStarted) startAnalysis();
+}
+
+async function startAnalysis() {
+  if (analysisStarted) return;
+  analysisStarted = true;
+
+  $('btn-analyze').disabled = true;
+  $('btn-analyze').textContent = 'Analyzing…';
+
+  await show('msg-1', 300);
+  await show('msg-thinking-1', 600);
+  await new Promise(r => setTimeout(r, 2000));
+
+  hide('msg-thinking-1');
+  await show('msg-analysis', 100);
+  await show('msg-movements', 1800);
+  await show('msg-entities', 1800);
+  await show('msg-proposal', 1600);
+
+  $('upload-zone').classList.add('hidden');
+}
+
+let applyStarted = false;
+
+async function applyConfigs() {
+  if (applyStarted) return;
+  applyStarted = true;
+
+  await show('msg-confirm', 200);
+  await show('msg-thinking-2', 600);
+  await new Promise(r => setTimeout(r, 2400));
+
+  hide('msg-thinking-2');
+  await show('msg-done', 100);
+}
+</script>
+</body>
+</html>
