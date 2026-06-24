@@ -107,7 +107,7 @@
     home: "dashboard.html",
     "bookkeeping/projects": "projects-list.html",
     "bookkeeping/recipes": "rules-manager.html",
-    "bookkeeping/data": "#",
+    "bookkeeping/data": "bookkeeping-data.html",
     "taxation/projects": "projects-list-tax.html",
     "taxation/data": "#",
     workflows: "workflow-live.html",

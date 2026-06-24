@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Atlas — Bookkeeping · Data · Bright &amp; Bloom</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary: #6366f1; --primary-dark: #4f46e5;
+  --slate-50:#f8fafc; --slate-100:#f1f5f9; --slate-200:#e2e8f0; --slate-300:#cbd5e1;
+  --slate-400:#94a3b8; --slate-500:#64748b; --slate-600:#475569; --slate-700:#334155;
+  --slate-800:#1e293b; --slate-900:#0f172a;
+  --green-50:#f0fdf4; --green-500:#22c55e; --green-600:#16a34a; --green-700:#15803d;
+  --amber-50:#fffbeb; --amber-100:#fef3c7; --amber-200:#fde68a; --amber-500:#f59e0b; --amber-600:#d97706; --amber-700:#b45309;
+  --red-50:#fff1f2; --red-500:#ef4444; --red-600:#dc2626;
+  --blue-50:#eff6ff; --blue-500:#3b82f6; --blue-600:#2563eb;
+  --indigo-50:#eef2ff; --indigo-100:#e0e7ff; --indigo-200:#c7d2fe; --indigo-600:#4f46e5;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px; background: var(--slate-50); color: var(--slate-900);
+  display: flex; height: 100vh; overflow: hidden;
+}
+
+/* ── Main ── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+/* ── Topbar ── */
+.topbar { height: 52px; background: white; border-bottom: 1px solid var(--slate-200); display: flex; align-items: center; padding: 0 22px; gap: 10px; flex-shrink: 0; }
+.breadcrumb { font-size: 12px; color: var(--slate-400); display: flex; align-items: center; gap: 6px; }
+.breadcrumb .bc-cur { color: var(--slate-700); font-weight: 600; }
+.bc-sep { color: var(--slate-300); }
+.tb-spacer { flex: 1; }
+.period-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--slate-50); color: var(--slate-600); font-size: 11px; font-weight: 600; padding: 5px 11px; border-radius: 7px; border: 1px solid var(--slate-200); }
+.tb-btn { font-size: 12px; font-weight: 600; padding: 7px 13px; border-radius: 8px; border: 1px solid var(--slate-200); background: white; color: var(--slate-600); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.tb-btn:hover { border-color: var(--slate-300); color: var(--slate-900); }
+.tb-btn.primary { background: var(--primary-dark); color: white; border-color: transparent; }
+.tb-btn.primary:hover { background: #4338ca; }
+
+/* ── Content ── */
+.content { flex: 1; overflow-y: auto; padding: 22px 24px 40px; }
+.content-inner { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+.section-hd { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.section-title { font-size: 15px; font-weight: 700; color: var(--slate-900); }
+.section-sub { font-size: 12px; color: var(--slate-400); }
+.section-spacer { flex: 1; }
+.section-link { font-size: 12px; font-weight: 600; color: var(--primary); text-decoration: none; }
+.section-link:hover { text-decoration: underline; }
+
+/* ── Shared neutral icon tile (consistent across all doc/source types) ── */
+.t-ico { width: 32px; height: 32px; border-radius: 8px; background: var(--slate-100); color: var(--slate-600); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.t-ico svg { width: 17px; height: 17px; }
+.t-ico.sm { width: 26px; height: 26px; border-radius: 7px; }
+.t-ico.sm svg { width: 15px; height: 15px; }
+
+/* ── Ingest hero ── */
+.ingest-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+
+.dropzone {
+  border: 2px dashed var(--slate-300); border-radius: 14px; background: white;
+  padding: 28px 24px; text-align: center; cursor: pointer; transition: all .15s;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+}
+.dropzone:hover, .dropzone.drag { border-color: var(--primary); background: var(--indigo-50); }
+.dz-icon { width: 46px; height: 46px; border-radius: 12px; background: var(--slate-100); color: var(--slate-500); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+.dropzone:hover .dz-icon, .dropzone.drag .dz-icon { background: white; color: var(--primary-dark); }
+.dz-title { font-size: 15px; font-weight: 700; color: var(--slate-800); }
+.dz-sub { font-size: 12px; color: var(--slate-500); max-width: 390px; }
+.dz-btn { margin-top: 12px; font-size: 12px; font-weight: 700; padding: 8px 16px; border-radius: 8px; border: none; background: var(--primary-dark); color: white; cursor: pointer; }
+.dz-btn:hover { background: #4338ca; }
+.dz-detect { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-top: 16px; }
+.dz-route { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--slate-500); }
+.dz-route strong { color: var(--slate-700); font-weight: 700; }
+.dz-route .types { display: inline-flex; gap: 5px; }
+.dz-mini { width: 22px; height: 22px; border-radius: 6px; background: var(--slate-100); color: var(--slate-500); display: inline-flex; align-items: center; justify-content: center; }
+.dz-mini svg { width: 13px; height: 13px; }
+.dz-note { font-size: 10px; color: var(--slate-400); margin-top: 12px; }
+
+.integrate-card { background: white; border: 1px solid var(--slate-200); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; }
+.ic-eyebrow { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--slate-400); }
+.ic-title { font-size: 13px; font-weight: 700; color: var(--slate-800); margin-top: 3px; }
+.ic-sub { font-size: 11px; color: var(--slate-500); margin-top: 3px; line-height: 1.5; }
+.ic-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.ic-opt { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border: 1px solid var(--slate-200); border-radius: 9px; cursor: pointer; }
+.ic-opt:hover { border-color: var(--indigo-200); background: var(--indigo-50); }
+.ic-opt-body { flex: 1; min-width: 0; }
+.ic-opt-name { font-size: 12px; font-weight: 600; color: var(--slate-800); }
+.ic-opt-sub  { font-size: 10px; color: var(--slate-400); }
+.ic-opt-arrow { color: var(--slate-300); flex-shrink: 0; }
+
+/* ── Review task cards (consistent neutral; amber = "pending review" semantic only) ── */
+.review-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; }
+.task-card {
+  border: 1px solid var(--slate-200); background: white; border-radius: 12px;
+  padding: 14px 15px; cursor: pointer; transition: box-shadow .15s; display: flex; gap: 12px;
+}
+.task-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,.07); border-color: var(--slate-300); }
+.tc-main { flex: 1; min-width: 0; }
+.tc-top { display: flex; align-items: center; gap: 7px; }
+.tc-eyebrow { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--amber-700); flex: 1; display: flex; align-items: center; gap: 6px; }
+.tc-eyebrow svg { width: 12px; height: 12px; }
+.tc-x { color: var(--slate-300); cursor: pointer; font-size: 15px; line-height: 1; border: none; background: none; }
+.tc-x:hover { color: var(--slate-500); }
+.tc-title { font-size: 14px; font-weight: 700; color: var(--slate-900); margin-top: 7px; }
+.tc-sub { font-size: 12px; color: var(--slate-600); margin-top: 2px; line-height: 1.45; }
+.tc-foot { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.tc-count { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 9999px; background: var(--slate-100); color: var(--slate-600); }
+.tc-meta { font-size: 10px; color: var(--slate-400); }
+.tc-cta { margin-left: auto; font-size: 11px; font-weight: 700; padding: 6px 13px; border-radius: 7px; border: 1px solid var(--indigo-200); cursor: pointer; color: var(--primary-dark); background: white; }
+.tc-cta:hover { background: var(--indigo-50); }
+.review-empty { padding: 18px; border: 1px dashed var(--slate-200); border-radius: 12px; text-align: center; font-size: 12px; color: var(--slate-400); display:none; }
+
+/* ── Sources ── */
+.sources-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.source-group { background: white; border: 1px solid var(--slate-200); border-radius: 14px; overflow: hidden; }
+.sg-head { display: flex; align-items: center; gap: 9px; padding: 13px 16px; border-bottom: 1px solid var(--slate-100); }
+.sg-title { font-size: 13px; font-weight: 700; color: var(--slate-800); flex: 1; }
+.sg-count { font-size: 11px; font-weight: 600; color: var(--slate-400); background: var(--slate-100); border-radius: 9999px; padding: 1px 8px; }
+
+.src { display: flex; align-items: center; gap: 11px; padding: 11px 16px; border-bottom: 1px solid var(--slate-100); }
+.src:last-child { border-bottom: none; }
+.src-body { flex: 1; min-width: 0; }
+.src-name { font-size: 12px; font-weight: 600; color: var(--slate-800); }
+.src-sub  { font-size: 10px; color: var(--slate-400); margin-top: 1px; }
+.src-status { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; white-space: nowrap; }
+.st-dot { width: 6px; height: 6px; border-radius: 50%; }
+.src-status.ok    { background: var(--green-50); color: var(--green-700); }
+.src-status.ok .st-dot { background: var(--green-500); }
+.src-status.sync  { background: var(--blue-50); color: var(--blue-600); }
+.src-status.sync .st-dot { background: var(--blue-500); animation: pulse 1.5s ease-in-out infinite; }
+.src-status.off   { background: var(--slate-100); color: var(--slate-500); }
+.src-status.off .st-dot { background: var(--slate-300); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.src-connect { font-size: 10px; font-weight: 700; color: var(--primary); border: 1px solid var(--indigo-200); background: white; border-radius: 6px; padding: 4px 9px; cursor: pointer; white-space: nowrap; }
+.src-connect:hover { background: var(--indigo-50); }
+.sg-foot { padding: 10px 16px; }
+.sg-add { width: 100%; font-size: 11px; font-weight: 600; color: var(--slate-500); background: var(--slate-50); border: 1px dashed var(--slate-300); border-radius: 8px; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.sg-add:hover { border-color: var(--indigo-200); color: var(--primary); background: var(--indigo-50); }
+
+/* ── Activity table ── */
+.activity { background: white; border: 1px solid var(--slate-200); border-radius: 14px; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+thead tr { background: var(--slate-50); border-bottom: 1px solid var(--slate-200); }
+th { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--slate-400); padding: 9px 16px; text-align: left; white-space: nowrap; }
+th.num { text-align: right; }
+tbody tr { border-bottom: 1px solid var(--slate-100); cursor: pointer; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--slate-50); }
+td { padding: 11px 16px; vertical-align: middle; }
+.fname { font-size: 12px; font-weight: 600; color: var(--slate-800); display: flex; align-items: center; gap: 10px; }
+.fmeta { font-size: 11px; color: var(--slate-400); font-weight: 400; }
+.fnum { text-align: right; font-size: 12px; font-weight: 600; color: var(--slate-700); font-variant-numeric: tabular-nums; }
+.ftype { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--slate-600); }
+.ftype .t-ico { width: 22px; height: 22px; border-radius: 6px; }
+.ftype .t-ico svg { width: 13px; height: 13px; }
+.fsrc { font-size: 11px; color: var(--slate-500); }
+.fstatus { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; }
+.fstatus .st-dot { width: 6px; height: 6px; border-radius: 50%; }
+.fstatus.parsing { color: var(--blue-600); } .fstatus.parsing .st-dot { background: var(--blue-500); animation: pulse 1.5s ease-in-out infinite; }
+.fstatus.review  { color: var(--amber-700); } .fstatus.review .st-dot { background: var(--amber-500); }
+.fstatus.posted  { color: var(--green-700); } .fstatus.posted .st-dot { background: var(--green-500); }
+.fstatus.error   { color: var(--red-600); }   .fstatus.error .st-dot { background: var(--red-500); }
+.frow-link { font-size: 11px; font-weight: 700; color: var(--primary); }
+</style>
+</head>
+<body>
+
+<!-- ════ Reusable inline icon definitions (one consistent line-icon per type) ════ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- bank feed / statement -->
+    <g id="ic-bank"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M4 10h16M5 6l7-3 7 3M5 10v11m14-11v11M9 14v4m3-4v4m3-4v4"/></g>
+    <!-- check / cheque -->
+    <g id="ic-check"><rect x="3" y="6.5" width="18" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M6 13.5h5M15 13.5h3M6 10h6"/></g>
+    <!-- receipt -->
+    <g id="ic-receipt"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M6 3h12v18l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4V3z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M9 8h6M9 11.5h6M9 15h4"/></g>
+    <!-- invoice -->
+    <g id="ic-invoice"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M13 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V9l-6-6z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M13 3v6h6M9 13h6M9 16.5h4"/></g>
+    <!-- bill / banknote -->
+    <g id="ic-bill"><rect x="2.5" y="6.5" width="19" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M5.5 9.5h.01M18.5 14.5h.01"/></g>
+    <!-- accounting software -->
+    <g id="ic-acct"><rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M8 7h8M8 11h3m3 0h2M8 15h3m3 0h2"/></g>
+    <!-- email inbox -->
+    <g id="ic-mail"><rect x="3" y="5.5" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 7l8 6 8-6"/></g>
+    <!-- mobile capture -->
+    <g id="ic-camera"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M3 9a2 2 0 012-2h1.5L8 5h8l1.5 2H19a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></g>
+    <!-- bank connection (link) -->
+    <g id="ic-link"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M10 13a4 4 0 005.66 0l3-3A4 4 0 0013 4.34l-1.5 1.5M14 11a4 4 0 00-5.66 0l-3 3A4 4 0 0011 19.66l1.5-1.5"/></g>
+  </defs>
+</svg>
+
+<!-- ── Sidebar (reusable component) ── -->
+<div data-atlas-nav data-active="bookkeeping/data" data-client="bright-bloom"></div>
+
+<!-- ── Main ── -->
+<div class="main">
+
+  <header class="topbar">
+    <nav class="breadcrumb">
+      <span>Bookkeeping</span><span class="bc-sep">›</span><span class="bc-cur">Data</span>
+    </nav>
+    <div class="tb-spacer"></div>
+    <span class="period-badge">
+      <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      Q1 2025
+    </span>
+    <button class="tb-btn">Manage integrations</button>
+    <button class="tb-btn primary">
+      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+      Upload
+    </button>
+  </header>
+
+  <div class="content">
+    <div class="content-inner">
+
+      <!-- ══ Ingest hero ══ -->
+      <section>
+        <div class="section-hd">
+          <div class="section-title">Ingest data</div>
+          <div class="section-sub">— connect a source, or drop files and we'll detect the type</div>
+        </div>
+        <div class="ingest-grid">
+
+          <!-- Universal drop zone -->
+          <div class="dropzone" id="dropzone" onclick="fakeUpload()">
+            <div class="dz-icon">
+              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16a4 4 0 01-.88-7.9A5 5 0 1115.9 6 4.5 4.5 0 0117 16h-1m-5-4v9m0-9l-3 3m3-3l3 3"/></svg>
+            </div>
+            <div class="dz-title">Drop files to ingest</div>
+            <div class="dz-sub">Bank statements, invoices, receipts, bills, or check images. We automatically detect the document type and route it to the right feed.</div>
+            <button class="dz-btn" onclick="event.stopPropagation();fakeUpload()">Browse files</button>
+            <div class="dz-detect">
+              <div class="dz-route">
+                <strong>Bank feed</strong>
+                <span class="types"><span class="dz-mini"><svg viewBox="0 0 24 24"><use href="#ic-bank"/></svg></span></span>
+              </div>
+              <div class="dz-route">
+                <strong>Business feed</strong>
+                <span class="types">
+                  <span class="dz-mini" title="Invoices"><svg viewBox="0 0 24 24"><use href="#ic-invoice"/></svg></span>
+                  <span class="dz-mini" title="Receipts"><svg viewBox="0 0 24 24"><use href="#ic-receipt"/></svg></span>
+                  <span class="dz-mini" title="Bills"><svg viewBox="0 0 24 24"><use href="#ic-bill"/></svg></span>
+                  <span class="dz-mini" title="Checks"><svg viewBox="0 0 24 24"><use href="#ic-check"/></svg></span>
+                </span>
+              </div>
+            </div>
+            <div class="dz-note">PDF, CSV, OFX, JPG, PNG · up to 25 MB each</div>
+          </div>
+
+          <!-- Configure integration -->
+          <div class="integrate-card">
+            <div class="ic-eyebrow">Or connect a source</div>
+            <div class="ic-title">Configure an integration</div>
+            <div class="ic-sub">Sync automatically — no manual uploads. Pick where this client's data lives.</div>
+            <div class="ic-list">
+              <div class="ic-opt" onclick="alert('Connect bank feed (demo)')">
+                <span class="t-ico sm"><svg viewBox="0 0 24 24"><use href="#ic-bank"/></svg></span>
+                <div class="ic-opt-body"><div class="ic-opt-name">Bank connection</div><div class="ic-opt-sub">Plaid · direct feed · 12,000+ institutions</div></div>
+                <svg class="ic-opt-arrow" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </div>
+              <div class="ic-opt" onclick="alert('Connect accounting software (demo)')">
+                <span class="t-ico sm"><svg viewBox="0 0 24 24"><use href="#ic-acct"/></svg></span>
+                <div class="ic-opt-body"><div class="ic-opt-name">Accounting software</div><div class="ic-opt-sub">QuickBooks · Xero — pull invoices &amp; bills</div></div>
+                <svg class="ic-opt-arrow" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </div>
+              <div class="ic-opt" onclick="alert('Set up email inbox (demo)')">
+                <span class="t-ico sm"><svg viewBox="0 0 24 24"><use href="#ic-mail"/></svg></span>
+                <div class="ic-opt-body"><div class="ic-opt-name">Document inbox</div><div class="ic-opt-sub">Forward receipts &amp; bills to a unique email</div></div>
+                <svg class="ic-opt-arrow" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ══ Pending review ══ -->
+      <section>
+        <div class="section-hd">
+          <div class="section-title">Pending review</div>
+          <div class="section-sub">— parsed data waiting for your confirmation</div>
+          <div class="section-spacer"></div>
+          <a class="section-link" href="#">View all tasks →</a>
+        </div>
+        <div class="review-grid" id="review-grid">
+
+          <!-- Check Processing (mirrors reference) -->
+          <div class="task-card" onclick="window.location.href='bookkeeping-project-v3.html'">
+            <span class="t-ico"><svg viewBox="0 0 24 24"><use href="#ic-check"/></svg></span>
+            <div class="tc-main">
+              <div class="tc-top">
+                <span class="tc-eyebrow">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-4-5.7V5a2 2 0 10-4 0v.3C7.7 6.2 6 8.4 6 11v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                  Pending review
+                </span>
+                <button class="tc-x" onclick="event.stopPropagation();dismissTask(this)">×</button>
+              </div>
+              <div class="tc-title">Check Processing</div>
+              <div class="tc-sub">3 extracted checks pending match review</div>
+              <div class="tc-foot">
+                <span class="tc-count">3 checks</span>
+                <span class="tc-meta">Business feed · uploaded 14m ago</span>
+                <button class="tc-cta" onclick="event.stopPropagation();window.location.href='bookkeeping-project-v3.html'">Review →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bank statement parsed -->
+          <div class="task-card" onclick="window.location.href='bookkeeping-project-v3.html'">
+            <span class="t-ico"><svg viewBox="0 0 24 24"><use href="#ic-bank"/></svg></span>
+            <div class="tc-main">
+              <div class="tc-top">
+                <span class="tc-eyebrow">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-4-5.7V5a2 2 0 10-4 0v.3C7.7 6.2 6 8.4 6 11v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                  Pending review
+                </span>
+                <button class="tc-x" onclick="event.stopPropagation();dismissTask(this)">×</button>
+              </div>
+              <div class="tc-title">Bank Statement Parsed</div>
+              <div class="tc-sub">Chase Checking ****4951 — 142 transactions extracted, confirm before categorizing</div>
+              <div class="tc-foot">
+                <span class="tc-count">142 txns</span>
+                <span class="tc-meta">Bank feed · synced 1h ago</span>
+                <button class="tc-cta" onclick="event.stopPropagation();window.location.href='bookkeeping-project-v3.html'">Confirm →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Invoices extracted -->
+          <div class="task-card" onclick="window.location.href='bookkeeping-project-v3.html'">
+            <span class="t-ico"><svg viewBox="0 0 24 24"><use href="#ic-invoice"/></svg></span>
+            <div class="tc-main">
+              <div class="tc-top">
+                <span class="tc-eyebrow">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-4-5.7V5a2 2 0 10-4 0v.3C7.7 6.2 6 8.4 6 11v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                  Pending review
+                </span>
+                <button class="tc-x" onclick="event.stopPropagation();dismissTask(this)">×</button>
+              </div>
+              <div class="tc-title">Invoices Extracted</div>
+              <div class="tc-sub">12 invoices read from inbox — 2 low-confidence fields need a look</div>
+              <div class="tc-foot">
+                <span class="tc-count">12 · 2 flagged</span>
+                <span class="tc-meta">Business feed · inbox</span>
+                <button class="tc-cta" onclick="event.stopPropagation();window.location.href='bookkeeping-project-v3.html'">Review →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Receipts to match -->
+          <div class="task-card" onclick="window.location.href='bookkeeping-project-v3.html'">
+            <span class="t-ico"><svg viewBox="0 0 24 24"><use href="#ic-receipt"/></svg></span>
+            <div class="tc-main">
+              <div class="tc-top">
+                <span class="tc-eyebrow">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-4-5.7V5a2 2 0 10-4 0v.3C7.7 6.2 6 8.4 6 11v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                  Pending review
+                </span>
+                <button class="tc-x" onclick="event.stopPropagation();dismissTask(this)">×</button>
+              </div>
+              <div class="tc-title">Receipts to Match</div>
+              <div class="tc-sub">8 receipts captured — auto-matched 5 to transactions, 3 need linking</div>
+              <div class="tc-foot">
+                <span class="tc-count">3 unmatched</span>
+                <span class="tc-meta">Business feed · mobile capture</span>
+                <button class="tc-cta" onclick="event.stopPropagation();window.location.href='bookkeeping-project-v3.html'">Match →</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="review-empty" id="review-empty">All ingested data is confirmed — no pending review tasks.</div>
+      </section>
+
+      <!-- ══ Sources ══ -->
+      <section>
+        <div class="section-hd">
+          <div class="section-title">Sources</div>
+          <div class="section-sub">— where this client's data comes from</div>
+        </div>
+        <div class="sources-grid">
+
+          <!-- Bank feeds -->
+          <div class="source-group">
+            <div class="sg-head">
+              <span class="t-ico sm"><svg viewBox="0 0 24 24"><use href="#ic-bank"/></svg></span>
+              <div class="sg-title">Bank Feeds</div>
+              <span class="sg-count">3 accounts</span>
+            </div>
+            <div class="src">
+              <span class="t-ico"><svg viewBox="0 0 24 24"><use href="#ic-bank"/></svg></span>
+              <div class="src-body"><div class="src-name">Chase Checking ****4951</div><div class="src-sub">Direct feed · last sync 1h ago</div></div>
+              <span class="src-status ok"><span class="st-dot"></span>Connected</span>
+            </div>
+            <div class="src">
+              <span class="t-ico"><svg viewBox="0 0 24 24"><use href="#ic-bank"/></svg></span>
+              <div class="src-body"><div class="src-name">BofA Savings ****7823</div><div class="src-sub">Syncing 312 new transactions…</div></div>
+              <span class="src-status sync"><span class="st-dot"></span>Syncing</span>
+            </div>
+            <div class="src">
+              <span class="t-ico"><svg viewBox="0 0 24 24"><use href="#ic-bank"/></svg></span>
+              <div class="src-body"><div class="src-name">Wells Fargo ****2201</div><div class="src-sub">Connection expired — re-authenticate</div></div>
+              <button class="src-connect">Reconnect</button>
+            </div>
+            <div class="sg-foot">
+              <button class="sg-add" onclick="alert('Add bank feed (demo)')">+ Connect a bank or upload a statement</button>
+            </div>
+          </div>
+
+          <!-- Business feeds -->
+          <div class="source-group">
+            <div class="sg-head">
+              <span class="t-ico sm"><svg viewBox="0 0 24 24"><use href="#ic-invoice"/></svg></span>
+              <div class="sg-title">Business Feeds</div>
+              <span class="sg-count">3 sources</span>
+            </div>
+            <div class="src">
+              <span class="t-ico"><svg viewBox="0 0 24 24"><use href="#ic-acct"/></svg></span>
+              <div class="src-body"><div class="src-name">QuickBooks Online</div><div class="src-sub">Invoices &amp; bills · last sync 2h ago</div></div>
+              <span class="src-status ok"><span class="st-dot"></span>Connected</span>
+            </div>
+            <div class="src">
+              <span class="t-ico"><svg viewBox="0 0 24 24"><use href="#ic-mail"/></svg></span>
+              <div class="src-body"><div class="src-name">Document inbox</div><div class="src-sub">brightbloom@inbox.atlas.ai · 8 this week</div></div>
+              <span class="src-status ok"><span class="st-dot"></span>Active</span>
+            </div>
+            <div class="src">
+              <span class="t-ico"><svg viewBox="0 0 24 24"><use href="#ic-camera"/></svg></span>
+              <div class="src-body"><div class="src-name">Mobile receipt capture</div><div class="src-sub">Not set up for this client</div></div>
+              <button class="src-connect">Set up</button>
+            </div>
+            <div class="sg-foot">
+              <button class="sg-add" onclick="alert('Add business feed (demo)')">+ Connect a source or upload documents</button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ══ Recent activity ══ -->
+      <section>
+        <div class="section-hd">
+          <div class="section-title">Recent ingestion activity</div>
+          <div class="section-spacer"></div>
+          <a class="section-link" href="#">View all →</a>
+        </div>
+        <div class="activity">
+          <table>
+            <thead>
+              <tr><th>Item</th><th>Detected type</th><th>Source</th><th class="num">Items</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+              <tr onclick="window.location.href='bookkeeping-project-v3.html'">
+                <td><div class="fname"><span class="t-ico sm"><svg viewBox="0 0 24 24"><use href="#ic-bank"/></svg></span>chase_4951_jan2025.pdf <span class="fmeta">· 14m ago</span></div></td>
+                <td><span class="ftype"><span class="t-ico"><svg viewBox="0 0 24 24"><use href="#ic-bank"/></svg></span>Bank statement</span></td>
+                <td><span class="fsrc">Upload</span></td>
+                <td class="fnum">142</td>
+                <td><span class="fstatus review"><span class="st-dot"></span>Needs review</span></td>
+                <td><span class="frow-link">Review →</span></td>
+              </tr>
+              <tr onclick="window.location.href='bookkeeping-project-v3.html'">
+                <td><div class="fname"><span class="t-ico sm"><svg viewBox="0 0 24 24"><use href="#ic-check"/></svg></span>checks_batch_03.zip <span class="fmeta">· 14m ago</span></div></td>
+                <td><span class="ftype"><span class="t-ico"><svg viewBox="0 0 24 24"><use href="#ic-check"/></svg></span>Check images</span></td>
+                <td><span class="fsrc">Upload</span></td>
+                <td class="fnum">3</td>
+                <td><span class="fstatus review"><span class="st-dot"></span>Needs review</span></td>
+                <td><span class="frow-link">Review →</span></td>
+              </tr>
+              <tr onclick="window.location.href='bookkeeping-project-v3.html'">
+                <td><div class="fname"><span class="t-ico sm"><svg viewBox="0 0 24 24"><use href="#ic-invoice"/></svg></span>12 invoices <span class="fmeta">· from inbox today</span></div></td>
+                <td><span class="ftype"><span class="t-ico"><svg viewBox="0 0 24 24"><use href="#ic-invoice"/></svg></span>Invoices</span></td>
+                <td><span class="fsrc">Inbox</span></td>
+                <td class="fnum">12</td>
+                <td><span class="fstatus review"><span class="st-dot"></span>2 flagged</span></td>
+                <td><span class="frow-link">Review →</span></td>
+              </tr>
+              <tr>
+                <td><div class="fname"><span class="t-ico sm"><svg viewBox="0 0 24 24"><use href="#ic-bank"/></svg></span>BofA ****7823 feed <span class="fmeta">· syncing now</span></div></td>
+                <td><span class="ftype"><span class="t-ico"><svg viewBox="0 0 24 24"><use href="#ic-bank"/></svg></span>Bank statement</span></td>
+                <td><span class="fsrc">Direct feed</span></td>
+                <td class="fnum">312</td>
+                <td><span class="fstatus parsing"><span class="st-dot"></span>Parsing…</span></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td><div class="fname"><span class="t-ico sm"><svg viewBox="0 0 24 24"><use href="#ic-receipt"/></svg></span>8 receipts <span class="fmeta">· mobile capture today</span></div></td>
+                <td><span class="ftype"><span class="t-ico"><svg viewBox="0 0 24 24"><use href="#ic-receipt"/></svg></span>Receipts</span></td>
+                <td><span class="fsrc">Capture</span></td>
+                <td class="fnum">8</td>
+                <td><span class="fstatus review"><span class="st-dot"></span>3 unmatched</span></td>
+                <td><span class="frow-link">Match →</span></td>
+              </tr>
+              <tr>
+                <td><div class="fname"><span class="t-ico sm"><svg viewBox="0 0 24 24"><use href="#ic-bill"/></svg></span>vendor_bills_dec.pdf <span class="fmeta">· yesterday</span></div></td>
+                <td><span class="ftype"><span class="t-ico"><svg viewBox="0 0 24 24"><use href="#ic-bill"/></svg></span>Bills</span></td>
+                <td><span class="fsrc">Inbox</span></td>
+                <td class="fnum">6</td>
+                <td><span class="fstatus posted"><span class="st-dot"></span>Posted</span></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td><div class="fname"><span class="t-ico sm"><svg viewBox="0 0 24 24"><use href="#ic-bank"/></svg></span>amex_corrupt_scan.pdf <span class="fmeta">· yesterday</span></div></td>
+                <td><span class="ftype"><span class="t-ico"><svg viewBox="0 0 24 24"><use href="#ic-bank"/></svg></span>Unrecognized</span></td>
+                <td><span class="fsrc">Upload</span></td>
+                <td class="fnum">—</td>
+                <td><span class="fstatus error"><span class="st-dot"></span>Couldn't parse</span></td>
+                <td><span class="frow-link">Retry →</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function dismissTask(btn) {
+    const card = btn.closest('.task-card');
+    card.style.transition = 'opacity .15s, transform .15s';
+    card.style.opacity = '0';
+    card.style.transform = 'scale(.96)';
+    setTimeout(() => { card.remove(); checkEmpty(); }, 160);
+  }
+  function checkEmpty() {
+    const grid = document.getElementById('review-grid');
+    if (!grid.querySelector('.task-card')) {
+      grid.style.display = 'none';
+      document.getElementById('review-empty').style.display = 'block';
+    }
+  }
+  function fakeUpload() {
+    alert('File picker (demo) — drop bank statements, invoices, receipts, bills, or checks. The system detects the type and creates a review task.');
+  }
+  const dz = document.getElementById('dropzone');
+  ['dragenter','dragover'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.remove('drag'); }));
+  dz.addEventListener('drop', fakeUpload);
+</script>
+
+<!-- Reusable global left-nav component -->
+<script src="assets/atlas-nav.js"></script>
+
+</body>
+</html>
