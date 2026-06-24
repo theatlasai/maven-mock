@@ -173,7 +173,8 @@
     ".anav-caret{width:14px;height:14px;flex-shrink:0;color:#94a3b8;transition:transform .15s;}",
     ".anav-group.open > .anav-item .anav-caret{transform:rotate(180deg);}",
     /* client switcher */
-    ".anav-client-wrap{padding:10px 10px 6px;border-bottom:1px solid #f1f5f9;}",
+    ".anav-top{padding:10px 10px 4px;border-bottom:1px solid #f1f5f9;}",
+    ".anav-client-wrap{position:relative;padding:10px 10px 6px;border-bottom:1px solid #f1f5f9;}",
     ".anav-scope-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a3b8;padding:2px 6px 6px;}",
     ".anav-client{display:flex;align-items:center;gap:9px;width:100%;padding:8px 9px;border:1px solid #e2e8f0;border-radius:9px;background:#fff;cursor:pointer;font-family:inherit;text-align:left;}",
     ".anav-client:hover{border-color:#cbd5e1;background:#f8fafc;}",
@@ -190,7 +191,7 @@
     ".anav-client-caret{width:14px;height:14px;color:#94a3b8;flex-shrink:0;transition:transform .15s;}",
     ".anav-client.open .anav-client-caret{transform:rotate(180deg);}",
     /* dropdown */
-    ".anav-dd{position:absolute;left:10px;right:10px;top:108px;z-index:30;background:#fff;border:1px solid #e2e8f0;border-radius:11px;box-shadow:0 12px 32px rgba(15,23,42,.16);padding:8px;display:none;max-height:60vh;overflow:hidden;flex-direction:column;}",
+    ".anav-dd{position:absolute;left:10px;right:10px;top:calc(100% - 2px);z-index:30;background:#fff;border:1px solid #e2e8f0;border-radius:11px;box-shadow:0 12px 32px rgba(15,23,42,.16);padding:8px;display:none;max-height:60vh;overflow:hidden;flex-direction:column;}",
     ".anav-dd.open{display:flex;}",
     ".anav-dd-search{display:flex;align-items:center;gap:7px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:7px 10px;margin-bottom:6px;}",
     ".anav-dd-search svg{width:13px;height:13px;color:#94a3b8;flex-shrink:0;}",
@@ -378,6 +379,7 @@
       "</span>" +
       svg("chevron", "anav-client-caret") +
       "</button>" +
+      buildDropdown(cfg) +
       "</div>"
     );
   }
@@ -464,11 +466,11 @@
       '<div class="anav-logo-mark">A</div>' +
       '<span class="anav-logo-name">Atlas</span>' +
       "</div>" +
-      buildClientSwitcher(cfg) +
-      buildDropdown(cfg) +
-      '<div class="anav-body">' +
+      '<div class="anav-top">' +
       topHtml +
-      '<div class="anav-divider"></div>' +
+      "</div>" +
+      buildClientSwitcher(cfg) +
+      '<div class="anav-body">' +
       scopedHtml +
       '<div class="anav-spacer"></div>' +
       bottomHtml +
