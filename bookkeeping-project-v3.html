@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Atlas — Book Close Q1 2025 · Bright &amp; Bloom · Project (left-rail recipe)</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary: #6366f1; --primary-dark: #4f46e5; --primary-light: #eef2ff;
+  --slate-50:  #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1; --slate-400: #94a3b8; --slate-500: #64748b;
+  --slate-600: #475569; --slate-700: #334155; --slate-800: #1e293b; --slate-900: #0f172a;
+  --green-50: #f0fdf4; --green-100: #dcfce7; --green-200: #bbf7d0; --green-500: #22c55e; --green-600: #16a34a; --green-700: #15803d;
+  --amber-50: #fffbeb; --amber-100: #fef3c7; --amber-200: #fde68a; --amber-300: #fcd34d; --amber-400: #fbbf24; --amber-500: #f59e0b; --amber-600: #d97706; --amber-700: #b45309; --amber-800: #92400e;
+  --red-50: #fff1f2; --red-100: #fee2e2; --red-200: #fecaca; --red-500: #ef4444; --red-600: #dc2626; --red-700: #b91c1c;
+  --indigo-50: #eef2ff; --indigo-100: #e0e7ff; --indigo-200: #c7d2fe; --indigo-500: #6366f1; --indigo-600: #4f46e5;
+  --blue-50: #eff6ff; --blue-100: #dbeafe; --blue-200: #bfdbfe; --blue-400: #60a5fa; --blue-500: #3b82f6; --blue-600: #2563eb; --blue-700: #1d4ed8;
+  --violet-50: #f5f3ff; --violet-100: #ede9fe; --violet-200: #ddd6fe; --violet-500: #8b5cf6; --violet-600: #7c3aed; --violet-700: #6d28d9;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px; background: var(--slate-50); color: var(--slate-900);
+  display: flex; height: 100vh; overflow: hidden;
+}
+
+/* ── Global sidebar ── */
+.sidebar { width: 200px; flex-shrink: 0; background: white; border-right: 1px solid var(--slate-200); display: flex; flex-direction: column; height: 100vh; }
+.sidebar-logo { padding: 18px 18px 14px; border-bottom: 1px solid var(--slate-100); display: flex; align-items: center; gap: 10px; }
+.sidebar-logo-mark { width: 28px; height: 28px; background: linear-gradient(135deg, #6366f1, #4f46e5); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 13px; }
+.sidebar-logo-name { font-weight: 700; font-size: 15px; color: var(--slate-900); }
+.sidebar-nav { padding: 12px 10px; flex: 1; overflow-y: auto; }
+.nav-section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--slate-400); padding: 8px 10px 4px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 7px; color: var(--slate-600); font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: none; width: 100%; text-align: left; text-decoration: none; }
+.nav-item:hover { background: var(--slate-100); color: var(--slate-900); }
+.nav-item.active { background: var(--indigo-50); color: var(--primary-dark); }
+.nav-icon { width: 16px; height: 16px; opacity: .65; flex-shrink: 0; }
+.nav-item.active .nav-icon { opacity: 1; }
+.sidebar-footer { padding: 14px 16px; border-top: 1px solid var(--slate-100); display: flex; align-items: center; gap: 10px; }
+.sidebar-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #818cf8, #4f46e5); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 700; }
+.sidebar-user-name { font-size: 12px; font-weight: 600; color: var(--slate-800); }
+.sidebar-user-role { font-size: 10px; color: var(--slate-400); }
+
+/* ── Main ── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+/* ── Topbar ── */
+.topbar { height: 52px; background: white; border-bottom: 1px solid var(--slate-200); display: flex; align-items: center; padding: 0 20px; gap: 10px; flex-shrink: 0; }
+.breadcrumb { font-size: 12px; color: var(--slate-400); display: flex; align-items: center; gap: 5px; }
+.breadcrumb a { color: var(--slate-400); text-decoration: none; }
+.breadcrumb a:hover { color: var(--primary); }
+.bc-sep { color: var(--slate-300); }
+.bc-cur { color: var(--slate-700); font-weight: 600; }
+.tb-spacer { flex: 1; }
+.phase-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: var(--amber-50); color: var(--amber-700); border: 1px solid var(--amber-200); }
+.phase-pill .pp-step { background: var(--amber-500); color: white; border-radius: 9999px; padding: 0 6px; font-size: 9px; }
+.anchor-select { display: flex; align-items: center; gap: 8px; font-size: 11px; padding: 6px 11px; border: 1px solid var(--indigo-200); border-radius: 8px; background: var(--indigo-50); color: var(--indigo-600); cursor: pointer; font-weight: 700; white-space: nowrap; }
+.anchor-select .as-sub { color: var(--indigo-500); font-weight: 500; }
+.anchor-select svg { opacity: .8; }
+.tb-btn { font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 7px; border: 1px solid var(--slate-200); background: white; color: var(--slate-600); cursor: pointer; text-decoration: none; }
+.tb-btn:hover { border-color: var(--slate-300); color: var(--slate-900); }
+.tb-btn.primary { background: var(--primary-dark); color: white; border-color: transparent; }
+.tb-btn.primary:hover { background: #4338ca; }
+
+/* ── Body split: rail + content ── */
+.body { flex: 1; display: flex; overflow: hidden; }
+
+/* ── Project rail (the recipe / bucket navigator) ── */
+.rail { width: 256px; flex-shrink: 0; background: white; border-right: 1px solid var(--slate-200); display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+.rail-scroll { flex: 1; overflow-y: auto; }
+.rail-proj { padding: 14px 16px 10px; border-bottom: 1px solid var(--slate-100); }
+.rail-proj-name { font-size: 14px; font-weight: 700; color: var(--slate-900); }
+.rail-proj-sub { font-size: 11px; color: var(--slate-400); margin-top: 2px; }
+
+.rail-pending { margin: 12px 14px; border: 1px solid var(--amber-300); background: var(--amber-50); border-radius: 10px; padding: 11px 12px; }
+.rp-top { display: flex; align-items: center; gap: 7px; }
+.rp-top svg { color: var(--amber-600); }
+.rp-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--amber-700); flex: 1; }
+.rp-x { color: var(--amber-400); cursor: pointer; font-size: 13px; }
+.rp-title { font-size: 12px; font-weight: 700; color: var(--amber-800); margin-top: 7px; }
+.rp-sub { font-size: 11px; color: var(--amber-700); margin-top: 1px; }
+
+.rail-progress { display: flex; align-items: center; gap: 12px; padding: 4px 16px 14px; border-bottom: 1px solid var(--slate-100); }
+.rpg-text { display: flex; flex-direction: column; gap: 1px; }
+.rpg-line1 { font-size: 12px; color: var(--slate-500); }
+.rpg-line1 strong { color: var(--slate-800); font-weight: 700; }
+.rpg-big { font-size: 18px; font-weight: 800; color: var(--slate-900); line-height: 1; }
+.rpg-rem { font-size: 11px; color: var(--slate-400); }
+.rpg-proc { font-size: 11px; color: var(--green-600); font-weight: 600; }
+
+.rail-tabs { display: flex; gap: 2px; margin: 12px 14px; background: var(--slate-100); border-radius: 8px; padding: 3px; }
+.rail-tab { flex: 1; font-size: 11px; font-weight: 600; padding: 5px 8px; border-radius: 6px; border: none; background: none; color: var(--slate-500); cursor: pointer; }
+.rail-tab.active { background: white; color: var(--slate-800); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+
+.rail-buckets-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--slate-400); padding: 6px 18px 4px; display: flex; align-items: center; justify-content: space-between; }
+
+.bnav { display: flex; align-items: center; gap: 11px; padding: 9px 16px; cursor: pointer; border-left: 3px solid transparent; }
+.bnav:hover { background: var(--slate-50); }
+.bnav.active { background: var(--indigo-50); border-left-color: var(--indigo-500); }
+.bn-ico { width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.bn-general   { background: var(--slate-100); color: var(--slate-500); }
+.bn-payouts   { background: var(--amber-50); color: var(--amber-600); }
+.bn-transfers { background: var(--blue-50); color: var(--blue-600); }
+.bn-checks    { background: var(--violet-50); color: var(--violet-600); }
+.bn-receipts  { background: var(--green-50); color: var(--green-600); }
+.bn-body { flex: 1; min-width: 0; }
+.bn-name { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--slate-700); }
+.bnav.active .bn-name { color: var(--indigo-600); }
+.bn-strat { font-size: 9.5px; color: var(--slate-400); margin-top: 1px; }
+.bn-count { font-size: 11px; font-weight: 700; color: var(--slate-500); display: flex; align-items: center; gap: 6px; }
+.bn-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--amber-500); }
+.bn-chev { color: var(--slate-300); transition: transform .15s; }
+.bnav.expanded .bn-chev { transform: rotate(90deg); }
+
+.bsub { display: none; padding: 2px 0 6px; }
+.bsub.show { display: block; }
+.bsub-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 16px 6px 53px; font-size: 11px; color: var(--slate-500); cursor: pointer; }
+.bsub-item:hover { background: var(--slate-50); color: var(--slate-700); }
+.bsub-count { font-size: 11px; font-weight: 700; color: var(--slate-400); background: var(--slate-100); border-radius: 9999px; padding: 0 7px; }
+
+.rail-recipe { margin: 6px 14px 12px; padding: 9px 11px; border: 1px dashed var(--slate-300); border-radius: 9px; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.rail-recipe:hover { border-color: var(--indigo-400); background: var(--indigo-50); }
+.rr-ic { color: var(--indigo-500); flex-shrink: 0; }
+.rr-tx { flex: 1; }
+.rr-t1 { font-size: 11px; font-weight: 700; color: var(--slate-700); }
+.rr-t2 { font-size: 10px; color: var(--slate-400); }
+
+.rail-foot { padding: 12px 14px; border-top: 1px solid var(--slate-100); }
+.import-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 7px; font-size: 12px; font-weight: 700; padding: 9px; border-radius: 8px; border: none; background: var(--primary-dark); color: white; cursor: pointer; }
+.import-btn:hover { background: #4338ca; }
+
+/* ── Content ── */
+.content { flex: 1; overflow-y: auto; min-width: 0; background: var(--slate-50); }
+.content-hd { display: flex; align-items: center; gap: 12px; padding: 14px 22px; background: white; border-bottom: 1px solid var(--slate-200); position: sticky; top: 0; z-index: 6; }
+.ch-ico { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ch-title { font-size: 15px; font-weight: 700; color: var(--slate-900); }
+.ch-sub { font-size: 11px; color: var(--slate-500); margin-top: 1px; }
+.ch-spacer { flex: 1; }
+.ch-search { display: flex; align-items: center; gap: 6px; background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 7px; padding: 6px 11px; width: 240px; }
+.ch-search input { border: none; background: none; font-size: 12px; color: var(--slate-700); outline: none; width: 100%; }
+.ch-search input::placeholder { color: var(--slate-400); }
+.ch-anchor { font-size: 10px; font-weight: 600; color: var(--indigo-600); background: var(--indigo-50); border: 1px solid var(--indigo-100); padding: 4px 10px; border-radius: 6px; white-space: nowrap; }
+
+.panel { display: none; padding: 18px 22px; }
+.panel.active { display: block; }
+
+/* ── Cluster cards (General categorization) ── */
+.cluster { background: white; border: 1px solid var(--slate-200); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+.cluster.flagged { border-color: var(--red-200); }
+.cluster.open { box-shadow: 0 4px 16px rgba(0,0,0,.06); }
+.cl-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; }
+.cl-header:hover { background: var(--slate-50); }
+.cl-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 9.5px; font-weight: 700; padding: 3px 8px; border-radius: 6px; flex-shrink: 0; }
+.tag-ai { background: var(--amber-50); color: var(--amber-700); border: 1px solid var(--amber-200); }
+.tag-rule { background: var(--indigo-50); color: var(--indigo-600); border: 1px solid var(--indigo-100); }
+.tag-manual { background: var(--violet-50); color: var(--violet-600); border: 1px solid var(--violet-200); }
+.cl-titles { flex: 1; min-width: 0; }
+.cl-title { font-size: 13px; font-weight: 700; color: var(--slate-800); }
+.cl-coa { font-size: 11px; color: var(--slate-500); margin-top: 2px; display: flex; align-items: center; gap: 6px; }
+.cl-coa .coa-chip { font-size: 10px; }
+.cl-count { font-size: 11px; font-weight: 700; color: var(--slate-500); white-space: nowrap; }
+.cl-chev { color: var(--slate-400); transition: transform .15s; flex-shrink: 0; }
+.cluster.open .cl-chev { transform: rotate(180deg); }
+
+.cl-body { display: none; border-top: 1px solid var(--slate-100); }
+.cluster.open .cl-body { display: block; }
+.cl-actions { display: flex; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--slate-100); background: var(--slate-50); }
+.cl-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; padding: 7px 13px; border-radius: 7px; border: 1px solid; cursor: pointer; }
+.clb-approve { background: var(--green-600); color: white; border-color: transparent; }
+.clb-approve:hover { background: var(--green-700); }
+.clb-ghost { background: white; color: var(--slate-600); border-color: var(--slate-200); }
+.clb-ghost:hover { background: var(--slate-50); }
+.clb-rule { background: white; color: var(--indigo-600); border-color: var(--indigo-200); }
+.clb-rule:hover { background: var(--indigo-50); }
+
+.coa-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px; background: var(--indigo-50); color: var(--indigo-600); white-space: nowrap; }
+.coa-chip.override { background: var(--amber-50); color: var(--amber-700); }
+.coa-chip.uncategorized { background: var(--slate-100); color: var(--slate-500); font-style: italic; }
+
+/* member table inside a cluster */
+table { width: 100%; border-collapse: collapse; }
+thead tr { background: var(--slate-50); border-bottom: 1px solid var(--slate-200); }
+th { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--slate-400); padding: 8px 16px; text-align: left; white-space: nowrap; }
+th.num { text-align: right; }
+tbody tr { border-bottom: 1px solid var(--slate-100); }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--slate-50); }
+td { padding: 9px 16px; vertical-align: middle; }
+.td-date { font-size: 11px; color: var(--slate-500); white-space: nowrap; }
+.td-desc-main { font-size: 12px; font-weight: 500; color: var(--slate-800); }
+.td-cp { font-size: 11px; color: var(--slate-600); white-space: nowrap; }
+.td-amount { text-align: right; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.amt-cr { color: var(--green-700); }
+.amt-dr { color: var(--slate-700); }
+.conf-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+.conf-high { background: var(--green-50); color: var(--green-700); }
+.conf-mid  { background: var(--amber-50); color: var(--amber-700); }
+.conf-low  { background: var(--red-50); color: var(--red-600); }
+.conf-manual { background: var(--violet-50); color: var(--violet-600); }
+.match-link { font-size: 11px; font-weight: 600; color: var(--indigo-600); display: inline-flex; align-items: center; gap: 4px; }
+.match-none { font-size: 11px; color: var(--slate-400); }
+.review-status { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+.rs-pending { color: var(--amber-600); }
+.rs-flagged { color: var(--red-600); }
+.rs-done { color: var(--green-600); }
+.row-act { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 5px; border: 1px solid var(--slate-200); background: white; color: var(--slate-600); cursor: pointer; }
+.row-act:hover { background: var(--slate-50); }
+
+/* ── Match groups + split (Payouts / Transfers / Checks / Receipts) ── */
+.bucket-intro { display: flex; align-items: flex-start; gap: 11px; background: white; border: 1px solid var(--slate-200); border-radius: 11px; padding: 13px 16px; margin-bottom: 14px; }
+.bi-icon { width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.bi-title { font-size: 12.5px; font-weight: 700; color: var(--slate-800); }
+.bi-sub { font-size: 11px; color: var(--slate-500); margin-top: 2px; line-height: 1.5; }
+
+.match-group { background: white; border: 1px solid var(--slate-200); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+.match-group.flagged { border-color: var(--red-200); }
+.match-group.open { box-shadow: 0 4px 16px rgba(0,0,0,.06); }
+.mg-header { display: flex; align-items: center; gap: 12px; padding: 13px 16px; cursor: pointer; }
+.mg-header:hover { background: var(--slate-50); }
+.mg-titles { flex: 1; min-width: 0; }
+.mg-title { font-size: 13px; font-weight: 700; color: var(--slate-800); }
+.mg-sub { font-size: 11px; color: var(--slate-500); margin-top: 2px; }
+.match-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 9999px; white-space: nowrap; }
+.mc-found { background: var(--green-50); color: var(--green-700); }
+.mc-partial { background: var(--amber-50); color: var(--amber-700); }
+.mc-none { background: var(--red-50); color: var(--red-600); }
+.mg-count { font-size: 11px; font-weight: 700; color: var(--slate-500); white-space: nowrap; }
+.mg-chevron { color: var(--slate-400); transition: transform .15s; flex-shrink: 0; }
+.match-group.open .mg-chevron { transform: rotate(180deg); }
+
+.mg-split { display: none; border-top: 1px solid var(--slate-100); grid-template-columns: 1fr 46px 1fr; }
+.match-group.open .mg-split { display: grid; }
+.split-col { padding: 16px 18px; }
+.split-col.lhs { background: var(--slate-50); border-right: 1px solid var(--slate-100); }
+.split-col.rhs.readonly { background: repeating-linear-gradient(45deg, #fcfcfd, #fcfcfd 10px, #f8fafc 10px, #f8fafc 20px); }
+.split-arrow { display: flex; align-items: center; justify-content: center; color: var(--slate-300); }
+.split-arrow .sa-circle { width: 30px; height: 30px; border-radius: 50%; background: white; border: 1px solid var(--slate-200); display: flex; align-items: center; justify-content: center; color: var(--slate-400); }
+.split-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--slate-400); margin-bottom: 12px; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.split-acct { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px; letter-spacing: 0; text-transform: none; }
+.acct-anchor { background: var(--indigo-50); color: var(--indigo-600); border: 1px solid var(--indigo-100); }
+.acct-other  { background: var(--blue-50); color: var(--blue-700); border: 1px solid var(--blue-200); }
+.acct-source { background: var(--green-50); color: var(--green-700); border: 1px solid var(--green-200); }
+.split-line { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--slate-200); }
+.split-line:last-of-type { border-bottom: none; }
+.sl-left { min-width: 0; }
+.sl-desc { font-size: 12px; font-weight: 600; color: var(--slate-700); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sl-meta { font-size: 10px; color: var(--slate-400); margin-top: 1px; }
+.sl-amt { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sl-amt.cr { color: var(--green-700); }
+.sl-amt.neg { color: var(--red-600); }
+.split-subtotal { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 2px solid var(--slate-200); font-size: 12px; font-weight: 800; color: var(--slate-800); }
+.split-coa { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 5px; background: var(--indigo-50); color: var(--indigo-600); margin-right: 4px; }
+.recon-bar { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding: 9px 12px; border-radius: 8px; font-size: 11px; font-weight: 600; }
+.recon-ok { background: var(--green-50); color: var(--green-700); border: 1px solid var(--green-200); }
+.recon-warn { background: var(--amber-50); color: var(--amber-700); border: 1px solid var(--amber-200); }
+.match-crit { display: flex; gap: 14px; margin-top: 10px; flex-wrap: wrap; }
+.crit { display: flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 600; color: var(--slate-500); }
+.crit .ck { color: var(--green-600); }
+.split-actions { display: flex; gap: 8px; margin-top: 14px; }
+.split-btn { font-size: 11px; font-weight: 700; padding: 7px 14px; border-radius: 7px; border: 1px solid; cursor: pointer; }
+.sb-approve { background: var(--green-600); color: white; border-color: transparent; }
+.sb-approve:hover { background: var(--green-700); }
+.sb-ghost { background: white; color: var(--slate-600); border-color: var(--slate-200); }
+.sb-ghost:hover { background: var(--slate-50); }
+.readonly-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 9.5px; font-weight: 700; padding: 3px 9px; border-radius: 6px; background: var(--slate-100); color: var(--slate-500); text-transform: none; letter-spacing: 0; }
+.auto-resolve-note { margin-top: 12px; font-size: 10.5px; color: var(--blue-600); display: flex; align-items: center; gap: 6px; background: var(--blue-50); border: 1px solid var(--blue-100); border-radius: 7px; padding: 8px 11px; }
+.empty-leg { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 24px 12px; text-align: center; }
+.empty-leg .el-title { font-size: 12px; font-weight: 700; color: var(--amber-700); }
+.empty-leg .el-sub { font-size: 10.5px; color: var(--slate-500); line-height: 1.5; max-width: 220px; }
+.check-stub { border: 1px solid var(--slate-200); border-radius: 8px; background: white; padding: 11px 13px; }
+.check-stub-top { display: flex; justify-content: space-between; font-size: 9px; color: var(--slate-400); font-family: ui-monospace, monospace; }
+.check-stub-payee { font-size: 12px; font-weight: 700; color: var(--slate-800); margin-top: 8px; }
+.check-stub-amt { font-size: 16px; font-weight: 800; color: var(--slate-900); font-variant-numeric: tabular-nums; margin-top: 4px; }
+.check-stub-memo { font-size: 10px; color: var(--slate-500); margin-top: 6px; font-style: italic; border-top: 1px dashed var(--slate-200); padding-top: 6px; }
+.receipt-stub { border: 1px solid var(--slate-200); border-radius: 8px; background: white; padding: 11px 13px; }
+.receipt-stub-hd { display: flex; justify-content: space-between; align-items: center; }
+.receipt-vendor { font-size: 12px; font-weight: 700; color: var(--slate-800); }
+.receipt-date { font-size: 10px; color: var(--slate-400); }
+.receipt-line { display: flex; justify-content: space-between; font-size: 11px; color: var(--slate-600); padding: 4px 0; }
+.receipt-total { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--slate-800); border-top: 1px solid var(--slate-200); padding-top: 6px; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ── Global sidebar ── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-mark">A</div>
+    <span class="sidebar-logo-name">Atlas</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Workspace</div>
+    <a class="nav-item" href="dashboard.html"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Dashboard</a>
+    <a class="nav-item" href="agent-hub.html"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>Inbox</a>
+    <a class="nav-item active" href="projects-list.html"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Projects</a>
+    <a class="nav-item" href="clients-list.html"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Clients</a>
+    <a class="nav-item" href="workflow-live.html"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Workflows</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-avatar">SK</div>
+    <div><div class="sidebar-user-name">Sarah K.</div><div class="sidebar-user-role">Sr. Bookkeeper</div></div>
+  </div>
+</aside>
+
+<!-- ── Main ── -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a href="projects-list.html">Projects</a><span class="bc-sep">/</span>
+      <a href="clients-list.html">Bright &amp; Bloom LLC</a><span class="bc-sep">/</span>
+      <span class="bc-cur">Book Close — Q1 2025</span>
+    </div>
+    <div class="tb-spacer"></div>
+    <span class="phase-pill"><span class="pp-step">3</span>Review · 1 of 4 phases left</span>
+    <button class="anchor-select">
+      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+      Chase Checking <span class="as-sub">****4951</span>
+      <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+    </button>
+    <button class="tb-btn primary">Approve all reviewed</button>
+  </div>
+
+  <!-- Body -->
+  <div class="body">
+
+    <!-- ── Project rail (recipe / bucket navigator) ── -->
+    <div class="rail">
+      <div class="rail-scroll">
+
+        <div class="rail-proj">
+          <div class="rail-proj-name">Book Close — Q1 2025</div>
+          <div class="rail-proj-sub">Jan 1 – Mar 31 · due Apr 30 · 4 accounts</div>
+        </div>
+
+        <div class="rail-pending">
+          <div class="rp-top">
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            <span class="rp-label">Pending review</span>
+            <span class="rp-x">×</span>
+          </div>
+          <div class="rp-title">Check Processing</div>
+          <div class="rp-sub">3 extracted checks pending match review</div>
+        </div>
+
+        <div class="rail-progress">
+          <svg width="56" height="56" viewBox="0 0 56 56">
+            <circle cx="28" cy="28" r="23" fill="none" stroke="#e2e8f0" stroke-width="8"/>
+            <circle cx="28" cy="28" r="23" fill="none" stroke="#22c55e" stroke-width="8" stroke-dasharray="6 94" stroke-dashoffset="25" stroke-linecap="round" transform="rotate(-90 28 28)" pathLength="100"/>
+            <text x="28" y="32" text-anchor="middle" font-size="12" font-weight="800" fill="#1e293b">4%</text>
+          </svg>
+          <div class="rpg-text">
+            <div class="rpg-line1"><strong>72</strong> / 1,847 for review</div>
+            <div class="rpg-big">1,775</div>
+            <div class="rpg-rem">remaining</div>
+            <div class="rpg-proc">$1.84M processed</div>
+          </div>
+        </div>
+
+        <div class="rail-tabs">
+          <button class="rail-tab">All</button>
+          <button class="rail-tab active">For Review</button>
+          <button class="rail-tab">Posted</button>
+        </div>
+
+        <div class="rail-buckets-label"><span>Intent buckets</span><span style="text-transform:none;letter-spacing:0;color:var(--slate-300)">Recipe-routed</span></div>
+
+        <!-- GENERAL -->
+        <div class="bnav active" data-bucket="general" onclick="setBucket(this,'general')">
+          <span class="bn-ico bn-general"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></span>
+          <div class="bn-body"><div class="bn-name">General</div><div class="bn-strat">Categorize · clustered</div></div>
+          <div class="bn-count">1,362</div>
+        </div>
+
+        <!-- PAYOUTS (expandable) -->
+        <div class="bnav" data-bucket="payouts" onclick="setBucket(this,'payouts')">
+          <span class="bn-ico bn-payouts"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg></span>
+          <div class="bn-body"><div class="bn-name">Payouts</div><div class="bn-strat">Income split</div></div>
+          <div class="bn-count">7 <svg class="bn-chev" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" onclick="toggleSub(event,this)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></div>
+        </div>
+        <div class="bsub" id="sub-payouts">
+          <div class="bsub-item" onclick="setBucket(document.querySelector('[data-bucket=payouts]'),'payouts')">Shopify Customer <span class="bsub-count">4</span></div>
+          <div class="bsub-item" onclick="setBucket(document.querySelector('[data-bucket=payouts]'),'payouts')">Stripe Customer <span class="bsub-count">3</span></div>
+        </div>
+
+        <!-- TRANSFERS -->
+        <div class="bnav" data-bucket="transfers" onclick="setBucket(this,'transfers')">
+          <span class="bn-ico bn-transfers"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg></span>
+          <div class="bn-body"><div class="bn-name">Transfers</div><div class="bn-strat">Cross-account</div></div>
+          <div class="bn-count"><span class="bn-dot" title="1 unmatched"></span>4</div>
+        </div>
+
+        <!-- CHECKS -->
+        <div class="bnav" data-bucket="checks" onclick="setBucket(this,'checks')">
+          <span class="bn-ico bn-checks"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></span>
+          <div class="bn-body"><div class="bn-name">Checks</div><div class="bn-strat">1:1 match</div></div>
+          <div class="bn-count">3</div>
+        </div>
+
+        <!-- RECEIPTS -->
+        <div class="bnav" data-bucket="receipts" onclick="setBucket(this,'receipts')">
+          <span class="bn-ico bn-receipts"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l2 2 4-4m1 8l-4-2-4 2V5a2 2 0 012-2h4a2 2 0 012 2v15z"/></svg></span>
+          <div class="bn-body"><div class="bn-name">Receipts</div><div class="bn-strat">Many:many</div></div>
+          <div class="bn-count">6</div>
+        </div>
+
+        <!-- Recipe quick-access -->
+        <div class="rail-recipe">
+          <svg class="rr-ic" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          <div class="rr-tx"><div class="rr-t1">Recipe · Chase ****4951</div><div class="rr-t2">5 routing rules → strategies</div></div>
+          <svg width="13" height="13" fill="none" stroke="var(--slate-400)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </div>
+
+      </div>
+      <div class="rail-foot">
+        <button class="import-btn">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          Import statement
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Content ── -->
+    <div class="content">
+
+      <!-- ════════ GENERAL — clustered categorization ════════ -->
+      <div class="panel active" id="panel-general">
+        <div class="content-hd">
+          <div class="ch-ico bn-general"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></div>
+          <div><div class="ch-title">General categorization</div><div class="ch-sub">1,362 transactions · grouped into 41 clusters by pattern · approve a whole cluster at once</div></div>
+          <div class="ch-spacer"></div>
+          <div class="ch-search"><svg width="12" height="12" fill="none" stroke="#94a3b8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"/></svg><input placeholder="Search clusters…"></div>
+          <span class="ch-anchor">Chase ****4951</span>
+        </div>
+        <div class="panel-body" style="padding:18px 22px">
+
+          <!-- Cluster: Costco (AI suggested) -->
+          <div class="cluster open" onclick="toggleCard(event,this)">
+            <div class="cl-header">
+              <span class="cl-tag tag-ai">★ AI Suggested</span>
+              <div class="cl-titles">
+                <div class="cl-title">Costco — warehouse purchases</div>
+                <div class="cl-coa">AI suggested, didn't match an existing rule · <span class="coa-chip">Office Supplies</span></div>
+              </div>
+              <span class="cl-count">6 txns · $4,812</span>
+              <svg class="cl-chev" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+            <div class="cl-body" onclick="event.stopPropagation()">
+              <div class="cl-actions">
+                <button class="cl-btn clb-approve"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> Approve all 6</button>
+                <button class="cl-btn clb-ghost">Expand &amp; edit</button>
+                <button class="cl-btn clb-rule"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7M5 5h14"/></svg> Save as a rule</button>
+              </div>
+              <table>
+                <thead><tr><th style="width:78px">Date</th><th>Description</th><th>Counterparty</th><th>COA</th><th>Confidence</th><th class="num">Amount</th><th></th></tr></thead>
+                <tbody>
+                  <tr><td class="td-date">Mar 29</td><td><div class="td-desc-main">CHECKCARD 0328 COSTCO WHSE #0154</div></td><td class="td-cp">Costco</td><td><span class="coa-chip">Office Supplies</span></td><td><span class="conf-badge conf-mid">68%</span></td><td class="td-amount amt-dr">−$1,204.63</td><td><button class="row-act">Edit</button></td></tr>
+                  <tr><td class="td-date">Mar 12</td><td><div class="td-desc-main">CHECKCARD 0311 COSTCO WHSE #0154</div></td><td class="td-cp">Costco</td><td><span class="coa-chip">Office Supplies</span></td><td><span class="conf-badge conf-mid">66%</span></td><td class="td-amount amt-dr">−$842.10</td><td><button class="row-act">Edit</button></td></tr>
+                  <tr><td class="td-date">Feb 24</td><td><div class="td-desc-main">CHECKCARD 0223 COSTCO WHSE #0154</div></td><td class="td-cp">Costco</td><td><span class="coa-chip">Office Supplies</span></td><td><span class="conf-badge conf-mid">71%</span></td><td class="td-amount amt-dr">−$910.44</td><td><button class="row-act">Edit</button></td></tr>
+                  <tr style="opacity:.6"><td colspan="7" style="text-align:center;padding:10px;color:var(--slate-400);font-size:11px;font-style:italic">+ 3 more in this cluster</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Cluster: ADP fees (dynamic rule match) -->
+          <div class="cluster" onclick="toggleCard(event,this)">
+            <div class="cl-header">
+              <span class="cl-tag tag-rule">⚙ Rule match</span>
+              <div class="cl-titles">
+                <div class="cl-title">ADP payroll service fees</div>
+                <div class="cl-coa">Matched dynamic rule <code style="font-size:10px">ADP * FEES</code> · <span class="coa-chip">Payroll Service Fees</span></div>
+              </div>
+              <span class="cl-count">3 txns · $1,885</span>
+              <svg class="cl-chev" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+            <div class="cl-body" onclick="event.stopPropagation()">
+              <div class="cl-actions">
+                <button class="cl-btn clb-approve"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> Approve all 3</button>
+                <button class="cl-btn clb-ghost">Expand &amp; edit</button>
+              </div>
+              <table>
+                <thead><tr><th style="width:78px">Date</th><th>Description</th><th>Counterparty</th><th>COA</th><th>Confidence</th><th class="num">Amount</th><th></th></tr></thead>
+                <tbody>
+                  <tr><td class="td-date">Mar 31</td><td><div class="td-desc-main">ADP PAYROLL FEES — MARCH 2025</div></td><td class="td-cp">ADP</td><td><span class="coa-chip">Payroll Service Fees</span></td><td><span class="conf-badge conf-high">94%</span></td><td class="td-amount amt-dr">−$628.40</td><td><button class="row-act">Edit</button></td></tr>
+                  <tr><td class="td-date">Feb 28</td><td><div class="td-desc-main">ADP PAYROLL FEES — FEB 2025</div></td><td class="td-cp">ADP</td><td><span class="coa-chip">Payroll Service Fees</span></td><td><span class="conf-badge conf-high">94%</span></td><td class="td-amount amt-dr">−$628.40</td><td><button class="row-act">Edit</button></td></tr>
+                  <tr><td class="td-date">Jan 31</td><td><div class="td-desc-main">ADP PAYROLL FEES — JAN 2025</div></td><td class="td-cp">ADP</td><td><span class="coa-chip">Payroll Service Fees</span></td><td><span class="conf-badge conf-high">93%</span></td><td class="td-amount amt-dr">−$628.40</td><td><button class="row-act">Edit</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Cluster: Google Workspace (manual override) -->
+          <div class="cluster" onclick="toggleCard(event,this)">
+            <div class="cl-header">
+              <span class="cl-tag tag-manual">✎ Manual</span>
+              <div class="cl-titles">
+                <div class="cl-title">Google Workspace subscription</div>
+                <div class="cl-coa">Overridden by Sarah K. — was "Software Subscriptions" · <span class="coa-chip override">Cloud Infrastructure</span></div>
+              </div>
+              <span class="cl-count">3 txns · $648</span>
+              <svg class="cl-chev" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+            <div class="cl-body" onclick="event.stopPropagation()">
+              <div class="cl-actions">
+                <button class="cl-btn clb-approve"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> Confirm all 3</button>
+                <button class="cl-btn clb-rule"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7M5 5h14"/></svg> Save override as rule</button>
+              </div>
+              <table>
+                <thead><tr><th style="width:78px">Date</th><th>Description</th><th>Counterparty</th><th>COA</th><th>Confidence</th><th class="num">Amount</th><th></th></tr></thead>
+                <tbody>
+                  <tr><td class="td-date">Mar 10</td><td><div class="td-desc-main">GOOGLE *GSUITE_BIZ 03/10</div></td><td class="td-cp">Google</td><td><span class="coa-chip override">Cloud Infrastructure</span></td><td><span class="conf-badge conf-manual">Manual</span></td><td class="td-amount amt-dr">−$216.00</td><td><button class="row-act">Edit</button></td></tr>
+                  <tr><td class="td-date">Feb 10</td><td><div class="td-desc-main">GOOGLE *GSUITE_BIZ 02/10</div></td><td class="td-cp">Google</td><td><span class="coa-chip override">Cloud Infrastructure</span></td><td><span class="conf-badge conf-manual">Manual</span></td><td class="td-amount amt-dr">−$216.00</td><td><button class="row-act">Edit</button></td></tr>
+                  <tr><td class="td-date">Jan 10</td><td><div class="td-desc-main">GOOGLE *GSUITE_BIZ 01/10</div></td><td class="td-cp">Google</td><td><span class="coa-chip override">Cloud Infrastructure</span></td><td><span class="conf-badge conf-manual">Manual</span></td><td class="td-amount amt-dr">−$216.00</td><td><button class="row-act">Edit</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Cluster: needs attention (flagged) -->
+          <div class="cluster flagged" onclick="toggleCard(event,this)">
+            <div class="cl-header">
+              <span class="cl-tag tag-ai">★ AI Suggested</span>
+              <div class="cl-titles">
+                <div class="cl-title">Needs attention — low confidence / ambiguous</div>
+                <div class="cl-coa">No confident COA · review individually before posting</div>
+              </div>
+              <span class="cl-count" style="color:var(--red-600)">8 txns</span>
+              <svg class="cl-chev" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+            <div class="cl-body" onclick="event.stopPropagation()">
+              <div class="cl-actions">
+                <button class="cl-btn clb-ghost">Review one by one</button>
+              </div>
+              <table>
+                <thead><tr><th style="width:78px">Date</th><th>Description</th><th>Counterparty</th><th>COA</th><th>Confidence</th><th class="num">Amount</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td class="td-date">Mar 28</td><td><div class="td-desc-main">WIRE TRANSFER OUT — UNKNOWN PAYEE REF 8812</div></td><td class="td-cp">—</td><td><span class="coa-chip uncategorized">Uncategorized</span></td><td><span class="conf-badge conf-low">12%</span></td><td class="td-amount amt-dr">−$14,500.00</td><td><span class="review-status rs-flagged">⚑ Flagged</span></td></tr>
+                  <tr><td class="td-date">Feb 14</td><td><div class="td-desc-main">SQ *MISC VENDOR 02/14</div></td><td class="td-cp">Square</td><td><span class="coa-chip uncategorized">Ambiguous</span></td><td><span class="conf-badge conf-low">34%</span></td><td class="td-amount amt-dr">−$486.50</td><td><span class="review-status rs-flagged">⚑ Flagged</span></td></tr>
+                  <tr style="opacity:.6"><td colspan="7" style="text-align:center;padding:10px;color:var(--slate-400);font-size:11px;font-style:italic">+ 6 more needing attention</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ════════ PAYOUTS ════════ -->
+      <div class="panel" id="panel-payouts">
+        <div class="content-hd">
+          <div class="ch-ico bn-payouts"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg></div>
+          <div><div class="ch-title">Payouts</div><div class="ch-sub">Income-split strategy · net deposits reconciled &amp; grossed-up against the processor report</div></div>
+          <div class="ch-spacer"></div>
+          <span class="ch-anchor">Chase ****4951</span>
+        </div>
+        <div style="padding:18px 22px">
+          <div class="bucket-intro">
+            <div class="bi-icon bn-payouts"><svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg></div>
+            <div style="flex:1"><div class="bi-title">Payout deposits — gross-up &amp; split</div><div class="bi-sub">A payout report covers <strong>many deposits</strong>; a deposit rolls up <strong>many orders</strong>. The split panel shows bank deposits (anchor) against the processor breakdown — sales · fees · refunds.</div></div>
+          </div>
+
+          <!-- Shopify -->
+          <div class="match-group open" onclick="toggleCard(event,this)">
+            <div class="mg-header">
+              <div class="mg-titles"><div class="mg-title">Shopify Customer — sales payouts</div><div class="mg-sub">4 deposits · Shopify payout report (Feb 2025)</div></div>
+              <span class="match-chip mc-found">🔗 Match found</span><span class="mg-count">4 txns</span>
+              <svg class="mg-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+            <div class="mg-split" onclick="event.stopPropagation()">
+              <div class="split-col lhs">
+                <div class="split-label">Bank deposits <span class="split-acct acct-anchor">Chase ****4951</span></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">Shopify Payout Deposit</div><div class="sl-meta">Feb 23 · settle 8841</div></div><div class="sl-amt cr">+$774.00</div></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">Shopify Payout Deposit</div><div class="sl-meta">Feb 17 · settle 8790</div></div><div class="sl-amt cr">+$1,100.00</div></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">Shopify Payout Deposit</div><div class="sl-meta">Feb 10 · settle 8744</div></div><div class="sl-amt cr">+$978.00</div></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">Shopify Payout Deposit</div><div class="sl-meta">Feb 3 · settle 8702</div></div><div class="sl-amt cr">+$1,223.00</div></div>
+                <div class="split-subtotal"><span>Net deposited</span><span>$4,075.00</span></div>
+              </div>
+              <div class="split-arrow"><div class="sa-circle"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"/></svg></div></div>
+              <div class="split-col rhs">
+                <div class="split-label">Shopify payout report <span class="split-acct acct-source">Source: Shopify</span></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">Gross sales</div><div class="sl-meta">→ <span class="split-coa">Sales Revenue</span></div></div><div class="sl-amt cr">+$4,520.00</div></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">Refunds</div><div class="sl-meta">→ <span class="split-coa">Sales Refunds</span></div></div><div class="sl-amt neg">−$180.00</div></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">Processing fees</div><div class="sl-meta">→ <span class="split-coa">Merchant Fees</span></div></div><div class="sl-amt neg">−$265.00</div></div>
+                <div class="split-subtotal"><span>Net payout</span><span>$4,075.00</span></div>
+                <div class="recon-bar recon-ok"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> Reconciles to the cent</div>
+                <div class="match-crit"><span class="crit"><span class="ck">✓</span> Net amount</span><span class="crit"><span class="ck">✓</span> Shopify</span><span class="crit"><span class="ck">✓</span> In period</span></div>
+                <div class="split-actions"><button class="split-btn sb-approve">Approve split &amp; post 3 GL lines</button><button class="split-btn sb-ghost">Adjust mapping</button></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stripe -->
+          <div class="match-group" onclick="toggleCard(event,this)">
+            <div class="mg-header">
+              <div class="mg-titles"><div class="mg-title">Stripe Customer — sales payouts</div><div class="mg-sub">3 deposits · Stripe balance report (Feb 2025)</div></div>
+              <span class="match-chip mc-found">🔗 Match found</span><span class="mg-count">3 txns</span>
+              <svg class="mg-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+            <div class="mg-split" onclick="event.stopPropagation()">
+              <div class="split-col lhs">
+                <div class="split-label">Bank deposits <span class="split-acct acct-anchor">Chase ****4951</span></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">Stripe Payout</div><div class="sl-meta">Feb 21</div></div><div class="sl-amt cr">+$2,140.00</div></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">Stripe Payout</div><div class="sl-meta">Feb 12</div></div><div class="sl-amt cr">+$1,690.00</div></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">Stripe Payout</div><div class="sl-meta">Feb 4</div></div><div class="sl-amt cr">+$980.00</div></div>
+                <div class="split-subtotal"><span>Net deposited</span><span>$4,810.00</span></div>
+              </div>
+              <div class="split-arrow"><div class="sa-circle"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"/></svg></div></div>
+              <div class="split-col rhs">
+                <div class="split-label">Stripe balance report <span class="split-acct acct-source">Source: Stripe</span></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">Gross charges</div><div class="sl-meta">→ <span class="split-coa">Sales Revenue</span></div></div><div class="sl-amt cr">+$5,090.00</div></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">Stripe fees</div><div class="sl-meta">→ <span class="split-coa">Merchant Fees</span></div></div><div class="sl-amt neg">−$280.00</div></div>
+                <div class="split-subtotal"><span>Net payout</span><span>$4,810.00</span></div>
+                <div class="recon-bar recon-ok"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> Reconciles to the cent</div>
+                <div class="split-actions"><button class="split-btn sb-approve">Approve split &amp; post 2 GL lines</button><button class="split-btn sb-ghost">Adjust mapping</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════ TRANSFERS ════════ -->
+      <div class="panel" id="panel-transfers">
+        <div class="content-hd">
+          <div class="ch-ico bn-transfers"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg></div>
+          <div><div class="ch-title">Transfers</div><div class="ch-sub">Cross-account strategy · one leg here, the matched leg on another account</div></div>
+          <div class="ch-spacer"></div>
+          <span class="ch-anchor">Anchored: Chase ****4951</span>
+        </div>
+        <div style="padding:18px 22px">
+          <div class="bucket-intro">
+            <div class="bi-icon bn-transfers"><svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg></div>
+            <div style="flex:1"><div class="bi-title">Internal transfers — two legs, two accounts</div><div class="bi-sub">The only intent that spans <strong>two capital accounts</strong>. You stay anchored to Chase ****4951; the matched leg is read-only. Approving one leg <strong>auto-resolves its pair</strong>.</div></div>
+          </div>
+
+          <!-- matched BofA -->
+          <div class="match-group open" onclick="toggleCard(event,this)">
+            <div class="mg-header"><div class="mg-titles"><div class="mg-title">Transfer to Reserve — Feb 14</div><div class="mg-sub">Matched to BofA Savings ****7823 · 3-day gap</div></div><span class="match-chip mc-found">🔗 Pair found</span><svg class="mg-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div>
+            <div class="mg-split" onclick="event.stopPropagation()">
+              <div class="split-col lhs">
+                <div class="split-label">This leg <span class="split-acct acct-anchor">Chase ****4951</span></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">ONLINE TRANSFER OUT</div><div class="sl-meta">Feb 14 · ref TRF-22841</div></div><div class="sl-amt neg">−$15,000.00</div></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">→ <span class="split-coa">Transfer Out</span></div><div class="sl-meta">contra: BofA ****7823</div></div><div class="sl-amt"></div></div>
+                <div class="match-crit"><span class="crit"><span class="ck">✓</span> $15,000.00</span><span class="crit"><span class="ck">✓</span> 3-day gap</span><span class="crit"><span class="ck">✓</span> Opposite dir</span></div>
+                <div class="split-actions"><button class="split-btn sb-approve">Approve transfer pair</button><button class="split-btn sb-ghost">Not a transfer</button></div>
+              </div>
+              <div class="split-arrow"><div class="sa-circle"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg></div></div>
+              <div class="split-col rhs readonly">
+                <div class="split-label">Matched leg <span class="split-acct acct-other">BofA ****7823</span> <span class="readonly-badge">🔒 Read-only</span></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">ONLINE TRANSFER IN</div><div class="sl-meta">Feb 17 · ref DEP-55120</div></div><div class="sl-amt cr">+$15,000.00</div></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">→ <span class="split-coa">Transfer In</span></div><div class="sl-meta">contra: Chase ****4951</div></div><div class="sl-amt"></div></div>
+                <div class="auto-resolve-note"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Approving marks <strong>both</strong> legs reviewed &amp; posts one eliminating entry.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- matched Wells (collapsed) -->
+          <div class="match-group" onclick="toggleCard(event,this)">
+            <div class="mg-header"><div class="mg-titles"><div class="mg-title">Transfer to Payroll — Jan 28</div><div class="mg-sub">Matched to Wells Fargo ****2201 · same-day</div></div><span class="match-chip mc-found">🔗 Pair found</span><svg class="mg-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div>
+            <div class="mg-split" onclick="event.stopPropagation()">
+              <div class="split-col lhs">
+                <div class="split-label">This leg <span class="split-acct acct-anchor">Chase ****4951</span></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">ONLINE TRANSFER OUT</div><div class="sl-meta">Jan 28 · ref TRF-21190</div></div><div class="sl-amt neg">−$40,000.00</div></div>
+                <div class="match-crit"><span class="crit"><span class="ck">✓</span> $40,000.00</span><span class="crit"><span class="ck">✓</span> Same day</span></div>
+                <div class="split-actions"><button class="split-btn sb-approve">Approve transfer pair</button><button class="split-btn sb-ghost">Not a transfer</button></div>
+              </div>
+              <div class="split-arrow"><div class="sa-circle"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg></div></div>
+              <div class="split-col rhs readonly">
+                <div class="split-label">Matched leg <span class="split-acct acct-other">Wells Fargo ****2201</span> <span class="readonly-badge">🔒 Read-only</span></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">TRANSFER CREDIT</div><div class="sl-meta">Jan 28 · ref WF-90021</div></div><div class="sl-amt cr">+$40,000.00</div></div>
+                <div class="auto-resolve-note"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Both legs resolve together on approve.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- unmatched -->
+          <div class="match-group flagged" onclick="toggleCard(event,this)">
+            <div class="mg-header"><div class="mg-titles"><div class="mg-title">Looks like a transfer — Mar 28</div><div class="mg-sub">No matching leg found in any in-scope account</div></div><span class="match-chip mc-none">⚠ No pair</span><svg class="mg-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div>
+            <div class="mg-split" onclick="event.stopPropagation()">
+              <div class="split-col lhs">
+                <div class="split-label">This leg <span class="split-acct acct-anchor">Chase ****4951</span></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">WIRE TRANSFER OUT — REF 8812</div><div class="sl-meta">Mar 28</div></div><div class="sl-amt neg">−$14,500.00</div></div>
+                <div class="split-actions"><button class="split-btn sb-ghost">Categorize as General</button><button class="split-btn sb-ghost">Pick contra account…</button></div>
+              </div>
+              <div class="split-arrow"><div class="sa-circle"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg></div></div>
+              <div class="split-col rhs readonly">
+                <div class="empty-leg">
+                  <svg width="22" height="22" fill="none" stroke="var(--amber-500)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                  <div class="el-title">No matching leg yet</div>
+                  <div class="el-sub">Receiving account may be outside this project, or its statement isn't ingested. Match retries as statements arrive.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════ CHECKS ════════ -->
+      <div class="panel" id="panel-checks">
+        <div class="content-hd">
+          <div class="ch-ico bn-checks"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+          <div><div class="ch-title">Checks</div><div class="ch-sub">One-to-one match · cleared-check bank line ↔ scanned check image</div></div>
+          <div class="ch-spacer"></div>
+          <span class="ch-anchor">Chase ****4951</span>
+        </div>
+        <div style="padding:18px 22px">
+          <div class="bucket-intro">
+            <div class="bi-icon bn-checks"><svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+            <div style="flex:1"><div class="bi-title">Cleared checks — 1:1 match</div><div class="bi-sub">Each cleared-check line matches exactly one scanned image by amount ± tolerance within the period.</div></div>
+          </div>
+
+          <div class="match-group open" onclick="toggleCard(event,this)">
+            <div class="mg-header"><div class="mg-titles"><div class="mg-title">Check #1042</div><div class="mg-sub">Cleared Mar 12 · matched to scanned check</div></div><span class="match-chip mc-found">🔗 Match found</span><svg class="mg-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div>
+            <div class="mg-split" onclick="event.stopPropagation()">
+              <div class="split-col lhs">
+                <div class="split-label">Bank line <span class="split-acct acct-anchor">Chase ****4951</span></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">CHECK 1042</div><div class="sl-meta">Cleared Mar 12</div></div><div class="sl-amt neg">−$3,200.00</div></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">→ <span class="split-coa">Rent Expense</span></div><div class="sl-meta">from check memo</div></div><div class="sl-amt"></div></div>
+                <div class="match-crit"><span class="crit"><span class="ck">✓</span> $3,200.00</span><span class="crit"><span class="ck">✓</span> Check # 1042</span></div>
+                <div class="split-actions"><button class="split-btn sb-approve">Approve &amp; post</button><button class="split-btn sb-ghost">Change COA</button></div>
+              </div>
+              <div class="split-arrow"><div class="sa-circle"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg></div></div>
+              <div class="split-col rhs">
+                <div class="split-label">Scanned check <span class="split-acct acct-source">Source: Check scan</span></div>
+                <div class="check-stub">
+                  <div class="check-stub-top"><span>CHECK No. 1042</span><span>03 / 09 / 2025</span></div>
+                  <div class="check-stub-payee">Pay to: Turlock Property Mgmt</div>
+                  <div class="check-stub-amt">$3,200.00</div>
+                  <div class="check-stub-memo">Memo: March office rent · 480 Main St</div>
+                </div>
+                <div class="recon-bar recon-ok"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> Amount &amp; check # match · OCR 97%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="match-group" onclick="toggleCard(event,this)">
+            <div class="mg-header"><div class="mg-titles"><div class="mg-title">Check #1043</div><div class="mg-sub">Cleared Mar 19 · matched to scanned check</div></div><span class="match-chip mc-found">🔗 Match found</span><svg class="mg-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div>
+            <div class="mg-split" onclick="event.stopPropagation()">
+              <div class="split-col lhs">
+                <div class="split-label">Bank line <span class="split-acct acct-anchor">Chase ****4951</span></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">CHECK 1043</div><div class="sl-meta">Cleared Mar 19</div></div><div class="sl-amt neg">−$1,450.00</div></div>
+                <div class="split-actions"><button class="split-btn sb-approve">Approve &amp; post</button><button class="split-btn sb-ghost">Change COA</button></div>
+              </div>
+              <div class="split-arrow"><div class="sa-circle"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg></div></div>
+              <div class="split-col rhs">
+                <div class="split-label">Scanned check <span class="split-acct acct-source">Source: Check scan</span></div>
+                <div class="check-stub">
+                  <div class="check-stub-top"><span>CHECK No. 1043</span><span>03 / 17 / 2025</span></div>
+                  <div class="check-stub-payee">Pay to: Valley Pest Control</div>
+                  <div class="check-stub-amt">$1,450.00</div>
+                  <div class="check-stub-memo">Memo: Quarterly service</div>
+                </div>
+                <div class="recon-bar recon-ok"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> Amount match · OCR 94%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="match-group flagged" onclick="toggleCard(event,this)">
+            <div class="mg-header"><div class="mg-titles"><div class="mg-title">Check #1044</div><div class="mg-sub">Cleared Mar 25 · no scanned image uploaded</div></div><span class="match-chip mc-none">⚠ No scan</span><svg class="mg-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div>
+            <div class="mg-split" onclick="event.stopPropagation()">
+              <div class="split-col lhs">
+                <div class="split-label">Bank line <span class="split-acct acct-anchor">Chase ****4951</span></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">CHECK 1044</div><div class="sl-meta">Cleared Mar 25</div></div><div class="sl-amt neg">−$890.00</div></div>
+                <div class="split-actions"><button class="split-btn sb-ghost">Categorize without scan</button></div>
+              </div>
+              <div class="split-arrow"><div class="sa-circle"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg></div></div>
+              <div class="split-col rhs">
+                <div class="empty-leg">
+                  <svg width="22" height="22" fill="none" stroke="var(--amber-500)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                  <div class="el-title">No scanned check yet</div>
+                  <div class="el-sub">Upload the image to auto-match by amount, or categorize the bank line directly.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════ RECEIPTS ════════ -->
+      <div class="panel" id="panel-receipts">
+        <div class="content-hd">
+          <div class="ch-ico bn-receipts"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l2 2 4-4m1 8l-4-2-4 2V5a2 2 0 012-2h4a2 2 0 012 2v15z"/></svg></div>
+          <div><div class="ch-title">Receipts</div><div class="ch-sub">Many-to-many match · card charges ↔ uploaded receipts, rolled up &amp; reconciled</div></div>
+          <div class="ch-spacer"></div>
+          <span class="ch-anchor">Chase ****4951</span>
+        </div>
+        <div style="padding:18px 22px">
+          <div class="bucket-intro">
+            <div class="bi-icon bn-receipts"><svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l2 2 4-4m1 8l-4-2-4 2V5a2 2 0 012-2h4a2 2 0 012 2v15z"/></svg></div>
+            <div style="flex:1"><div class="bi-title">Receipts — many-to-many</div><div class="bi-sub">One charge can split across several receipts; one receipt can cover several charges. We show the rolled-up match and flag any over/under.</div></div>
+          </div>
+
+          <div class="match-group open" onclick="toggleCard(event,this)">
+            <div class="mg-header"><div class="mg-titles"><div class="mg-title">Amazon order — itemized receipt</div><div class="mg-sub">1 charge · 1 receipt · split across 2 COAs</div></div><span class="match-chip mc-found">🔗 Match found</span><svg class="mg-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div>
+            <div class="mg-split" onclick="event.stopPropagation()">
+              <div class="split-col lhs">
+                <div class="split-label">Card charge <span class="split-acct acct-anchor">Chase ****4951</span></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">AMZN MKTP US*2F7KL9</div><div class="sl-meta">Feb 14</div></div><div class="sl-amt neg">−$2,347.80</div></div>
+                <div class="split-subtotal"><span>Charge total</span><span>$2,347.80</span></div>
+              </div>
+              <div class="split-arrow"><div class="sa-circle"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"/></svg></div></div>
+              <div class="split-col rhs">
+                <div class="split-label">Uploaded receipt <span class="split-acct acct-source">Source: Receipt</span></div>
+                <div class="receipt-stub">
+                  <div class="receipt-stub-hd"><span class="receipt-vendor">Amazon.com</span><span class="receipt-date">Feb 14, 2025</span></div>
+                  <div class="receipt-line"><span>Standing desk × 2 <span class="split-coa">Furniture</span></span><span>$1,798.00</span></div>
+                  <div class="receipt-line"><span>USB-C hubs × 6 <span class="split-coa">Office Supplies</span></span><span>$549.80</span></div>
+                  <div class="receipt-total"><span>Receipt total</span><span>$2,347.80</span></div>
+                </div>
+                <div class="recon-bar recon-ok"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> Receipt total matches · 2 line-item COAs</div>
+                <div class="split-actions"><button class="split-btn sb-approve">Approve split &amp; post</button><button class="split-btn sb-ghost">Adjust lines</button></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="match-group" onclick="toggleCard(event,this)">
+            <div class="mg-header"><div class="mg-titles"><div class="mg-title">Fuel — 3 charges to 1 fleet receipt</div><div class="mg-sub">3 charges · 1 consolidated fuel-card statement</div></div><span class="match-chip mc-partial">⚠ Partial</span><svg class="mg-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div>
+            <div class="mg-split" onclick="event.stopPropagation()">
+              <div class="split-col lhs">
+                <div class="split-label">Card charges <span class="split-acct acct-anchor">Chase ****4951</span></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">SHELL OIL 0241</div><div class="sl-meta">Mar 4</div></div><div class="sl-amt neg">−$92.40</div></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">CHEVRON 1188</div><div class="sl-meta">Mar 11</div></div><div class="sl-amt neg">−$78.10</div></div>
+                <div class="split-line"><div class="sl-left"><div class="sl-desc">SHELL OIL 0241</div><div class="sl-meta">Mar 22</div></div><div class="sl-amt neg">−$88.30</div></div>
+                <div class="split-subtotal"><span>Charges total</span><span>$258.80</span></div>
+              </div>
+              <div class="split-arrow"><div class="sa-circle"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"/></svg></div></div>
+              <div class="split-col rhs">
+                <div class="split-label">Fuel-card receipt <span class="split-acct acct-source">Source: Receipt</span></div>
+                <div class="receipt-stub">
+                  <div class="receipt-stub-hd"><span class="receipt-vendor">WEX Fleet</span><span class="receipt-date">March 2025</span></div>
+                  <div class="receipt-line"><span>Fuel — 3 fill-ups <span class="split-coa">Vehicle Fuel</span></span><span>$258.80</span></div>
+                  <div class="receipt-line"><span>Card fee <span class="split-coa">Bank Fees</span></span><span>$4.50</span></div>
+                  <div class="receipt-total"><span>Receipt total</span><span>$263.30</span></div>
+                </div>
+                <div class="recon-bar recon-warn"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01"/></svg> $4.50 card fee has no bank charge yet — review before posting</div>
+                <div class="split-actions"><button class="split-btn sb-approve">Approve matched lines</button><button class="split-btn sb-ghost">Resolve difference</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- .content -->
+
+  </div><!-- .body -->
+</div><!-- .main -->
+
+<script>
+function setBucket(nav, name) {
+  document.querySelectorAll('.bnav').forEach(n => n.classList.remove('active'));
+  nav.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.querySelector('.content').scrollTop = 0;
+}
+function toggleSub(e, chev) {
+  e.stopPropagation();
+  const nav = chev.closest('.bnav');
+  nav.classList.toggle('expanded');
+  document.getElementById('sub-payouts').classList.toggle('show');
+}
+function toggleCard(e, el) {
+  el.classList.toggle('open');
+}
+</script>
+
+</body>
+</html>
