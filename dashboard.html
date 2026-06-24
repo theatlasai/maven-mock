@@ -499,50 +499,13 @@
 
 <div class="shell">
 
-  <!-- ── Sidebar ── -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="sidebar-logo-mark">A</div>
-      <span class="sidebar-logo-name">Atlas</span>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">Workspace</div>
-      <button class="nav-item active" data-page="dashboard" onclick="showPage('dashboard',this,'Dashboard')">
-        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-        Dashboard
-      </button>
-      <a class="nav-item" href="agent-hub.html">
-        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
-        Inbox
-        <span class="nav-badge">5</span>
-      </a>
-      <a class="nav-item" href="projects-list.html">
-        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-        Projects
-      </a>
-      <a class="nav-item" href="clients-list.html">
-        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        Clients
-      </a>
-      <a class="nav-item" href="workflow-live.html">
-        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-        Workflows
-      </a>
-
-      <div class="nav-section-label" style="margin-top:12px">Reports</div>
-      <button class="nav-item" data-page="analytics" onclick="showPage('analytics',this,'Analytics')">
-        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-        Analytics
-      </button>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="avatar">SM</div>
-      <div>
-        <div class="sidebar-user-name">Sarah M.</div>
-        <div class="sidebar-user-role">Senior Manager</div>
-      </div>
-    </div>
-  </aside>
+  <!-- ── Sidebar (reusable component, see assets/atlas-nav.js) ── -->
+  <div data-atlas-nav
+       data-active="home"
+       data-client="bright-bloom"
+       data-user-name="Sarah M."
+       data-user-role="Senior Manager"
+       data-user-initials="SM"></div>
 
   <!-- ── Main ── -->
   <div class="main">
@@ -608,7 +571,7 @@
                   <span class="kanban-col-count">2</span>
                 </div>
                 <div class="kanban-col-line"></div>
-                <div class="kcard kcard-blocked" onclick="window.location.href='project-detail.html'">
+                <div class="kcard kcard-blocked" onclick="window.location.href='project-detail-v2.html'">
                   <div>
                     <div class="kcard-client">Bridgewater LLC</div>
                     <div class="kcard-period">Q1 2026</div>
@@ -622,7 +585,7 @@
                     <span class="kcard-deadline dl-crit">Apr 25</span>
                   </div>
                 </div>
-                <div class="kcard" onclick="window.location.href='project-detail.html'">
+                <div class="kcard" onclick="window.location.href='project-detail-v2.html'">
                   <div>
                     <div class="kcard-client">Clearwater Clinic</div>
                     <div class="kcard-period">Q1 2026</div>
@@ -642,7 +605,7 @@
                   <span class="kanban-col-count">2</span>
                 </div>
                 <div class="kanban-col-line"></div>
-                <div class="kcard" onclick="window.location.href='project-detail.html'">
+                <div class="kcard" onclick="window.location.href='project-detail-v2.html'">
                   <div>
                     <div class="kcard-client">Sunrise Capital</div>
                     <div class="kcard-period">Q1 2026</div>
@@ -653,7 +616,7 @@
                     <span class="kcard-deadline dl-ok">May 10</span>
                   </div>
                 </div>
-                <div class="kcard kcard-risk" onclick="window.location.href='project-detail.html'">
+                <div class="kcard kcard-risk" onclick="window.location.href='project-detail-v2.html'">
                   <div>
                     <div class="kcard-client">Peak Athletics</div>
                     <div class="kcard-period">Q1 2026</div>
@@ -673,7 +636,7 @@
                   <span class="kanban-col-count">1</span>
                 </div>
                 <div class="kanban-col-line"></div>
-                <div class="kcard" onclick="window.location.href='project-detail.html'">
+                <div class="kcard" onclick="window.location.href='project-detail-v2.html'">
                   <div>
                     <div class="kcard-client">Harbor & Cole LLP</div>
                     <div class="kcard-period">Mar 2025</div>
@@ -703,7 +666,7 @@
                   <span class="kanban-col-count">1</span>
                 </div>
                 <div class="kanban-col-line"></div>
-                <div class="kcard" onclick="window.location.href='project-detail.html'">
+                <div class="kcard" onclick="window.location.href='project-detail-v2.html'">
                   <div>
                     <div class="kcard-client">Bright &amp; Bloom LLC</div>
                     <div class="kcard-period">Q1 2025</div>
@@ -726,7 +689,7 @@
                   <span class="kanban-col-count">1</span>
                 </div>
                 <div class="kanban-col-line"></div>
-                <div class="kcard kcard-done" onclick="window.location.href='project-detail.html'">
+                <div class="kcard kcard-done" onclick="window.location.href='project-detail-v2.html'">
                   <div>
                     <div class="kcard-client">Stellar Dynamics</div>
                     <div class="kcard-period">Q4 2025</div>
@@ -1670,6 +1633,9 @@
     if (link) window.location.href = 'project-detail.html';
   });
 </script>
+
+<!-- Reusable global left-nav component -->
+<script src="assets/atlas-nav.js"></script>
 
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Bookkeeping Projects — Atlas</title>
+<title>Tax Prep Projects — Atlas</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -290,7 +290,7 @@
 
   <!-- ── Sidebar (reusable component, see assets/atlas-nav.js) ── -->
   <div data-atlas-nav
-       data-active="bookkeeping/projects"
+       data-active="taxation/projects"
        data-client="bright-bloom"
        data-user-name="Sarah M."
        data-user-role="Senior Manager"
@@ -300,7 +300,7 @@
   <div class="main">
 
     <header class="topbar">
-      <span class="topbar-title">Bookkeeping Projects</span>
+      <span class="topbar-title">Tax Prep Projects</span>
       <div class="topbar-actions">
         <button class="btn btn-ghost" style="padding:7px 10px;" title="Notifications">
           <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
@@ -316,31 +316,31 @@
 
       <div class="stat-strip">
         <div class="stat-card">
-          <div class="stat-label">Book Close Projects</div>
-          <div class="stat-value">9</div>
-          <div class="stat-sub">7 active · 2 complete</div>
+          <div class="stat-label">Tax Prep Projects</div>
+          <div class="stat-value">11</div>
+          <div class="stat-sub">8 active · 3 filed</div>
         </div>
         <div class="stat-card danger">
           <div class="stat-label">At Risk</div>
-          <div class="stat-value">1</div>
+          <div class="stat-value">2</div>
           <div class="stat-sub">stale docs or overdue</div>
         </div>
         <div class="stat-card warning">
           <div class="stat-label">Pending Review</div>
-          <div class="stat-value">2</div>
-          <div class="stat-sub">awaiting accountant action</div>
+          <div class="stat-value">3</div>
+          <div class="stat-sub">awaiting CPA action</div>
         </div>
         <div class="stat-card success">
-          <div class="stat-label">Completed (MTD)</div>
-          <div class="stat-value">1</div>
+          <div class="stat-label">Filed (MTD)</div>
+          <div class="stat-value">2</div>
           <div class="stat-sub">this month</div>
         </div>
       </div>
 
       <div class="section">
         <div class="section-header">
-          <span class="section-title">Book Close Projects</span>
-          <span class="section-count">9 total</span>
+          <span class="section-title">Tax Prep Projects</span>
+          <span class="section-count">11 total</span>
           <button class="btn btn-outline" style="font-size:12px;padding:5px 12px;">Export</button>
           <button class="btn btn-primary" style="font-size:12px;padding:5px 12px;">+ New Project</button>
         </div>
@@ -353,7 +353,7 @@
           <button class="filter-chip" onclick="filterChip(this)">In Progress</button>
           <button class="filter-chip" onclick="filterChip(this)">In Review</button>
           <button class="filter-chip" onclick="filterChip(this)">Blocked</button>
-          <button class="filter-chip" onclick="filterChip(this)">Complete</button>
+          <button class="filter-chip" onclick="filterChip(this)">Filed</button>
           <div class="filter-spacer"></div>
           <select class="filter-select"><option>All owners</option><option>Sarah M.</option><option>James K.</option><option>Priya R.</option><option>Alex L.</option></select>
           <select class="filter-select"><option>All statuses</option><option>In Progress</option><option>In Review</option><option>Blocked</option><option>Complete</option></select>
@@ -365,50 +365,50 @@
               <tr><th>Project</th><th>Client</th><th>Type</th><th>Period</th><th>Created</th><th>Deadline</th><th>Doc Progress</th><th>Risk</th><th>Owner</th><th>Status</th><th></th></tr>
             </thead>
             <tbody>
-              <tr onclick="window.location.href='project-detail-v2.html'">
-                <td><div class="cell-link">Book Close Q1 2026</div><div class="cell-secondary">#PRJ-002</div></td>
-                <td><div class="cell-primary">Bridgewater LLC</div></td>
-                <td><span class="badge badge-neutral">Book Close</span></td>
-                <td><div style="font-size:12px;color:var(--slate-600)">Q1 2026</div></td>
-                <td><div style="font-size:12px;color:var(--slate-500)">Apr 1</div></td>
-                <td><div class="deadline-near">Apr 25</div><div class="nudge nudge-alert">⚠ 3d</div></td>
-                <td><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill prog-fill-red" style="width:30%"></div></div><span class="prog-label">3/10</span></div></td>
+              <tr onclick="window.location.href='tax-prep-project.html'">
+                <td><div class="cell-link">Tax Prep 2025</div><div class="cell-secondary">#PRJ-001</div></td>
+                <td><div class="cell-primary">Acme Corp</div></td>
+                <td><span class="badge badge-primary">Tax Prep</span></td>
+                <td><div style="font-size:12px;color:var(--slate-600)">FY 2025</div></td>
+                <td><div style="font-size:12px;color:var(--slate-500)">Mar 12</div></td>
+                <td><div class="deadline-near">Apr 30</div><div class="nudge nudge-alert">⚠ 8d</div></td>
+                <td><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill prog-fill-amber" style="width:55%"></div></div><span class="prog-label">6/11</span></div></td>
+                <td><span class="risk risk-high">⬤ High</span></td>
+                <td><div class="owner"><div class="avatar avatar-sm">SM</div><span class="owner-name">Sarah M.</span></div></td>
+                <td><span class="badge badge-warning"><span class="badge-dot"></span>In Review</span></td>
+                <td><button class="btn btn-ghost" style="padding:4px 8px;font-size:11px;" onclick="event.stopPropagation();window.location.href='tax-prep-project.html'">Open</button></td>
+              </tr>
+              <tr onclick="window.location.href='tax-prep-project.html'">
+                <td><div class="cell-link">Tax Prep 2025</div><div class="cell-secondary">#PRJ-003</div></td>
+                <td><div class="cell-primary">NovaTech Inc</div></td>
+                <td><span class="badge badge-primary">Tax Prep</span></td>
+                <td><div style="font-size:12px;color:var(--slate-600)">FY 2025</div></td>
+                <td><div style="font-size:12px;color:var(--slate-500)">Feb 20</div></td>
+                <td><div class="deadline-ok">May 15</div><div class="nudge">23d left</div></td>
+                <td><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill prog-fill-amber" style="width:70%"></div></div><span class="prog-label">7/10</span></div></td>
+                <td><span class="risk risk-medium">⬤ Medium</span></td>
+                <td><div class="owner"><div class="avatar avatar-sm" style="background:linear-gradient(135deg,#fb923c,#ea580c)">PR</div><span class="owner-name">Priya R.</span></div></td>
+                <td><span class="badge badge-primary"><span class="badge-dot"></span>In Progress</span></td>
+                <td><button class="btn btn-ghost" style="padding:4px 8px;font-size:11px;" onclick="event.stopPropagation();window.location.href='tax-prep-project.html'">Open</button></td>
+              </tr>
+              <tr onclick="window.location.href='tax-prep-project.html'">
+                <td><div class="cell-link">Tax Prep 2025</div><div class="cell-secondary">#PRJ-006</div></td>
+                <td><div class="cell-primary">Harbor Ventures</div></td>
+                <td><span class="badge badge-primary">Tax Prep</span></td>
+                <td><div style="font-size:12px;color:var(--slate-600)">FY 2025</div></td>
+                <td><div style="font-size:12px;color:var(--slate-500)">Mar 5</div></td>
+                <td><div class="deadline-near">Apr 28</div><div class="nudge nudge-alert">⚠ 6d</div></td>
+                <td><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill prog-fill-amber" style="width:45%"></div></div><span class="prog-label">4/9</span></div></td>
                 <td><span class="risk risk-high">⬤ High</span></td>
                 <td><div class="owner"><div class="avatar avatar-sm" style="background:linear-gradient(135deg,#34d399,#059669)">JK</div><span class="owner-name">James K.</span></div></td>
-                <td><span class="badge badge-danger"><span class="badge-dot"></span>Blocked</span></td>
-                <td><button class="btn btn-ghost" style="padding:4px 8px;font-size:11px;" onclick="event.stopPropagation();window.location.href='project-detail-v2.html'">Open</button></td>
-              </tr>
-              <tr onclick="window.location.href='project-detail-v2.html'">
-                <td><div class="cell-link">Book Close Q4 2025</div><div class="cell-secondary">#PRJ-005</div></td>
-                <td><div class="cell-primary">Stellar Dynamics</div></td>
-                <td><span class="badge badge-neutral">Book Close</span></td>
-                <td><div style="font-size:12px;color:var(--slate-600)">Q4 2025</div></td>
-                <td><div style="font-size:12px;color:var(--slate-500)">Dec 3</div></td>
-                <td><div class="deadline-ok">Apr 30</div><div class="nudge">8d left</div></td>
-                <td><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill prog-fill-green" style="width:100%"></div></div><span class="prog-label">12/12</span></div></td>
-                <td><span class="risk risk-low">⬤ Low</span></td>
-                <td><div class="owner"><div class="avatar avatar-sm" style="background:linear-gradient(135deg,#a78bfa,#7c3aed)">AL</div><span class="owner-name">Alex L.</span></div></td>
-                <td><span class="badge badge-success"><span class="badge-dot"></span>Complete</span></td>
-                <td><button class="btn btn-ghost" style="padding:4px 8px;font-size:11px;" onclick="event.stopPropagation();window.location.href='project-detail-v2.html'">Open</button></td>
-              </tr>
-              <tr onclick="window.location.href='project-detail-v2.html'">
-                <td><div class="cell-link">Book Close Q1 2026</div><div class="cell-secondary">#PRJ-008</div></td>
-                <td><div class="cell-primary">Sunrise Capital</div></td>
-                <td><span class="badge badge-neutral">Book Close</span></td>
-                <td><div style="font-size:12px;color:var(--slate-600)">Q1 2026</div></td>
-                <td><div style="font-size:12px;color:var(--slate-500)">Apr 5</div></td>
-                <td><div class="deadline-ok">May 10</div><div class="nudge">18d left</div></td>
-                <td><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill prog-fill-green" style="width:80%"></div></div><span class="prog-label">8/10</span></div></td>
-                <td><span class="risk risk-low">⬤ Low</span></td>
-                <td><div class="owner"><div class="avatar avatar-sm" style="background:linear-gradient(135deg,#a78bfa,#7c3aed)">AL</div><span class="owner-name">Alex L.</span></div></td>
-                <td><span class="badge badge-primary"><span class="badge-dot"></span>In Progress</span></td>
-                <td><button class="btn btn-ghost" style="padding:4px 8px;font-size:11px;" onclick="event.stopPropagation();window.location.href='project-detail-v2.html'">Open</button></td>
+                <td><span class="badge badge-warning"><span class="badge-dot"></span>In Review</span></td>
+                <td><button class="btn btn-ghost" style="padding:4px 8px;font-size:11px;" onclick="event.stopPropagation();window.location.href='tax-prep-project.html'">Open</button></td>
               </tr>
             </tbody>
           </table>
         </div>
         <div class="pagination">
-          <span class="pag-info">Showing 3 of 9 projects</span>
+          <span class="pag-info">Showing 3 of 11 projects</span>
           <div class="pag-btns">
             <button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;">← Prev</button>
             <button class="btn btn-ghost" style="padding:5px 10px;font-size:12px;background:var(--primary-light);color:var(--primary)">1</button>

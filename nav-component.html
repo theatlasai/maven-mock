@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Atlas — Reusable Left Nav (component demo)</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 13px;
+         background: #f8fafc; color: #0f172a; display: flex; height: 100vh; overflow: hidden; }
+  .demo-main { flex: 1; overflow-y: auto; padding: 32px 40px; }
+  h1 { font-size: 20px; margin-bottom: 4px; }
+  .sub { color: #64748b; margin-bottom: 24px; }
+  h2 { font-size: 14px; margin: 24px 0 8px; color: #334155; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 10px; overflow-x: auto;
+        font-size: 12px; line-height: 1.55; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .log { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px;
+         font-family: ui-monospace, monospace; font-size: 12px; color: #475569; min-height: 60px; }
+  .log div { padding: 2px 0; }
+  table { border-collapse: collapse; width: 100%; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
+  th { background: #f8fafc; font-weight: 700; color: #475569; }
+  td code { background: #f1f5f9; padding: 1px 6px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- The reusable nav. Try the client dropdown + expanding Bookkeeping/Taxation. -->
+<div data-atlas-nav data-active="bookkeeping/projects" data-client="bright-bloom"></div>
+
+<main class="demo-main">
+  <h1>Atlas Left Nav — reusable component</h1>
+  <div class="sub">One file (<code>assets/atlas-nav.js</code>), no build step. Self-injects scoped styles + markup.</div>
+
+  <h2>Drop-in usage (data attributes)</h2>
+  <pre><code>&lt;div data-atlas-nav
+     data-active="bookkeeping/projects"
+     data-client="bright-bloom"&gt;&lt;/div&gt;
+&lt;script src="assets/atlas-nav.js"&gt;&lt;/script&gt;</code></pre>
+
+  <h2>Or initialise from JS</h2>
+  <pre><code>AtlasNav.init('#nav', {
+  active: 'taxation/data',
+  client: 'novatech',
+  user: { name: 'Sarah K.', role: 'Sr. Bookkeeper', initials: 'SK' },
+  hrefs: { 'bookkeeping/data': 'bookkeeping-data.html' },  // override links
+});</code></pre>
+
+  <h2>Active keys</h2>
+  <table>
+    <tr><th>Key</th><th>Renders as</th></tr>
+    <tr><td><code>home</code></td><td>Dashboard (across clients)</td></tr>
+    <tr><td><code>bookkeeping/projects</code></td><td>Bookkeeping → Projects</td></tr>
+    <tr><td><code>bookkeeping/recipes</code></td><td>Bookkeeping → Recipes</td></tr>
+    <tr><td><code>bookkeeping/data</code></td><td>Bookkeeping → Data</td></tr>
+    <tr><td><code>taxation/projects</code></td><td>Taxation → Projects</td></tr>
+    <tr><td><code>taxation/data</code></td><td>Taxation → Data</td></tr>
+    <tr><td><code>workflows</code> / <code>integrations</code> / <code>settings</code></td><td>top-level items</td></tr>
+  </table>
+
+  <h2>Events</h2>
+  <div class="log" id="log"><div>Interact with the nav — events appear here…</div></div>
+</main>
+
+<script src="assets/atlas-nav.js"></script>
+<script>
+  var log = document.getElementById('log');
+  function add(msg) {
+    var d = document.createElement('div');
+    d.textContent = msg;
+    if (log.firstChild && log.firstChild.textContent.indexOf('appear here') !== -1) log.innerHTML = '';
+    log.insertBefore(d, log.firstChild);
+  }
+  document.addEventListener('atlas-nav:clientchange', function (e) {
+    add('clientchange → ' + e.detail.client.name + ' (' + e.detail.id + ')');
+  });
+  document.addEventListener('atlas-nav:navigate', function (e) {
+    add('navigate → ' + e.detail.key + '  (href: ' + e.detail.href + ')');
+  });
+</script>
+
+</body>
+</html>
