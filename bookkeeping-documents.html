@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Documents Page — Action Inbox</title>
+<style>
+  :root{
+    --bg:#f9fafb; --white:#fff;
+    --slate50:#f8fafc;--slate100:#f1f5f9;--slate200:#e2e8f0;--slate300:#cbd5e1;--slate400:#94a3b8;--slate500:#64748b;--slate600:#475569;--slate700:#334155;--slate800:#1e293b;--slate900:#0f172a;
+    --ind50:#eef2ff;--ind100:#e0e7ff;--ind200:#c7d2fe;--ind500:#6366f1;--ind600:#4f46e5;--ind700:#4338ca;
+    --amber50:#fffbeb;--amber100:#fef3c7;--amber400:#fbbf24;--amber500:#f59e0b;--amber600:#d97706;--amber700:#b45309;--amber800:#92400e;
+    --em50:#ecfdf5;--em500:#10b981;--em600:#059669;--em700:#047857;
+    --blue50:#eff6ff;--blue200:#bfdbfe;--blue500:#3b82f6;--blue600:#2563eb;
+    --vio50:#f5f3ff;--vio600:#7c3aed;
+    --rose50:#fff1f2;--rose500:#f43f5e;--rose600:#e11d48;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.08),0 1px 2px rgba(15,23,42,.04);
+    --shadow-xl:0 20px 45px rgba(15,23,42,.22);
+    --sans:"Hanken Grotesk","Plus Jakarta Sans",Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:"Spline Sans Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;} html,body{margin:0;height:100%;}
+  body{font-family:var(--sans);color:var(--slate900);background:var(--slate900);font-size:14px;-webkit-font-smoothing:antialiased;}
+  .shell{display:flex;height:100vh;overflow:hidden;}
+
+  .sidebar{width:17rem;flex:none;background:linear-gradient(180deg,#0c1929,#0f172a 50%,#131c2e);border-right:1px solid rgba(255,255,255,.06);color:#cbd5e1;display:flex;flex-direction:column;padding:14px 10px;overflow-y:auto;}
+  .tenant{display:flex;align-items:center;gap:10px;padding:6px 8px 12px;}
+  .tenant .tile{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#6366f1,#4f46e5 55%,#4338ca);display:grid;place-items:center;color:#fff;font-weight:800;font-size:14px;box-shadow:0 0 18px rgba(99,102,241,.35);}
+  .tenant .tn{font-weight:750;font-size:14px;background:linear-gradient(90deg,#fff,#c7d2fe);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .nav-sep{height:1px;background:rgba(255,255,255,.07);margin:8px 4px;}
+  .navgrp{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#64748b;padding:12px 10px 5px;}
+  .navitem{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;color:#94a3b8;font-size:13px;font-weight:550;cursor:pointer;position:relative;}
+  .navitem .ic{width:16px;text-align:center;opacity:.85;}
+  .navitem:hover{color:#e2e8f0;background:rgba(255,255,255,.04);}
+  .navitem.active{color:#fff;background:rgba(99,102,241,.14);}
+  .navitem.active::before{content:"";position:absolute;left:-10px;top:6px;bottom:6px;width:3px;border-radius:0 3px 3px 0;background:var(--ind500);}
+  .navitem.child{padding-left:34px;font-size:12.5px;}
+  .side-foot{margin-top:auto;padding-top:10px;}
+
+  .mainwrap{flex:1;display:flex;flex-direction:column;min-width:0;}
+  .header{height:4rem;flex:none;background:linear-gradient(90deg,#fff,#f8fafc);border-bottom:1px solid var(--slate200);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;}
+  .header h2{font-size:1.375rem;font-weight:700;color:var(--slate900);margin:0;letter-spacing:-.02em;}
+  .header .right{display:flex;align-items:center;gap:16px;color:var(--slate400);font-size:13px;}
+  .userchip{display:flex;align-items:center;gap:8px;background:var(--slate50);border:1px solid var(--slate200);border-radius:.625rem;padding:5px 10px;color:var(--slate700);font-weight:600;font-size:12.5px;}
+  .userchip .av{width:22px;height:22px;border-radius:50%;background:var(--ind600);color:#fff;display:grid;place-items:center;font-size:11px;}
+
+  .content{flex:1;overflow-y:auto;background:var(--bg);}
+  .container{max-width:80rem;margin:0 auto;padding:2rem;}
+  .stack{display:flex;flex-direction:column;gap:16px;}
+
+  .crumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--slate400);}
+  .crumb a{color:var(--slate400);text-decoration:none;cursor:pointer;} .crumb a:hover{color:var(--ind600);}
+  .crumb .sl{color:var(--slate300);} .crumb .mid{color:var(--slate500);} .crumb .cur{font-weight:650;color:var(--slate700);}
+  .spacer{flex:1;}
+  .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;}
+
+  .tb{display:inline-flex;align-items:center;gap:6px;border-radius:9px;border:1px solid;padding:7px 12px;font-size:12px;font-weight:650;cursor:pointer;background:var(--white);}
+  .tb.plain{border-color:var(--slate200);color:var(--slate600);} .tb.plain:hover{background:var(--slate50);}
+  .tb.ind-fill{border-color:var(--ind200);background:var(--ind50);color:var(--ind600);} .tb.ind-fill:hover{background:var(--ind100);}
+  .tb.off{border-color:var(--slate200);background:var(--slate100);color:var(--slate400);cursor:not-allowed;}
+  .doc-cta{display:inline-flex;align-items:center;gap:8px;border-radius:10px;border:1px solid var(--ind600);background:var(--ind600);color:#fff;padding:9px 16px;font-size:13px;font-weight:650;cursor:pointer;}
+  .doc-cta:hover{background:var(--ind700);}
+  .doc-cta .badge{display:inline-flex;min-width:20px;justify-content:center;border-radius:999px;background:rgba(255,255,255,.22);color:#fff;font-size:11px;font-weight:700;padding:1px 7px;}
+
+  .cols{display:flex;flex-direction:column;gap:16px;}
+  @media(min-width:1024px){.cols{flex-direction:row;align-items:flex-start;}}
+  .main-col{min-width:0;flex:1;}
+  .aside{width:100%;flex:none;border:1px solid var(--slate200);background:var(--white);border-radius:1rem;overflow:hidden;}
+  @media(min-width:1024px){.aside{width:16rem;}}
+  .sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .sec-head h3{font-size:13px;font-weight:750;color:var(--slate800);margin:0;} .sec-head .sum{font-size:11px;color:var(--slate400);}
+  .acct-grid{display:grid;grid-template-columns:1fr;gap:12px;} @media(min-width:640px){.acct-grid{grid-template-columns:1fr 1fr;}}
+  .acard{display:flex;flex-direction:column;gap:12px;min-height:12rem;border-radius:1rem;border:1px solid var(--slate200);background:var(--white);padding:16px;}
+  .acard.wait{border-color:var(--amber400);background:var(--amber50);box-shadow:0 0 0 3px rgba(251,191,36,.15);}
+  .acard.cat{border-color:var(--blue200);background:var(--blue50);}
+  .acard .ah{display:flex;align-items:flex-start;gap:10px;}
+  .acard .ai{width:36px;height:36px;flex:none;border-radius:10px;display:grid;place-items:center;font-size:15px;}
+  .ai.g{background:var(--em50);color:var(--em600);} .ai.b{background:var(--ind50);color:var(--ind600);} .ai.a{background:var(--amber100);color:var(--amber600);}
+  .acard .anm{font-size:13px;font-weight:750;color:var(--slate800);} .acard.wait .anm{color:var(--amber800);}
+  .acard .asub{margin-top:2px;font-size:11px;color:var(--slate400);}
+  .tybadge{flex:none;border-radius:999px;padding:2px 7px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
+  .tybadge.checking{background:var(--ind50);color:var(--ind600);} .tybadge.credit{background:var(--vio50);color:var(--vio600);} .tybadge.savings{background:var(--em50);color:var(--em600);}
+  .statusrow{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:650;}
+  .dot{width:6px;height:6px;border-radius:50%;} .dot.a{background:var(--amber500);} .dot.b{background:var(--blue500);} .dot.g{background:var(--em500);}
+  .pulse{animation:pulse 1.6s infinite;} @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}} @media(prefers-reduced-motion:reduce){.pulse{animation:none;}}
+  .astats{display:flex;gap:20px;} .astats .k{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--slate400);} .astats .v{font-size:15px;font-weight:750;font-variant-numeric:tabular-nums;}
+  .arev{align-self:flex-start;margin-top:auto;display:inline-flex;border-radius:9px;border:1px solid var(--ind200);background:var(--ind50);color:var(--ind600);padding:6px 12px;font-size:11px;font-weight:650;cursor:pointer;}
+  .aside .cap{padding:14px 16px 4px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--slate400);}
+  .aside .body{padding:6px 16px 16px;}
+  .periodbox{border:1px solid var(--ind100);background:var(--ind50);border-radius:12px;padding:10px 12px;margin-bottom:10px;}
+  .periodbox .p{font-size:13px;font-weight:800;color:var(--ind600);} .periodbox .d{font-size:10px;color:var(--slate500);margin-top:1px;}
+  .prow{display:flex;align-items:baseline;justify-content:space-between;padding:3px 0;} .prow .k{font-size:11px;color:var(--slate500);} .prow .v{font-size:12px;font-weight:650;color:var(--slate700);} .prow .v.amber{color:var(--amber700);}
+
+  .ws-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .ws-head h1{font-size:20px;font-weight:750;letter-spacing:-.02em;margin:0;}
+  .ws-head .actions{display:flex;align-items:center;gap:10px;}
+  .switch{display:inline-flex;background:var(--slate100);border:1px solid var(--slate200);border-radius:10px;padding:3px;gap:2px;}
+  .switch button{font:inherit;font-size:12.5px;border:0;background:transparent;color:var(--slate500);padding:6px 12px;border-radius:7px;cursor:pointer;font-weight:600;}
+  .switch button.on{background:var(--white);color:var(--slate800);box-shadow:var(--shadow-sm);}
+  .addbtn{display:inline-flex;align-items:center;gap:6px;border-radius:9px;background:var(--ind600);color:#fff;border:1px solid var(--ind600);padding:8px 14px;font-size:13px;font-weight:650;cursor:pointer;} .addbtn:hover{background:var(--ind700);}
+  .explain{font-size:12.5px;color:var(--slate500);background:var(--ind50);border:1px solid var(--ind100);border-radius:10px;padding:10px 14px;}
+  .explain b{color:var(--ind700);}
+  .sumbar{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--slate500);}
+  .sumbar b{color:var(--slate800);font-variant-numeric:tabular-nums;} .sumbar .attn b{color:var(--amber600);} .sumbar .fail b{color:var(--rose600);}
+
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:650;padding:3px 9px;border-radius:999px;white-space:nowrap;}
+  .chip .cd{width:6px;height:6px;border-radius:50%;background:currentColor;}
+  .chip.feed{background:var(--ind50);color:var(--ind600);} .chip.check{background:var(--vio50);color:var(--vio600);} .chip.payout{background:var(--blue50);color:var(--blue600);}
+  .chip.ro{opacity:.9;}
+  .stbadge{display:inline-flex;align-items:center;gap:6px;border-radius:7px;padding:3px 9px;font-size:11px;font-weight:700;white-space:nowrap;}
+  .stbadge.setup{background:var(--amber50);color:var(--amber700);}
+  .stbadge.review{background:var(--ind50);color:var(--ind700);}
+  .stbadge.proc{background:var(--blue50);color:var(--blue600);}
+  .stbadge.done{background:var(--em50);color:var(--em700);}
+  .stbadge.fail{background:var(--rose50);color:var(--rose600);}
+  .spin{display:inline-block;width:8px;height:8px;border:1.5px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite;}
+  @keyframes sp{to{transform:rotate(360deg);}} @media(prefers-reduced-motion:reduce){.spin{animation:none;}}
+  .ficon{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;flex:none;font-size:10px;font-weight:800;}
+  .ficon.pdf{background:var(--rose50);color:var(--rose600);} .ficon.csv{background:var(--em50);color:var(--em600);}
+  .fname{font-family:var(--mono);font-size:12px;color:var(--slate800);}
+  .fsub{font-size:11px;color:var(--slate400);} .fsub.none{color:var(--amber700);}
+  .rowbtn{display:inline-flex;align-items:center;border-radius:8px;padding:5px 12px;font-size:11.5px;font-weight:650;cursor:pointer;border:1px solid var(--ind200);background:var(--ind50);color:var(--ind600);white-space:nowrap;}
+  .rowbtn:hover{background:var(--ind100);}
+  .rowbtn.plain{border-color:var(--slate200);background:var(--white);color:var(--slate600);} .rowbtn.plain:hover{background:var(--slate50);}
+  .rowbtn.danger{border-color:var(--rose500);background:var(--white);color:var(--rose600);}
+
+  .layout{display:none;} .layout.on{display:block;}
+  .grp{margin-bottom:18px;}
+  .grp>h3{margin:0 0 9px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--slate400);}
+  .grp.pri-a>h3{color:var(--amber700);} .grp.pri-r>h3{color:var(--ind700);}
+  .ilist{display:flex;flex-direction:column;gap:8px;}
+  .irow{display:flex;align-items:center;gap:12px;border:1px solid var(--slate200);background:var(--white);border-radius:11px;padding:11px 15px;cursor:pointer;transition:border-color .12s,box-shadow .12s;}
+  .irow:hover{border-color:var(--slate300);box-shadow:var(--shadow-sm);}
+  .irow.pa{border-left:3px solid var(--amber400);} .irow.pr{border-left:3px solid var(--ind500);}
+  .irow .meta{min-width:0;flex:1;} .irow .top{display:flex;align-items:center;gap:9px;}
+  .setup-ctls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+  .inlinesel{font:inherit;font-size:12px;color:var(--slate800);background:var(--white);border:1px solid var(--amber500);border-radius:8px;padding:6px 26px 6px 10px;appearance:none;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,var(--slate400) 50%),linear-gradient(135deg,var(--slate400) 50%,transparent 50%);background-position:calc(100% - 13px) 52%,calc(100% - 8px) 52%;background-size:5px 5px;background-repeat:no-repeat;max-width:190px;}
+  .collapsed-head{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--slate400);padding:6px 0;}
+  .collapsed-head .cnt{background:var(--slate100);color:var(--slate500);border-radius:999px;padding:1px 8px;font-size:11px;}
+
+  .tbl-panel{background:var(--white);border:1px solid var(--slate200);border-radius:14px;box-shadow:var(--shadow-sm);overflow:hidden;}
+  .tbl-head{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--slate200);}
+  .filter select{font:inherit;font-size:12.5px;border:1px solid var(--slate200);border-radius:8px;padding:6px 26px 6px 10px;background:var(--white);color:var(--slate700);appearance:none;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,var(--slate400) 50%),linear-gradient(135deg,var(--slate400) 50%,transparent 50%);background-position:calc(100% - 13px) 52%,calc(100% - 8px) 52%;background-size:5px 5px;background-repeat:no-repeat;}
+  .twrap{overflow-x:auto;} table{width:100%;border-collapse:collapse;min-width:720px;}
+  thead th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate400);font-weight:700;padding:10px 16px;border-bottom:1px solid var(--slate200);background:var(--slate50);}
+  tbody td{padding:11px 16px;border-bottom:1px solid var(--slate100);vertical-align:middle;} tbody tr:last-child td{border-bottom:0;} tbody tr{cursor:pointer;} tbody tr:hover{background:var(--slate50);}
+
+  .overlay{position:fixed;inset:0;background:rgba(15,23,42,.4);opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;}
+  .overlay.open{opacity:1;pointer-events:auto;}
+  .drawer{position:fixed;top:0;right:0;height:100vh;width:min(460px,92vw);background:var(--white);box-shadow:var(--shadow-xl);transform:translateX(100%);transition:transform .24s cubic-bezier(.4,0,.2,1);z-index:55;display:flex;flex-direction:column;}
+  .drawer.open{transform:none;} @media(prefers-reduced-motion:reduce){.drawer{transition:none;}}
+  .dhead{display:flex;align-items:flex-start;gap:11px;padding:18px 20px;border-bottom:1px solid var(--slate200);}
+  .dhead .x{margin-left:auto;border:0;background:transparent;font-size:18px;color:var(--slate400);cursor:pointer;line-height:1;}
+  .dbody{flex:1;overflow-y:auto;padding:18px 20px;}
+  .dfoot{padding:14px 20px;border-top:1px solid var(--slate200);display:flex;gap:10px;justify-content:flex-end;background:var(--slate50);}
+  .dbtn{border-radius:9px;padding:9px 16px;font:inherit;font-size:13px;font-weight:650;cursor:pointer;border:1px solid var(--slate200);background:var(--white);color:var(--slate600);} .dbtn:hover{background:var(--slate50);}
+  .dbtn.primary{background:var(--ind600);border-color:var(--ind600);color:#fff;} .dbtn.primary:hover{background:var(--ind700);}
+  .dbtn.danger{background:var(--rose600);border-color:var(--rose600);color:#fff;}
+  .dlabel{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--slate400);margin:16px 0 6px;}
+  .dlabel .need{color:var(--amber700);}
+  .dsel{font:inherit;font-size:13px;color:var(--slate800);background:var(--white);border:1px solid var(--slate300);border-radius:8px;padding:9px 11px;width:100%;appearance:none;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,var(--slate400) 50%),linear-gradient(135deg,var(--slate400) 50%,transparent 50%);background-position:calc(100% - 15px) 52%,calc(100% - 10px) 52%;background-size:5px 5px;background-repeat:no-repeat;}
+  .dsel.need{border-color:var(--amber500);}
+  .dnote{font-size:12px;color:var(--slate500);margin-top:8px;}
+  .cand{display:inline-flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+  .cand span{font-size:11px;background:var(--amber50);color:var(--amber700);border:1px solid var(--amber100);border-radius:999px;padding:2px 9px;cursor:pointer;}
+  .preview{background:var(--slate100);border:1px solid var(--slate200);border-radius:10px;height:140px;display:grid;place-items:center;color:var(--slate400);font-size:12px;}
+  .mini{width:100%;border-collapse:collapse;margin-top:6px;font-size:12px;}
+  .mini th{text-align:left;color:var(--slate400);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--slate200);}
+  .mini td{padding:7px 8px;border-bottom:1px solid var(--slate100);font-variant-numeric:tabular-nums;} .mini td.amt{text-align:right;font-family:var(--mono);}
+  .errbox{background:var(--rose50);border:1px solid var(--rose500);border-radius:10px;padding:12px 14px;font-size:12.5px;color:var(--rose600);}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--slate900);color:#fff;padding:11px 18px;border-radius:11px;font-size:13px;font-weight:600;box-shadow:var(--shadow-xl);display:none;align-items:center;gap:10px;z-index:60;} .toast .tk{color:var(--em500);}
+  @media(max-width:900px){.sidebar{display:none;}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="tenant"><div class="tile">A</div><div class="tn">Atlas AI</div></div>
+    <a class="navitem"><span class="ic">🏠</span> Home</a>
+    <div class="nav-sep"></div>
+    <div class="navgrp">Accounting</div>
+    <a class="navitem"><span class="ic">📗</span> Bookkeeping</a>
+    <a class="navitem child active">Projects</a>
+    <a class="navitem child">Recipes</a>
+    <a class="navitem"><span class="ic">🧾</span> Accounts Payable</a>
+    <a class="navitem"><span class="ic">⚖️</span> Reconciliation</a>
+    <div class="navgrp">Taxation</div>
+    <a class="navitem"><span class="ic">📑</span> Filings</a>
+    <div class="side-foot"><div class="nav-sep"></div><a class="navitem"><span class="ic">⚙️</span> Settings</a></div>
+  </aside>
+
+  <div class="mainwrap">
+    <header class="header">
+      <h2>Bookkeeping Projects</h2>
+      <div class="right"><span>🔔</span><span style="font-weight:700;color:var(--slate400)">AtlasAI</span><span class="userchip"><span class="av">C</span> Chethan A</span></div>
+    </header>
+
+    <div class="content">
+      <div class="container">
+
+        <!-- ═══ PROJECT DETAILS ═══ -->
+        <div class="stack" id="view-project">
+          <div class="toolbar">
+            <nav class="crumb"><a>Projects</a><span class="sl">/</span><span class="mid">Acme Holdings</span><span class="sl">/</span><span class="cur">Q1 2026</span></nav>
+            <div class="spacer"></div>
+            <button class="doc-cta" id="openDocs">🗂️ Documents <span class="badge" id="cta-badge">6</span></button>
+            <button class="tb plain">↻ Sync</button>
+            <a class="tb ind-fill">Review All Transactions</a>
+            <button class="tb off" title="Complete once all statements are ingested and transactions reviewed">Complete Project</button>
+          </div>
+          <div class="cols">
+            <div class="main-col">
+              <div class="sec-head"><h3>Data sources</h3><span class="sum">5 accounts · 2 ready · 1 waiting · 2 categorizing</span></div>
+              <div class="acct-grid" id="ds-grid"></div>
+            </div>
+            <aside class="aside">
+              <div class="cap">Project Period</div>
+              <div class="body">
+                <div class="periodbox"><div class="p">Jan 1 – Mar 31, 2026</div><div class="d">90 days</div></div>
+                <div class="prow"><span class="k">Client</span><span class="v">Acme Holdings</span></div>
+                <div class="prow"><span class="k">Opened</span><span class="v">Apr 2, 2026</span></div>
+                <div class="prow"><span class="k">Due</span><span class="v amber">Apr 15, 2026</span></div>
+                <div class="prow"><span class="k">Assigned to</span><span class="v">Priya N.</span></div>
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        <!-- ═══ DOCUMENTS PAGE ═══ -->
+        <div class="stack" id="view-docs" style="display:none;">
+          <div class="toolbar">
+            <nav class="crumb"><a>Projects</a><span class="sl">/</span><span class="mid">Acme Holdings</span><span class="sl">/</span><a id="crumbProj">Q1 2026</a><span class="sl">/</span><span class="cur">Documents</span></nav>
+            <div class="spacer"></div>
+            <button class="tb plain" id="backProj">← Back to project</button>
+          </div>
+          <div class="ws-head">
+            <h1>Documents</h1>
+            <div class="actions">
+              <div class="switch" id="switch"><button class="on" data-l="inbox">Inbox</button><button data-l="table">All documents</button></div>
+              <button class="addbtn" id="uploadBtn">＋ Upload</button>
+            </div>
+          </div>
+          <div class="explain">📤 New uploads are <b>auto-classified</b> (type + account) and sent straight to <b>Needs review</b>. When we can't confidently tell the <b>type</b> (bank feed vs check) or match an <b>account</b>, the file stops in <b>Needs classification</b> — click <b>Classify</b> to set both. Nothing is routed until they're set.</div>
+          <div class="sumbar">
+            <span class="attn">⚠ <b id="s-attn">6</b> need you</span><span>◍ <b>2</b> processing</span><span>✓ <b>3</b> ingested</span><span class="fail">✗ <b>1</b> failed</span>
+          </div>
+          <div class="layout on" id="layout-inbox"></div>
+          <div class="layout" id="layout-table"></div>
+        </div>
+
+        <!-- ═══ REVIEW NODE UI ═══ -->
+        <div class="stack" id="view-review" style="display:none;"></div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer" aria-hidden="true"></aside>
+<div class="toast" id="toast"><span class="tk">✓</span> <span id="toast-msg"></span></div>
+
+<script>
+  const ACCOUNTS=["Chase Checking ••5521","Amex Platinum ••1008","Wells Fargo Ops ••2856","Stripe Payouts","Mercury ••7019","Silicon Valley Bank ••3390"];
+  const KINDL={feed:"Bank feed",check:"Check",payout:"Payout"};
+  // stage: setup | review | proc | done | fail.  In "setup", kind==="" means type unknown, acct==="" means account unmatched.
+  const DOCS=[
+    {name:"scan_march_batch.pdf",fmt:"pdf",kind:"",acct:"Chase Checking ••5521",stage:"setup",kindConf:"unclear — bank feed or check?",acctConf:"acct ••5521",cands:[]},
+    {name:"brex_4410_statement.pdf",fmt:"pdf",kind:"feed",acct:"",stage:"setup",kindConf:"",acctConf:"acct ••4410 — no match",cands:[]},
+    {name:"mystery_scan_11.pdf",fmt:"pdf",kind:"",acct:"",stage:"setup",kindConf:"unclear — bank feed or check?",acctConf:"no account detected",cands:["Chase Checking ••5521","Amex Platinum ••1008"]},
+    {name:"amex_platinum_q1.pdf",fmt:"pdf",kind:"feed",acct:"Amex Platinum ••1008",stage:"review",conf:"180 transactions parsed"},
+    {name:"chase_5521_jan.pdf",fmt:"pdf",kind:"feed",acct:"Chase Checking ••5521",stage:"review",conf:"96 transactions parsed"},
+    {name:"check_batch_042.pdf",fmt:"pdf",kind:"check",acct:"Amex Platinum ••1008",stage:"review",conf:"8 checks parsed"},
+    {name:"chase_5521_feb.pdf",fmt:"pdf",kind:"feed",acct:"Chase Checking ••5521",stage:"proc",conf:"parsing…"},
+    {name:"mercury_7019_q1.csv",fmt:"csv",kind:"feed",acct:"Mercury ••7019",stage:"proc",conf:"parsing…"},
+    {name:"wf_ops_2856_q1.pdf",fmt:"pdf",kind:"feed",acct:"Wells Fargo Ops ••2856",stage:"done",conf:"214 rows ingested"},
+    {name:"stripe_payouts_q1.csv",fmt:"csv",kind:"payout",acct:"Stripe Payouts",stage:"done",conf:"88 rows ingested"},
+    {name:"svb_march_stmt.pdf",fmt:"pdf",kind:"feed",acct:"Silicon Valley Bank ••3390",stage:"done",conf:"142 rows ingested"},
+    {name:"q1_settlement_export.csv",fmt:"csv",kind:"payout",acct:"",stage:"fail",conf:"unrecognised columns"},
+  ];
+  const STAGE={
+    setup:{label:"Needs classification",cls:"setup",icon:"⚠"},
+    review:{label:"Needs review",cls:"review",icon:"●"},
+    proc:{label:"Processing",cls:"proc",icon:'<span class="spin"></span>'},
+    done:{label:"Ingested",cls:"done",icon:"✓"},
+    fail:{label:"Failed",cls:"fail",icon:"✗"},
+  };
+  const kindChip=(k,ro)=>k?`<span class="chip ${k}${ro?" ro":""}"><span class="cd"></span>${KINDL[k]}</span>`:"";
+  const stBadge=s=>`<span class="stbadge ${STAGE[s].cls}">${STAGE[s].icon} ${STAGE[s].label}</span>`;
+  const ficon=d=>`<div class="ficon ${d.fmt}">${d.fmt.toUpperCase()}</div>`;
+
+  const DS=[
+    {n:"Chase Checking ••5521",sub:"••5521 · Operating",ty:"checking",st:"cat-done",ing:214,cat:214},
+    {n:"Amex Platinum ••1008",sub:"••1008 · Card",ty:"credit",st:"cat",ing:180,cat:96},
+    {n:"Stripe Payouts",sub:"Payout processor",ty:"savings",st:"cat-done",ing:88,cat:88},
+    {n:"Mercury ••7019",sub:"••7019 · Operating",ty:"checking",st:"cat",ing:132,cat:40},
+    {n:"Wells Fargo Ops ••2856",sub:"••2856 · Operating",ty:"checking",st:"wait",ing:0,cat:0},
+  ];
+  function dsCard(a){
+    if(a.st==="wait") return `<div class="acard wait"><div class="ah"><div class="ai a">🏦</div><div style="flex:1"><div class="anm">${a.n}</div><div class="asub">${a.sub}</div></div><span class="tybadge ${a.ty}">${a.ty}</span></div><div class="statusrow" style="color:var(--amber700)"><span class="dot a pulse"></span> Waiting for Statement</div></div>`;
+    const done=a.st==="cat-done";
+    return `<div class="acard ${done?"":"cat"}"><div class="ah"><div class="ai ${done?"g":"b"}">🏦</div><div style="flex:1"><div class="anm">${a.n}</div><div class="asub">${a.sub}</div></div><span class="tybadge ${a.ty}">${a.ty==="credit"?"Credit Card":a.ty}</span></div>
+      <div class="statusrow" style="color:${done?"var(--em700)":"var(--blue600)"}"><span class="dot ${done?"g":"b pulse"}"></span> ${done?"Categorized — ready for review":`Pending categorization — ${a.cat} of ${a.ing} done`}</div>
+      <div class="astats"><div><div class="v">${a.ing.toLocaleString()}</div><div class="k">Ingested</div></div><div><div class="v" style="color:${done?"var(--em600)":"var(--blue600)"}">${a.cat.toLocaleString()}</div><div class="k">Categorized</div></div></div>
+      <button class="arev">Review ${a.cat.toLocaleString()} transactions →</button></div>`;
+  }
+  document.getElementById("ds-grid").innerHTML=DS.map(dsCard).join("");
+
+  function byStage(s){return DOCS.map((d,i)=>({d,i})).filter(x=>x.d.stage===s);}
+  function typeSelect(i){return `<select class="inlinesel" data-setkind="${i}"><option value="" selected disabled>Type…</option><option value="feed">Bank feed</option><option value="check">Check</option><option value="payout">Payout</option></select>`;}
+  function acctSelect(i,d){const cands=d.cands||[];const ordered=[...cands,...ACCOUNTS.filter(a=>!cands.includes(a))];return `<select class="inlinesel" data-setacct="${i}"><option value="" selected disabled>Account…</option>${ordered.map(a=>`<option>${a}</option>`).join("")}<option value="__new">＋ New account…</option></select>`;}
+
+  function renderInbox(){
+    const el=document.getElementById("layout-inbox");
+    const setups=byStage("setup"), revs=byStage("review"), procs=byStage("proc"), dones=byStage("done"), fails=byStage("fail");
+    const setupRow=x=>{
+      const d=x.d, need=[!d.kind?"type":null,!d.acct?"account":null].filter(Boolean).join(" & ");
+      return `<div class="irow pa" data-i="${x.i}">${ficon(d)}<div class="meta"><div class="top"><span class="fname">${d.name}</span>${d.kind?kindChip(d.kind,true):""}</div><span class="fsub none">⚠ needs ${need}</span></div><span class="rowbtn">Classify →</span></div>`;
+    };
+    const revRow=x=>`<div class="irow pr" data-i="${x.i}">${ficon(x.d)}<div class="meta"><div class="top"><span class="fname">${x.d.name}</span>${kindChip(x.d.kind)}</div><span class="fsub">${x.d.acct} · ${x.d.conf}</span></div><span class="rowbtn">Review →</span></div>`;
+    const plainRow=x=>{let act=x.d.stage==="done"?'<span class="rowbtn plain">View</span>':x.d.stage==="fail"?'<span class="rowbtn danger">Retry</span>':"";return `<div class="irow" data-i="${x.i}">${ficon(x.d)}<div class="meta"><div class="top"><span class="fname">${x.d.name}</span>${kindChip(x.d.kind)}</div><span class="fsub">${x.d.acct||"—"}</span></div>${stBadge(x.d.stage)}${act}</div>`;};
+    el.innerHTML=`
+      ${setups.length?`<div class="grp pri-a"><h3>⚠ Needs classification (${setups.length})</h3><div class="ilist">${setups.map(setupRow).join("")}</div></div>`:""}
+      <div class="grp pri-r"><h3>● Needs review (${revs.length}) · auto-classified, ready</h3><div class="ilist">${revs.map(revRow).join("")}</div></div>
+      <div class="grp"><div class="collapsed-head" data-toggle="proc"><span>▸</span> Processing <span class="cnt">${procs.length}</span></div><div class="ilist" id="c-proc" style="display:none">${procs.map(plainRow).join("")}</div></div>
+      <div class="grp"><div class="collapsed-head" data-toggle="done"><span>▸</span> Ingested <span class="cnt">${dones.length}</span></div><div class="ilist" id="c-done" style="display:none">${dones.map(plainRow).join("")}</div></div>
+      <div class="grp"><div class="collapsed-head" data-toggle="fail"><span>▸</span> Failed <span class="cnt">${fails.length}</span></div><div class="ilist" id="c-fail" style="display:none">${fails.map(plainRow).join("")}</div></div>`;
+  }
+
+  let tableFilter="all";
+  function renderTable(){
+    const el=document.getElementById("layout-table");
+    const rows=DOCS.map((d,i)=>({d,i})).filter(x=>tableFilter==="all"||x.d.stage===tableFilter);
+    const typeCell=d=>d.kind?kindChip(d.kind):`<span class="fsub none">⚠ needs type</span>`;
+    const acctCell=d=>d.acct?`<span class="fsub" style="color:var(--slate600)">${d.acct}</span>`:`<span class="fsub none">⚠ needs account</span>`;
+    el.innerHTML=`<div class="tbl-panel"><div class="tbl-head"><strong style="font-size:13px;color:var(--slate800)">All documents</strong>
+      <div class="filter"><select id="tfilter"><option value="all">All stages</option><option value="setup">Needs classification</option><option value="review">Needs review</option><option value="proc">Processing</option><option value="done">Ingested</option><option value="fail">Failed</option></select></div></div>
+      <div class="twrap"><table><thead><tr><th>File</th><th>Type</th><th>Account</th><th>Stage</th></tr></thead><tbody>
+      ${rows.map(x=>`<tr data-i="${x.i}"><td><div style="display:flex;align-items:center;gap:10px">${ficon(x.d)}<span class="fname">${x.d.name}</span></div></td><td>${typeCell(x.d)}</td><td>${acctCell(x.d)}</td><td>${stBadge(x.d.stage)}</td></tr>`).join("")}
+      </tbody></table></div></div>`;
+    document.getElementById("tfilter").value=tableFilter;
+    document.getElementById("tfilter").addEventListener("change",e=>{tableFilter=e.target.value;renderTable();bindRows();});
+  }
+
+  const drawer=document.getElementById("drawer"), overlay=document.getElementById("overlay");
+  function openDrawer(i, reclass=false){
+    const d=DOCS[i]; let body="",foot="";
+    const classifyMode = d.stage==="setup" || reclass;
+    const head=`<div class="dhead">${ficon(d)}<div><div class="fname" style="font-size:13px">${d.name}</div><div style="margin-top:4px">${stBadge(reclass?"review":d.stage)}</div></div><button class="x" id="dx">✕</button></div>`;
+    if(classifyMode){
+      const needKind=!d.kind, needAcct=!d.acct;
+      const acctOpts=(d.cands||[]).concat(ACCOUNTS.filter(a=>!(d.cands||[]).includes(a)));
+      body=`<div class="preview">📄 page 1 preview</div>
+        <div class="dlabel">Document type ${needKind?'<span class="need">— needs you</span>':""}</div>
+        <select class="dsel ${needKind?"need":""}" id="dkind"><option value="" ${d.kind?"":"selected"} disabled>Choose type…</option><option value="feed" ${d.kind==="feed"?"selected":""}>Bank feed</option><option value="check" ${d.kind==="check"?"selected":""}>Check</option><option value="payout" ${d.kind==="payout"?"selected":""}>Payout</option></select>
+        ${needKind?`<div class="dnote">${d.kindConf||"auto-classify couldn't tell bank feed from check"}</div>`:""}
+        <div class="dlabel">Capital account ${needAcct?'<span class="need">— needs you</span>':""}</div>
+        <select class="dsel ${needAcct?"need":""}" id="dacct"><option value="" ${d.acct?"":"selected"} disabled>Choose account…</option>${acctOpts.map(a=>`<option ${a===d.acct?"selected":""}>${a}</option>`).join("")}<option value="__new">＋ Create new account…</option></select>
+        ${needAcct?`<div class="dnote">${d.acctConf||""}</div>${(d.cands||[]).length?`<div class="cand">${d.cands.map(c=>`<span>${c}</span>`).join("")}</div>`:""}`:""}
+        ${reclass?`<div class="dnote" style="background:var(--amber50);border:1px solid var(--amber100);border-radius:8px;padding:9px 11px;color:var(--amber700);margin-top:14px">⚠ Applying a new classification <b>rejects the current run</b> and triggers a <b>fresh workflow</b> for this file — re-parsed with the corrected type &amp; account. Nothing was committed yet, so there's nothing to undo.</div>`:""}`;
+      foot=reclass
+        ? `<button class="dbtn" id="dclose2">Cancel</button><button class="dbtn primary" id="dreapply">Apply</button>`
+        : `<button class="dbtn" id="dclose2">Cancel</button><button class="dbtn primary" id="dsetup">Classify &amp; send to review</button>`;
+    } else if(d.stage==="review"){
+      const isCheck=d.kind==="check";
+      const rows=isCheck?`<tr><td>03/04</td><td>Check #1042</td><td class="amt">$2,400.00</td></tr><tr><td>03/09</td><td>Check #1043</td><td class="amt">$860.00</td></tr><tr><td>03/15</td><td>Check #1044</td><td class="amt">$1,120.00</td></tr>`
+        :`<tr><td>03/01</td><td>ACH — Payroll</td><td class="amt">−$18,240.00</td></tr><tr><td>03/03</td><td>Deposit — Client wire</td><td class="amt">$42,000.00</td></tr><tr><td>03/07</td><td>AWS invoice</td><td class="amt">−$3,318.20</td></tr><tr><td>03/12</td><td>Stripe payout</td><td class="amt">$9,905.10</td></tr>`;
+      body=`<div class="dnote" style="margin-top:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap">Classified as ${kindChip(d.kind)} · <b>${d.acct}</b> <button class="rowbtn plain" id="dreclass" style="margin-left:auto">Wrong? Reclassify</button></div>
+        <div class="preview" style="margin-top:12px">📄 ${d.name}</div>
+        <div class="dnote"><b>${d.conf}.</b> Continue to open the workflow's Review node and commit the extracted data.</div>`;
+      foot=`<button class="dbtn primary" id="dcontinue">Continue →</button>`;
+    } else if(d.stage==="proc"){
+      body=`<div class="preview"><span class="spin" style="width:16px;height:16px;color:var(--ind500)"></span></div><div class="dnote">Parsing this ${KINDL[d.kind].toLowerCase()} for <b>${d.acct}</b>. It'll move to <b>Needs review</b> when ready.</div>`;
+      foot=`<button class="dbtn" id="dclose">Close</button>`;
+    } else if(d.stage==="done"){
+      body=`<div class="preview">📄 ${d.name}</div><div class="dnote"><b>${d.acct}</b> · ${d.conf}.</div>`;
+      foot=`<button class="dbtn" id="dclose2">Close</button><button class="dbtn primary" id="dclose">Open in transactions →</button>`;
+    } else {
+      body=`<div class="errbox"><b>Couldn't process this file.</b><br>${d.conf}. The CSV columns didn't match a bank statement or payout export.</div><div class="dlabel">Re-classify as</div><select class="dsel"><option>Payout</option><option>Bank feed</option></select>`;
+      foot=`<button class="dbtn" id="dclose2">Remove</button><button class="dbtn danger" id="dclose">Retry</button>`;
+    }
+    drawer.innerHTML=head+`<div class="dbody">${body}</div><div class="dfoot">${foot}</div>`;
+    drawer.classList.add("open");overlay.classList.add("open");drawer.setAttribute("aria-hidden","false");
+    drawer.querySelectorAll("#dx,#dclose,#dclose2").forEach(b=>b.addEventListener("click",closeDrawer));
+    const setupBtn=drawer.querySelector("#dsetup");
+    if(setupBtn) setupBtn.addEventListener("click",()=>{
+      const k=drawer.querySelector("#dkind").value, av=drawer.querySelector("#dacct").value;
+      if(k) DOCS[i].kind=k;
+      if(av) DOCS[i].acct = av==="__new" ? "Brex Card ••4410 (new)" : av;
+      finalize(i); closeDrawer();
+    });
+    const contBtn=drawer.querySelector("#dcontinue");
+    if(contBtn) contBtn.addEventListener("click",()=>{ closeDrawer(); openReviewNode(i); });
+    const reclassBtn=drawer.querySelector("#dreclass");
+    if(reclassBtn) reclassBtn.addEventListener("click",()=>openDrawer(i,true));
+    const reapply=drawer.querySelector("#dreapply");
+    if(reapply) reapply.addEventListener("click",()=>{
+      const k=drawer.querySelector("#dkind").value||d.kind, av=drawer.querySelector("#dacct").value;
+      const newA=(av==="__new"?"Brex Card ••4410 (new)":av)||d.acct;
+      d.kind=k; d.acct=newA; d.stage="proc"; d.conf="re-parsing…";
+      toast(`Rejected existing run · triggered fresh ${KINDL[k]} workflow`);
+      renderAll(); closeDrawer(); showView("docs");
+    });
+  }
+  function closeDrawer(){drawer.classList.remove("open");overlay.classList.remove("open");drawer.setAttribute("aria-hidden","true");}
+  overlay.addEventListener("click",closeDrawer);
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer();});
+
+  function finalize(i){const d=DOCS[i]; if(d.kind&&d.acct){d.stage="review";d.conf="just set — sent to review";toast(`${d.name} → ${KINDL[d.kind]} · ${d.acct} · sent to review`);} else {toast(`Saved — still needs ${!d.kind?"a type":"an account"}`);} renderAll();}
+
+  function updateCounts(){const attn=byStage("setup").length+byStage("review").length;document.getElementById("s-attn").textContent=attn;document.getElementById("cta-badge").textContent=attn;}
+
+  function bindRows(){
+    document.querySelectorAll("[data-i]").forEach(el=>el.addEventListener("click",e=>{ if(e.target.closest("[data-setkind]")||e.target.closest("[data-setacct]")||e.target.closest("[data-toggle]"))return; openDrawer(+el.dataset.i); }));
+    document.querySelectorAll("[data-setkind]").forEach(sel=>{sel.addEventListener("click",e=>e.stopPropagation());sel.addEventListener("change",e=>{e.stopPropagation();DOCS[+sel.dataset.setkind].kind=sel.value;finalize(+sel.dataset.setkind);});});
+    document.querySelectorAll("[data-setacct]").forEach(sel=>{sel.addEventListener("click",e=>e.stopPropagation());sel.addEventListener("change",e=>{e.stopPropagation();const i=+sel.dataset.setacct;DOCS[i].acct = sel.value==="__new"?"Brex Card ••4410 (new)":sel.value;finalize(i);});});
+    document.querySelectorAll("[data-toggle]").forEach(h=>h.addEventListener("click",e=>{e.stopPropagation();const box=document.getElementById("c-"+h.dataset.toggle);const open=box.style.display!=="none";box.style.display=open?"none":"flex";h.querySelector("span").textContent=open?"▸":"▾";}));
+  }
+  function renderAll(){renderInbox();renderTable();updateCounts();bindRows();}
+
+  function showView(v){
+    document.getElementById("view-project").style.display=v==="project"?"":"none";
+    document.getElementById("view-docs").style.display=v==="docs"?"":"none";
+    document.getElementById("view-review").style.display=v==="review"?"":"none";
+    document.querySelector(".content").scrollTo({top:0,behavior:"smooth"});
+  }
+  function openReviewNode(i){
+    const d=DOCS[i], isCheck=d.kind==="check";
+    const rows = isCheck
+      ? [["03/04","Check #1042","$2,400.00"],["03/09","Check #1043","$860.00"],["03/15","Check #1044","$1,120.00"],["03/21","Check #1045","$3,300.00"]]
+      : [["03/01","ACH — Payroll run","−$18,240.00"],["03/03","Deposit — Client wire","$42,000.00"],["03/05","Rent — Suite 400","−$9,500.00"],["03/07","AWS invoice","−$3,318.20"],["03/09","Refund — vendor","$512.00"],["03/12","Stripe payout","$9,905.10"],["03/18","Payroll run","−$18,240.00"],["03/25","Card autopay","−$4,110.75"]];
+    const el=document.getElementById("view-review");
+    el.innerHTML=`
+      <div class="toolbar"><nav class="crumb"><a data-nav="docs">Documents</a><span class="sl">/</span><span class="cur">Review · ${d.name}</span></nav><div class="spacer"></div><button class="tb plain" data-nav="docs">← Back to documents</button></div>
+      <div class="ws-head"><h1>Review extracted data</h1></div>
+      <div class="explain" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span>📄 <b style="font-family:var(--mono)">${d.name}</b> · classified as ${kindChip(d.kind)} · <b>${d.acct}</b></span><button class="rowbtn plain" id="rn-reclass" style="margin-left:auto">Wrong classification? Reclassify</button></div>
+      <div class="tbl-panel"><div class="tbl-head"><strong style="font-size:13px;color:var(--slate800)">${isCheck?"Extracted checks":"Extracted transactions"}</strong><span style="font-size:12px;color:var(--slate500)">${rows.length} rows · ${d.conf}</span></div>
+        <div class="twrap"><table class="mini" style="min-width:520px"><thead><tr><th>Date</th><th>Description</th><th style="text-align:right">Amount</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="amt">${r[2]}</td></tr>`).join("")}</tbody></table></div></div>
+      <div style="display:flex;gap:10px;align-items:center"><span style="flex:1;font-size:12px;color:var(--slate500)">This is the workflow's Review node — edit rows if needed, then commit.</span><button class="tb plain" data-nav="docs">Cancel</button><button class="addbtn" id="rn-commit">Approve &amp; commit</button></div>`;
+    el.querySelectorAll("[data-nav]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.nav)));
+    el.querySelector("#rn-reclass").addEventListener("click",()=>openDrawer(i,true));
+    el.querySelector("#rn-commit").addEventListener("click",()=>{ d.stage="done"; d.conf=`${rows.length} rows ingested`; toast(`Committed · ${d.name} → ${d.acct}`); renderAll(); showView("docs"); });
+    showView("review");
+  }
+  document.getElementById("openDocs").addEventListener("click",()=>showView("docs"));
+  document.getElementById("backProj").addEventListener("click",()=>showView("project"));
+  document.getElementById("crumbProj").addEventListener("click",()=>showView("project"));
+  document.getElementById("uploadBtn").addEventListener("click",()=>toast("Uploading… files will be auto-classified and appear in review"));
+  document.getElementById("switch").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;document.querySelectorAll("#switch button").forEach(x=>x.classList.remove("on"));b.classList.add("on");document.querySelectorAll(".layout").forEach(l=>l.classList.remove("on"));document.getElementById("layout-"+b.dataset.l).classList.add("on");});
+
+  let toastT;function toast(m){const t=document.getElementById("toast");document.getElementById("toast-msg").textContent=m;t.style.display="flex";clearTimeout(toastT);toastT=setTimeout(()=>t.style.display="none",3200);}
+  renderAll();showView("project");
+</script>
+
+</body>
+</html>
