@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Atlas &mdash; Feeds register (Bookkeeping &rarr; Feeds, projects-enabled nav)</title>
+<style>
+/* Mirrors the shipped console rather than inventing a look:
+     maven-frontend/tailwind.config.ts            - primary/success/warning/danger/slate + the tx.* money pair
+     maven-frontend/src/app/globals.css           - radii, shadows, base body treatment
+     maven-frontend/src/features/layout/Sidebar/Sidebar.module.scss
+                                                  - the sidebar's fixed navy gradient, group labels,
+                                                    section headers, child rows, 3px active accent
+     maven-frontend/src/features/layout/Sidebar/Sidebar.tsx (~L656)
+                                                  - isBookkeepingProjectsEnabled: renames the
+                                                    "Bookkeeping Recipes" section to "Bookkeeping"
+                                                    and adds the Projects child. Feeds is proposed
+                                                    as a sibling directly above Projects.
+     maven-frontend/src/features/accounts-payable/Vendors/VendorsPage.tsx
+                                                  - the table + pagination markup this reuses
+     maven-frontend/src/components/ui/{Badge,PageHeader}.tsx - pill and header treatment
+
+   Tailwind values are hand-rolled as CSS custom properties (no CDN in a mock), and the
+   type stacks name the real faces first so they are used where installed and degrade to
+   system fonts otherwise -- the same order globals.css declares.
+
+   Backend shape this is drawn against: plans/ CheckFeed work --
+     BankFeed / CheckFeed          immutable raw line, required capital account
+     CheckFeedUpload               one uploaded statement or check pack; owns uploaded_by,
+                                   reviewed_by, sheets_read/sheets_total, read_summary
+     ProjectClaimedBankFeed /
+     ProjectClaimedCheckFeed       a project claims a feed by date window; ClaimStatus
+                                   pending -> routed
+   Data below is generated in-page from a fixed seed; no API is called. */
+
+/* Standalone reset -- these mocks are opened straight from disk, no build step. */
+*, *::before, *::after{ box-sizing:border-box }
+body, h1, p, dl, dd, ul{ margin:0 }
+ul{ padding:0 }
+
+
+:root{
+  --bg:#f8fafc; --surface:#ffffff; --surface-2:#f1f5f9; --surface-3:#e9eef5;
+  --border:#e2e8f0; --border-strong:#cbd5e1;
+  --ink:#0f172a; --ink-2:#475569; --ink-3:#64748b;
+  --accent:#4f46e5; --accent-hover:#4338ca; --accent-weak:#eef2ff; --accent-ink:#4338ca;
+  --ok:#059669; --ok-weak:#ecfdf5; --warn:#d97706; --warn-weak:#fffbeb;
+  --bad:#e11d48; --bad-weak:#fff1f2;
+  --out:#b4441f; --in:#2f6f4e;
+  --ring:rgba(79,70,229,.35);
+  --shadow-sm:0 1px 3px 0 rgb(15 23 42 / .08), 0 1px 2px -1px rgb(15 23 42 / .06);
+  --shadow-lg:0 10px 15px -3px rgb(15 23 42 / .10), 0 4px 6px -4px rgb(15 23 42 / .10);
+  --shadow-drawer:-12px 0 40px -12px rgb(15 23 42 / .18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#020617; --surface:#0f172a; --surface-2:#1e293b; --surface-3:#243247;
+    --border:#1e293b; --border-strong:#334155;
+    --ink:#f1f5f9; --ink-2:#cbd5e1; --ink-3:#94a3b8;
+    --accent:#818cf8; --accent-hover:#a5b4fc; --accent-weak:rgba(99,102,241,.16); --accent-ink:#a5b4fc;
+    --ok:#34d399; --ok-weak:rgba(16,185,129,.14); --warn:#fbbf24; --warn-weak:rgba(245,158,11,.14);
+    --bad:#fb7185; --bad-weak:rgba(244,63,94,.14);
+    --out:#f0906b; --in:#6ee7b7;
+    --ring:rgba(129,140,248,.45);
+    --shadow-sm:0 1px 3px 0 rgb(0 0 0 / .5);
+    --shadow-lg:0 10px 20px -6px rgb(0 0 0 / .6);
+    --shadow-drawer:-12px 0 40px -12px rgb(0 0 0 / .7);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#020617; --surface:#0f172a; --surface-2:#1e293b; --surface-3:#243247;
+  --border:#1e293b; --border-strong:#334155;
+  --ink:#f1f5f9; --ink-2:#cbd5e1; --ink-3:#94a3b8;
+  --accent:#818cf8; --accent-hover:#a5b4fc; --accent-weak:rgba(99,102,241,.16); --accent-ink:#a5b4fc;
+  --ok:#34d399; --ok-weak:rgba(16,185,129,.14); --warn:#fbbf24; --warn-weak:rgba(245,158,11,.14);
+  --bad:#fb7185; --bad-weak:rgba(244,63,94,.14);
+  --out:#f0906b; --in:#6ee7b7;
+  --ring:rgba(129,140,248,.45);
+  --shadow-sm:0 1px 3px 0 rgb(0 0 0 / .5);
+  --shadow-lg:0 10px 20px -6px rgb(0 0 0 / .6);
+  --shadow-drawer:-12px 0 40px -12px rgb(0 0 0 / .7);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Hanken Grotesk','Plus Jakarta Sans',Inter,system-ui,-apple-system,'Segoe UI',sans-serif;
+  font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:'Spline Sans Mono','JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace; font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--ring); outline-offset:2px; border-radius:6px}
+@media (prefers-reduced-motion:reduce){*{animation:none !important; transition:none !important}}
+
+/* ---------- shell ---------- */
+.app{display:grid; grid-template-columns:17rem minmax(0,1fr); min-height:100vh}
+
+/* The sidebar is its own dark world in the real console -- a fixed navy gradient
+   that does not follow the page theme. Values lifted from Sidebar.module.scss. */
+.side{
+  background:linear-gradient(180deg,#0c1929 0%,#0f172a 50%,#131c2e 100%);
+  border-right:1px solid rgba(255,255,255,.06);
+  display:flex; flex-direction:column; padding:14px 10px 20px;
+  position:sticky; top:0; height:100vh; overflow-y:auto;
+}
+.brand{display:flex; align-items:center; gap:10px; padding:6px 8px 4px}
+.brand-mark{
+  width:30px; height:30px; border-radius:9px; flex:0 0 auto;
+  background:linear-gradient(145deg,#6366f1,#4338ca); color:#fff;
+  display:grid; place-items:center; font-weight:800; font-size:14px; letter-spacing:-.03em;
+}
+.brand-name{font-weight:700; color:#f1f5f9; font-size:14px; letter-spacing:-.01em}
+.brand-sub{font-size:10.5px; color:#64748b; margin-top:-1px}
+.team{
+  display:flex; align-items:center; gap:9px; margin:12px 4px 4px; padding:8px 10px;
+  border-radius:10px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);
+  cursor:pointer;
+}
+.team:hover{background:rgba(255,255,255,.07)}
+.team-in{
+  width:26px; height:26px; border-radius:7px; flex:0 0 auto; display:grid; place-items:center;
+  background:rgba(99,102,241,.15); color:#a5b4fc; font-size:10px; font-weight:700;
+}
+.team-n{font-size:12.5px; font-weight:600; color:#e2e8f0; line-height:1.25}
+.team-t{font-size:10.5px; color:#64748b}
+.team svg{width:12px; height:12px; margin-left:auto; color:#64748b; flex:0 0 auto}
+
+.nav-group{
+  padding:.75rem .875rem .25rem; margin-top:.5rem;
+  font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.12em;
+  color:#64748b; border-top:1px solid rgba(255,255,255,.05); white-space:nowrap;
+}
+.sec-h{
+  display:flex; align-items:center; gap:.5rem; width:100%;
+  padding:.625rem .875rem; border:0; background:none; cursor:pointer; text-align:left;
+  font-family:inherit; font-size:11px; font-weight:600; text-transform:uppercase;
+  letter-spacing:.06em; color:#94a3b8; border-radius:.5rem;
+}
+.sec-h:hover{color:#cbd5e1}
+.sec-h[aria-expanded="true"].on{color:#818cf8; background:rgba(99,102,241,.1)}
+.sec-h svg.ic{width:15px; height:15px; opacity:.75; flex:0 0 auto}
+.sec-h[aria-expanded="true"].on svg.ic{opacity:1; color:#818cf8}
+.chev{width:12px; height:12px; margin-left:auto; opacity:.5; flex:0 0 auto; transition:transform .2s ease}
+.sec-h[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.sec-items{display:flex; flex-direction:column; gap:.125rem; padding-left:.25rem}
+
+.nav-item{
+  display:flex; align-items:center; gap:.625rem; position:relative; overflow:hidden;
+  padding:.625rem .875rem; font-size:13px; font-weight:500; border-radius:.5rem;
+  color:#cbd5e1; text-decoration:none; white-space:nowrap;
+}
+.nav-item::before{
+  content:""; position:absolute; left:0; top:50%; transform:translateY(-50%);
+  width:3px; height:0; background:#6366f1; border-radius:0 2px 2px 0; transition:height .15s ease;
+}
+.nav-item svg{width:15px; height:15px; flex:0 0 auto; color:#94a3b8}
+.nav-item:hover{background:rgba(255,255,255,.06); color:#f1f5f9}
+.nav-item:hover svg{color:#818cf8}
+.nav-item[aria-current="page"]{background:rgba(99,102,241,.12); color:#fff}
+.nav-item[aria-current="page"]::before{height:1.25rem}
+.nav-item[aria-current="page"] svg{color:#818cf8}
+.nav-new{
+  margin-left:auto; font-size:8.5px; font-weight:800; letter-spacing:.07em;
+  background:#6366f1; color:#fff; padding:2px 5px; border-radius:4px;
+}
+
+.main{min-width:0; display:flex; flex-direction:column}
+.topbar{
+  display:flex; align-items:center; gap:12px; padding:10px 24px;
+  border-bottom:1px solid var(--border); background:var(--surface);
+  position:sticky; top:0; z-index:30;
+}
+.crumbs{font-size:12px; color:var(--ink-3)}
+.crumbs b{color:var(--ink-2); font-weight:600}
+.topbar-right{margin-left:auto; display:flex; align-items:center; gap:10px}
+.icon-btn{
+  width:32px; height:32px; border-radius:8px; border:1px solid var(--border-strong);
+  background:var(--surface); color:var(--ink-2); cursor:pointer; display:grid; place-items:center;
+}
+.icon-btn:hover{background:var(--surface-2); color:var(--ink)}
+.icon-btn svg{width:15px;height:15px}
+
+.page{padding:24px; display:flex; flex-direction:column; gap:20px; max-width:1500px; width:100%}
+
+/* ---------- page header ---------- */
+.ph{display:flex; align-items:flex-start; gap:16px; flex-wrap:wrap}
+h1{font-size:24px; font-weight:800; letter-spacing:-.025em; margin:0; text-wrap:balance}
+.ph p{margin:6px 0 0; font-size:13px; color:var(--ink-3); max-width:64ch}
+.ph-actions{margin-left:auto; display:flex; gap:8px; flex-wrap:wrap}
+.btn{
+  display:inline-flex; align-items:center; gap:7px; height:34px; padding:0 13px;
+  border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;
+  border:1px solid var(--border-strong); background:var(--surface); color:var(--ink-2);
+}
+.btn:hover{background:var(--surface-2); color:var(--ink)}
+.btn svg{width:14px;height:14px}
+.btn-primary{background:var(--accent); border-color:var(--accent); color:#fff}
+.btn-primary:hover{background:var(--accent-hover); border-color:var(--accent-hover); color:#fff}
+
+/* ---------- stats rail ---------- */
+.rail{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px}
+.stat{
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  padding:14px 16px; box-shadow:var(--shadow-sm); position:relative; overflow:hidden;
+}
+.stat::before{content:""; position:absolute; inset:0 auto 0 0; width:3px; background:var(--tone,var(--border-strong))}
+.stat-k{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3)}
+.stat-v{font-size:24px; font-weight:800; letter-spacing:-.03em; margin-top:4px}
+.stat-n{font-size:11.5px; color:var(--ink-3); margin-top:2px}
+.stat-n b{color:var(--tone,var(--ink-2)); font-weight:700}
+
+/* ---------- card + tabs ---------- */
+.card{
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  box-shadow:var(--shadow-sm); overflow:hidden;
+}
+.tabs{display:flex; gap:2px; padding:6px 8px 0; border-bottom:1px solid var(--border); overflow-x:auto}
+.tab{
+  appearance:none; border:0; background:none; cursor:pointer; position:relative;
+  padding:10px 14px 12px; font-size:13.5px; font-weight:600; color:var(--ink-3);
+  white-space:nowrap; border-radius:8px 8px 0 0;
+}
+.tab:hover{color:var(--ink); background:var(--surface-2)}
+.tab[aria-selected="true"]{color:var(--accent-ink)}
+.tab[aria-selected="true"]::after{
+  content:""; position:absolute; left:10px; right:10px; bottom:-1px; height:2px;
+  background:var(--accent); border-radius:2px 2px 0 0;
+}
+.tab .count{
+  font-size:11px; font-weight:700; margin-left:7px; padding:1px 6px; border-radius:999px;
+  background:var(--surface-2); color:var(--ink-3); font-variant-numeric:tabular-nums;
+}
+.tab[aria-selected="true"] .count{background:var(--accent-weak); color:var(--accent-ink)}
+
+/* ---------- filters ---------- */
+.filters{display:flex; gap:8px; align-items:center; padding:12px 14px; flex-wrap:wrap; border-bottom:1px solid var(--border)}
+.search{position:relative; flex:1 1 240px; min-width:200px}
+.search svg{position:absolute; left:10px; top:50%; transform:translateY(-50%); width:14px; height:14px; color:var(--ink-3)}
+input[type="search"], select{
+  height:34px; border-radius:8px; border:1px solid var(--border-strong);
+  background:var(--surface); color:var(--ink); font:inherit; font-size:13px; padding:0 10px;
+}
+input[type="search"]{width:100%; padding-left:31px}
+input[type="search"]::placeholder{color:var(--ink-3)}
+select{cursor:pointer; padding-right:26px}
+.filter-note{margin-left:auto; font-size:12px; color:var(--ink-3)}
+
+/* ---------- table ---------- */
+.tw{overflow-x:auto}
+table{width:100%; border-collapse:separate; border-spacing:0; min-width:1180px}
+thead th{
+  position:sticky; top:0; z-index:10; background:var(--surface-2);
+  font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.075em;
+  color:var(--ink-2); text-align:left; padding:9px 14px; white-space:nowrap;
+  border-bottom:1px solid var(--border);
+}
+th.num, td.num{text-align:right}
+tbody td{padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:middle}
+tbody tr{cursor:pointer}
+tbody tr:hover td{background:var(--surface-2)}
+tbody tr:last-child td{border-bottom:0}
+.t-strong{font-weight:600; color:var(--ink)}
+.t-dim{color:var(--ink-3); font-size:12.5px}
+.desc{max-width:290px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.amt{font-weight:600; white-space:nowrap}
+.amt.out{color:var(--out)}
+.amt.in{color:var(--in)}
+.acct{white-space:nowrap}
+.acct .mask{color:var(--ink-3); font-size:12px}
+.date-src{font-size:9.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-3); display:block; margin-top:1px}
+
+/* people */
+.who{display:flex; align-items:center; gap:7px; white-space:nowrap}
+.av{
+  width:22px; height:22px; border-radius:50%; flex:0 0 auto; display:grid; place-items:center;
+  font-size:9.5px; font-weight:800; color:#fff; letter-spacing:-.02em;
+}
+.who span{font-size:12.5px; color:var(--ink-2); font-weight:500}
+.who.system .av{background:var(--surface-3); color:var(--ink-3); font-weight:700}
+.who.system span{color:var(--ink-3); font-style:italic}
+
+/* pills */
+.pill{
+  display:inline-flex; align-items:center; gap:5px; padding:2px 8px; border-radius:999px;
+  font-size:11px; font-weight:700; white-space:nowrap;
+  border:1px solid transparent; letter-spacing:.005em;
+}
+.pill i{width:5px; height:5px; border-radius:50%; display:block; background:currentColor}
+.pill-none{background:var(--surface-2); color:var(--ink-3); border-color:var(--border-strong)}
+.pill-pending{background:var(--warn-weak); color:var(--warn); border-color:color-mix(in srgb, var(--warn) 30%, transparent)}
+.pill-routed{background:var(--accent-weak); color:var(--accent-ink); border-color:color-mix(in srgb, var(--accent) 30%, transparent)}
+.pill-matched{background:var(--ok-weak); color:var(--ok); border-color:color-mix(in srgb, var(--ok) 30%, transparent)}
+.proj{display:flex; flex-direction:column; gap:3px; white-space:nowrap}
+.proj-name{font-size:12.5px; font-weight:600; color:var(--ink)}
+.proj-none{font-size:12.5px; color:var(--ink-3)}
+
+/* scan thumb */
+.scan{
+  width:42px; height:24px; border-radius:4px; border:1px solid var(--border-strong);
+  background:
+    linear-gradient(var(--border-strong),var(--border-strong)) 6px 15px/30px 1px no-repeat,
+    linear-gradient(var(--border-strong),var(--border-strong)) 6px 8px/18px 1px no-repeat,
+    var(--surface-2);
+  display:block;
+}
+.scan.missing{background:var(--surface-2); position:relative}
+.scan.missing::after{
+  content:"—"; position:absolute; inset:0; display:grid; place-items:center;
+  font-size:11px; color:var(--ink-3);
+}
+
+/* sheets meter */
+.sheets{display:flex; align-items:center; gap:8px; white-space:nowrap}
+.meter{width:52px; height:5px; border-radius:3px; background:var(--surface-3); overflow:hidden}
+.meter i{display:block; height:100%; background:var(--ok); border-radius:3px}
+
+/* ---------- pagination ---------- */
+.pager{
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  padding:12px 14px; border-top:1px solid var(--border); background:var(--surface);
+}
+.pager-info{font-size:12.5px; color:var(--ink-2); font-weight:500}
+.pager-nav{margin-left:auto; display:flex; align-items:center; gap:5px}
+.pg{
+  min-width:32px; height:32px; padding:0 9px; border-radius:8px; cursor:pointer;
+  border:1px solid var(--border-strong); background:var(--surface); color:var(--ink-2);
+  font:inherit; font-size:12.5px; font-weight:600; font-variant-numeric:tabular-nums;
+}
+.pg:hover:not(:disabled){background:var(--surface-2); color:var(--ink)}
+.pg:disabled{opacity:.45; cursor:not-allowed}
+.pg[aria-current="true"]{background:var(--accent); border-color:var(--accent); color:#fff}
+.per{display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--ink-3)}
+.per select{height:32px}
+
+/* ---------- drawer ---------- */
+.scrim{
+  position:fixed; inset:0; background:rgb(15 23 42 / .35); z-index:60;
+  opacity:0; pointer-events:none; transition:opacity .18s ease;
+}
+.scrim.open{opacity:1; pointer-events:auto}
+.drawer{
+  position:fixed; top:0; right:0; bottom:0; width:min(440px,100vw); z-index:61;
+  background:var(--surface); border-left:1px solid var(--border); box-shadow:var(--shadow-drawer);
+  transform:translateX(100%); transition:transform .22s cubic-bezier(.16,1,.3,1);
+  display:flex; flex-direction:column;
+}
+.drawer.open{transform:translateX(0)}
+.dh{display:flex; align-items:flex-start; gap:12px; padding:16px 18px; border-bottom:1px solid var(--border)}
+.dh-k{font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3)}
+.dh-t{font-size:17px; font-weight:800; letter-spacing:-.02em; margin-top:3px}
+.db{padding:18px; overflow-y:auto; display:flex; flex-direction:column; gap:20px}
+.dsec-k{
+  font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.08em;
+  color:var(--ink-3); padding-bottom:7px; border-bottom:1px solid var(--border); margin-bottom:11px;
+}
+.kv{display:grid; grid-template-columns:118px minmax(0,1fr); gap:8px 12px; font-size:13px}
+.kv dt{color:var(--ink-3); font-size:12.5px}
+.kv dd{margin:0; color:var(--ink); font-weight:500; overflow-wrap:anywhere}
+.note{
+  font-size:12px; color:var(--ink-2); background:var(--surface-2);
+  border:1px solid var(--border); border-left:3px solid var(--accent);
+  border-radius:0 8px 8px 0; padding:9px 11px;
+}
+.tl{display:flex; flex-direction:column; gap:0; margin:0; padding:0; list-style:none}
+.tl li{display:grid; grid-template-columns:14px minmax(0,1fr); gap:11px; padding-bottom:14px; position:relative}
+.tl li:last-child{padding-bottom:0}
+.tl li::before{
+  content:""; grid-column:1; margin-top:4px; width:9px; height:9px; border-radius:50%;
+  background:var(--surface); border:2px solid var(--accent); z-index:1;
+}
+.tl li.dim::before{border-color:var(--border-strong)}
+.tl li:not(:last-child)::after{
+  content:""; position:absolute; left:4px; top:15px; bottom:0; width:1px; background:var(--border-strong);
+}
+.tl-t{font-size:13px; font-weight:600}
+.tl-m{font-size:12px; color:var(--ink-3); margin-top:1px}
+
+.legend{display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--ink-3); padding:0 2px}
+.legend b{color:var(--ink-2)}
+
+@media (max-width:1000px){
+  .app{grid-template-columns:1fr}
+  .side{position:static; height:auto; flex-direction:row; align-items:center; overflow-x:auto; padding:8px}
+  .brand,.nav-group,.team,.sec-h{display:none}
+  .sec-items{flex-direction:row; padding-left:0}
+  .page{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <nav class="side" aria-label="Main">
+    <div class="brand">
+      <div class="brand-mark">A</div>
+      <div><div class="brand-name">Atlas</div><div class="brand-sub">atlas.theatlas.ai</div></div>
+    </div>
+    <button class="team" type="button">
+      <span class="team-in">CT</span>
+      <span><span class="team-n">Core Team</span><br><span class="team-t">Switch team</span></span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 9l4 4 4-4"/></svg>
+    </button>
+
+    <div class="nav-group">Accounting</div>
+    <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg>Transactions</a>
+    <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/></svg>Receipt Matching</a>
+    <button class="sec-h" type="button" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 12h2m4 0h2M8 16h2m4 0h2"/></svg>Accounting<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+
+    <!-- Projects are enabled for this tenant, so this section is "Bookkeeping",
+         not "Bookkeeping Recipes", and carries the Projects leaf. Feeds joins it
+         directly above Projects: the three rule screens are configuration, and
+         Feeds -> Projects is the data path in the order it actually runs. -->
+    <button class="sec-h on" type="button" aria-expanded="true"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 012-2h13v18H6a2 2 0 01-2-2V5z"/><path d="M9 3v18"/></svg>Bookkeeping<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="sec-items">
+      <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>General Categorisation</a>
+      <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="7" cy="17" r="2"/></svg>Custom</a>
+      <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Routing Rules</a>
+      <a class="nav-item" href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v5H4zM4 14h16v5H4z"/><path d="M7 7.5h4M7 16.5h4"/></svg>Feeds<span class="nav-new">NEW</span></a>
+      <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V7z"/></svg>Projects</a>
+    </div>
+
+    <button class="sec-h" type="button" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 8h13l-3-3m3 11H7l3 3"/></svg>Reconciliation<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+
+    <div class="nav-group">Platform</div>
+    <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h5"/></svg>Document Library</a>
+    <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H15a3 3 0 013 3v6.5"/></svg>Workflows</a>
+  </nav>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="crumbs">Bookkeeping &nbsp;/&nbsp; <b>Feeds</b></div>
+      <div class="topbar-right">
+        <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch colour theme" title="Switch colour theme">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="page">
+      <div class="ph">
+        <div>
+          <h1>Feeds</h1>
+          <p>Every raw line that has entered the system, exactly as its statement or check pack reported it. Feeds are immutable &mdash; a bookkeeping project claims them by date window, and only then do they become transactions.</p>
+        </div>
+        <div class="ph-actions">
+          <button class="btn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3m0 12l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+            Export CSV
+          </button>
+          <button class="btn btn-primary" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Upload to vault
+          </button>
+        </div>
+      </div>
+
+      <div class="rail" id="rail"></div>
+
+      <div class="card">
+        <div class="tabs" role="tablist" aria-label="Feed kind">
+          <button class="tab" role="tab" id="tab-bank" aria-selected="true" aria-controls="panel" data-view="bank">Bank feeds <span class="count" id="c-bank">0</span></button>
+          <button class="tab" role="tab" id="tab-check" aria-selected="false" aria-controls="panel" data-view="check">Check feeds <span class="count" id="c-check">0</span></button>
+          <button class="tab" role="tab" id="tab-upload" aria-selected="false" aria-controls="panel" data-view="upload">Uploads <span class="count" id="c-upload">0</span></button>
+        </div>
+
+        <div class="filters">
+          <label class="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
+            <input type="search" id="q" placeholder="Search description, payee, check number, file&hellip;" aria-label="Search feeds">
+          </label>
+          <select id="f-account" aria-label="Filter by account"></select>
+          <select id="f-project" aria-label="Filter by project"></select>
+          <select id="f-claim" aria-label="Filter by claim state">
+            <option value="">Any claim state</option>
+            <option value="unclaimed">Unclaimed</option>
+            <option value="pending">Claimed &middot; pending</option>
+            <option value="routed">Claimed &middot; routed</option>
+            <option value="matched">Matched to a transaction</option>
+          </select>
+          <span class="filter-note" id="fnote"></span>
+        </div>
+
+        <div class="tw" id="panel" role="tabpanel" aria-labelledby="tab-bank">
+          <table id="tbl">
+            <thead id="thead"></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="pager">
+          <span class="pager-info" id="pinfo"></span>
+          <div class="pager-nav" id="pnav"></div>
+          <label class="per">Rows
+            <select id="per">
+              <option>10</option><option selected>25</option><option>50</option><option>100</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span><b>Unclaimed</b> &mdash; in no project&rsquo;s window, or its window is not yet open</span>
+        <span><b>Pending</b> &mdash; claimed, not yet routed</span>
+        <span><b>Routed</b> &mdash; became a project transaction</span>
+        <span><b>Matched</b> &mdash; check paired to a bank line</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Feed detail" aria-hidden="true">
+  <div class="dh">
+    <div style="min-width:0">
+      <div class="dh-k" id="d-kind">Bank feed line</div>
+      <div class="dh-t" id="d-title">&mdash;</div>
+    </div>
+    <button class="icon-btn" id="closeBtn" type="button" aria-label="Close detail" style="margin-left:auto">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div class="db" id="d-body"></div>
+</aside>
+
+<script>
+(function(){
+  "use strict";
+
+  /* deterministic pseudo-random so the mock is stable across reloads */
+  var seed = 20260831;
+  function rnd(){ seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; }
+  function pick(a){ return a[Math.floor(rnd() * a.length)]; }
+  function ri(lo, hi){ return lo + Math.floor(rnd() * (hi - lo + 1)); }
+
+  var ACCOUNTS = [
+    { id:"CA-104", label:"Chase Operating",  mask:"4471" },
+    { id:"CA-108", label:"BofA Payroll",     mask:"8823" },
+    { id:"CA-111", label:"Wells Reserve",    mask:"1902" }
+  ];
+  var PROJECTS = [
+    { id:"BP-42", name:"August 2026 Close", start:"2026-08-01", end:"2026-08-31" },
+    { id:"BP-38", name:"July 2026 Close",   start:"2026-07-01", end:"2026-07-31" }
+  ];
+  var PEOPLE = [
+    { name:"Priya Raman",  hue:262 },
+    { name:"Daniel Okafor", hue:12  },
+    { name:"Mei Lin",       hue:168 },
+    { name:"Tomas Farkas",  hue:210 },
+    { name:"Aisha Bello",   hue:38  }
+  ];
+  var DESCS = [
+    "ACH DEBIT STRIPE TRANSFER ST-A4K2","POS PURCHASE SQ *BLUE BOTTLE","WIRE OUT BENEFICIARY NORTHWIND LLC",
+    "ACH CREDIT SHOPIFY PAYMENTS","CHECK PAID","CARD 4471 AWS CLOUD SERVICES","MONTHLY SERVICE CHARGE",
+    "ACH DEBIT GUSTO PAYROLL FEES","DEPOSIT REMOTE CAPTURE","ACH CREDIT CUSTOMER REMITTANCE 88231",
+    "CARD 4471 GOOGLE WORKSPACE","TRANSFER TO SAVINGS ••1902","INTEREST EARNED",
+    "ACH DEBIT STATE OF CA EDD","CARD 4471 DELTA AIR LINES","BILL PAY VERIZON BUSINESS",
+    "ACH DEBIT RENT MERIDIAN PROPERTIES","REFUND CARD 4471 OFFICE DEPOT","CARD 4471 SLACK TECHNOLOGIES",
+    "ACH CREDIT PLAID TRANSFER"
+  ];
+  var PAYEES = [
+    "Meridian Properties LLC","Northwind Logistics","Cascade Print Co.","Harbour Legal Group",
+    "Sierra Facilities","Beacon IT Partners","Verity Audit Services","Lakeshore Catering",
+    "Cobalt Design Studio","Ridgeway Insurance","Sunfield Landscaping","Orion Freight",
+    "Ashcroft Consulting","Pinnacle Staffing","Everline Utilities"
+  ];
+  var BANK_FILES = [
+    "chase-operating-2026-08.pdf","bofa-payroll-2026-08.csv","wells-reserve-2026-08.pdf",
+    "chase-operating-2026-07.pdf","bofa-payroll-2026-07.csv","wells-reserve-2026-07.pdf",
+    "chase-operating-2026-06.pdf","wells-reserve-2026-06.pdf"
+  ];
+  var CHECK_FILES = [
+    "checks-chase-2026-08-w1.pdf","checks-chase-2026-08-w3.pdf","checks-payroll-2026-08.pdf",
+    "checks-chase-2026-07-w2.pdf","checks-reserve-2026-07.pdf",
+    "checks-chase-2026-06-w1.pdf"
+  ];
+
+  function iso(d){ return d.toISOString().slice(0,10); }
+  var DAYS = { 5:30, 6:31, 7:31 };                 /* June, July, August 2026 */
+  function monthOf(file){
+    return file.indexOf("2026-08") > -1 ? 7 : file.indexOf("2026-07") > -1 ? 6 : 5;
+  }
+  function dayIn(month){
+    return iso(new Date(Date.UTC(2026, month, ri(1, DAYS[month]))));
+  }
+  function projectFor(dateStr){
+    for (var i = 0; i < PROJECTS.length; i++){
+      if (dateStr >= PROJECTS[i].start && dateStr <= PROJECTS[i].end) return PROJECTS[i];
+    }
+    return null;
+  }
+  function money(n){
+    return (n < 0 ? "-" : "") + "$" + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 });
+  }
+
+  /* ---------- uploads (a pack / statement file, and where uploader + reviewer live) ---------- */
+  var uploads = [];
+  function buildUploads(){
+    function make(kind, file, idx){
+      var acct = file.indexOf("payroll") > -1 ? ACCOUNTS[1] : (file.indexOf("reserve") > -1 ? ACCOUNTS[2] : ACCOUNTS[0]);
+      var month = monthOf(file);
+      var committed = iso(new Date(Date.UTC(2026, month, ri(20, 28))));
+      var uploader = pick(PEOPLE);
+      var reviewer = rnd() < 0.14 ? null : pick(PEOPLE);      /* null => auto-approved, no human */
+      var sheetsTotal = kind === "check" ? ri(8, 44) : 0;
+      var short = kind === "check" && rnd() < 0.22;
+      return {
+        uid: (kind === "check" ? "CFU-" : "BFU-") + (1400 + idx),
+        kind: kind, file: file, account: acct, committed: committed,
+        uploader: uploader, reviewer: reviewer,
+        sheetsTotal: sheetsTotal, sheetsRead: short ? sheetsTotal - ri(1, 4) : sheetsTotal,
+        runId: 90000 + ri(100, 999), items: 0
+      };
+    }
+    BANK_FILES.forEach(function(f, i){ uploads.push(make("bank", f, i)); });
+    CHECK_FILES.forEach(function(f, i){ uploads.push(make("check", f, i + 40)); });
+  }
+
+  /* ---------- feed rows ---------- */
+  var bank = [], check = [];
+  function buildFeeds(){
+    var bankUploads  = uploads.filter(function(u){ return u.kind === "bank"; });
+    var checkUploads = uploads.filter(function(u){ return u.kind === "check"; });
+
+    for (var i = 0; i < 248; i++){
+      var up = bankUploads[i % bankUploads.length];
+      var d = dayIn(monthOf(up.file));
+      var credit = rnd() < 0.28;
+      var amt = credit ? ri(400, 48000) + rnd() : -(ri(35, 21000) + rnd());
+      var proj = projectFor(d);
+      var claim = !proj ? "unclaimed" : (rnd() < 0.62 ? "routed" : "pending");
+      bank.push({
+        id: "BF-" + (60000 + i), kind: "bank", date: d, desc: pick(DESCS),
+        amount: Math.round(amt * 100) / 100, account: up.account, upload: up,
+        project: proj, claim: claim, status: rnd() < 0.02 ? "inactive" : "active",
+        txn: claim === "routed" ? "PT-" + (31000 + i) : null
+      });
+      up.items++;
+    }
+
+    for (var j = 0; j < 96; j++){
+      var cu = checkUploads[j % checkUploads.length];
+      var cmonth = monthOf(cu.file);
+      var written = dayIn(cmonth);
+      var hasPosted = rnd() < 0.82;
+      var posted = hasPosted
+        ? iso(new Date(Date.UTC(2026, cmonth, Math.min(DAYS[cmonth], Number(written.slice(8)) + ri(0, 3)))))
+        : null;
+      var feedDate = posted || written;
+      var cproj = projectFor(feedDate);
+      var cclaim = !cproj ? "unclaimed" : (rnd() < 0.44 ? "matched" : (rnd() < 0.55 ? "routed" : "pending"));
+      check.push({
+        id: "CF-" + (70000 + j), kind: "check",
+        checkNo: rnd() < 0.14 ? "" : String(ri(1024, 4899)),
+        written: written, posted: posted, date: feedDate, dateSrc: posted ? "posted" : "written",
+        payee: pick(PAYEES), amount: -(ri(120, 18500) + rnd()),
+        account: cu.account, upload: cu, project: cproj, claim: cclaim,
+        image: rnd() < 0.88, status: "active",
+        txn: (cclaim === "routed" || cclaim === "matched") ? "PT-" + (32000 + j) : null
+      });
+      check[check.length - 1].amount = Math.round(check[check.length - 1].amount * 100) / 100;
+      cu.items++;
+    }
+  }
+
+  buildUploads();
+  buildFeeds();
+
+  /* ---------- render helpers ---------- */
+  function esc(s){
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){
+      return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c];
+    });
+  }
+  function initials(name){
+    return name.split(" ").map(function(p){ return p[0]; }).join("").slice(0,2).toUpperCase();
+  }
+  function whoCell(person, fallback){
+    if (!person) {
+      return '<span class="who system"><span class="av">SY</span><span>' + esc(fallback) + "</span></span>";
+    }
+    return '<span class="who"><span class="av" style="background:hsl(' + person.hue + ' 58% 45%)">' +
+      esc(initials(person.name)) + "</span><span>" + esc(person.name) + "</span></span>";
+  }
+  var CLAIM_LABEL = { unclaimed:"Unclaimed", pending:"Pending", routed:"Routed", matched:"Matched" };
+  var CLAIM_CLASS = { unclaimed:"pill-none", pending:"pill-pending", routed:"pill-routed", matched:"pill-matched" };
+  function claimPill(c){
+    return '<span class="pill ' + CLAIM_CLASS[c] + '"><i></i>' + CLAIM_LABEL[c] + "</span>";
+  }
+  function projCell(r){
+    if (!r.project) return '<span class="proj-none">&mdash; not in any window</span>';
+    return '<span class="proj"><span class="proj-name">' + esc(r.project.name) + "</span>" + claimPill(r.claim) + "</span>";
+  }
+  function acctCell(a){
+    return '<span class="acct">' + esc(a.label) + ' <span class="mask mono">&bull;&bull;' + a.mask + "</span></span>";
+  }
+
+  /* ---------- column specs ---------- */
+  var COLS = {
+    bank: [
+      { k:"Date",        cls:"", get:function(r){ return '<span class="mono t-strong">' + r.date + "</span>"; } },
+      { k:"Description", cls:"", get:function(r){ return '<span class="desc t-strong" title="' + esc(r.desc) + '">' + esc(r.desc) + "</span>"; } },
+      { k:"Account",     cls:"", get:function(r){ return acctCell(r.account); } },
+      { k:"Amount",      cls:"num", get:function(r){ return '<span class="amt mono ' + (r.amount < 0 ? "out" : "in") + '">' + money(r.amount) + "</span>"; } },
+      { k:"Source file", cls:"", get:function(r){ return '<span class="t-dim mono">' + esc(r.upload.file) + "</span>"; } },
+      { k:"Uploaded by", cls:"", get:function(r){ return whoCell(r.upload.uploader, "System"); } },
+      { k:"Reviewed by", cls:"", get:function(r){ return whoCell(r.upload.reviewer, "Auto-approved"); } },
+      { k:"Project",     cls:"", get:projCell }
+    ],
+    check: [
+      { k:"Feed date", cls:"", get:function(r){
+          return '<span class="mono t-strong">' + r.date + '</span><span class="date-src">' + r.dateSrc + "</span>"; } },
+      { k:"Check no.", cls:"", get:function(r){
+          return r.checkNo ? '<span class="mono t-strong">#' + r.checkNo + "</span>"
+                           : '<span class="t-dim">no number</span>'; } },
+      { k:"Payee",     cls:"", get:function(r){ return '<span class="t-strong">' + esc(r.payee) + "</span>"; } },
+      { k:"Account",   cls:"", get:function(r){ return acctCell(r.account); } },
+      { k:"Amount",    cls:"num", get:function(r){ return '<span class="amt mono out">' + money(r.amount) + "</span>"; } },
+      { k:"Scan",      cls:"", get:function(r){ return '<span class="scan' + (r.image ? "" : " missing") + '" role="img" aria-label="' + (r.image ? "Check image available" : "No check image") + '"></span>'; } },
+      { k:"Source pack", cls:"", get:function(r){ return '<span class="t-dim mono">' + esc(r.upload.file) + "</span>"; } },
+      { k:"Uploaded by", cls:"", get:function(r){ return whoCell(r.upload.uploader, "System"); } },
+      { k:"Reviewed by", cls:"", get:function(r){ return whoCell(r.upload.reviewer, "Auto-approved"); } },
+      { k:"Project",     cls:"", get:projCell }
+    ],
+    upload: [
+      { k:"File",   cls:"", get:function(u){ return '<span class="t-strong mono">' + esc(u.file) + "</span>"; } },
+      { k:"Kind",   cls:"", get:function(u){ return u.kind === "bank" ? "Bank statement" : "Check pack"; } },
+      { k:"Account",cls:"", get:function(u){ return acctCell(u.account); } },
+      { k:"Sheets read", cls:"", get:function(u){
+          if (u.kind !== "check") return '<span class="t-dim">n/a</span>';
+          var pct = Math.round(u.sheetsRead / u.sheetsTotal * 100);
+          var partial = u.sheetsRead < u.sheetsTotal;
+          return '<span class="sheets"><span class="meter"><i style="width:' + pct + '%"></i></span>' +
+            '<span class="mono' + (partial ? " t-strong" : " t-dim") + '">' + u.sheetsRead + "/" + u.sheetsTotal + "</span></span>"; } },
+      { k:"Feeds",  cls:"num", get:function(u){ return '<span class="mono t-strong">' + u.items + "</span>"; } },
+      { k:"Uploaded by", cls:"", get:function(u){ return whoCell(u.uploader, "System"); } },
+      { k:"Reviewed by", cls:"", get:function(u){ return whoCell(u.reviewer, "Auto-approved"); } },
+      { k:"Committed",   cls:"", get:function(u){ return '<span class="mono t-dim">' + u.committed + "</span>"; } },
+      { k:"Claimed into",cls:"", get:function(u){
+          var d = projectFor(u.committed.slice(0,7) + "-15");
+          return d ? '<span class="proj"><span class="proj-name">' + esc(d.name) + "</span></span>"
+                   : '<span class="proj-none">&mdash; no open close</span>'; } }
+    ]
+  };
+
+  /* ---------- state ---------- */
+  var view = "bank", page = 1, per = 25;
+  var $ = function(id){ return document.getElementById(id); };
+
+  function source(){ return view === "bank" ? bank : view === "check" ? check : uploads; }
+
+  function filtered(){
+    var q = $("q").value.trim().toLowerCase();
+    var fa = $("f-account").value, fp = $("f-project").value, fc = $("f-claim").value;
+    return source().filter(function(r){
+      var isUp = view === "upload";
+      if (fa && r.account.id !== fa) return false;
+      if (!isUp && fp && (!r.project || r.project.id !== fp)) return false;
+      if (isUp && fp) {
+        var d = r.file.indexOf("2026-08") > -1 ? "BP-42" : "BP-38";
+        if (d !== fp) return false;
+      }
+      if (!isUp && fc && r.claim !== fc) return false;
+      /* uploads have no claim axis; the control is cleared on tab switch */
+      if (!q) return true;
+      var hay = isUp
+        ? [r.file, r.uid, r.account.label, r.uploader.name, r.reviewer ? r.reviewer.name : "auto approved"]
+        : [r.id, r.desc || "", r.payee || "", r.checkNo || "", r.upload.file, r.account.label,
+           r.upload.uploader.name, r.upload.reviewer ? r.upload.reviewer.name : "auto"];
+      return hay.join(" ").toLowerCase().indexOf(q) > -1;
+    });
+  }
+
+  function renderRail(){
+    var all = bank.concat(check);
+    var claimed = all.filter(function(r){ return r.claim !== "unclaimed"; }).length;
+    var uncl = all.length - claimed;
+    /* Claimed but not yet turned into a project transaction -- the one thing on this
+       screen a person can actually act on. A short pack cannot be worked here: its
+       review gate is resolved and its run is terminal, so it is provenance only and
+       lives as a plain column on the Uploads tab. */
+    var pendingRouting = all.filter(function(r){ return r.claim === "pending"; }).length;
+    var tiles = [
+      { k:"Feeds in system", v:(bank.length + check.length).toLocaleString(),
+        n:"<b>" + bank.length + "</b> bank &middot; <b>" + check.length + "</b> check", tone:"var(--accent)" },
+      { k:"Claimed by a project", v:claimed.toLocaleString(),
+        n:"across <b>" + PROJECTS.length + "</b> open closes", tone:"var(--ok)" },
+      { k:"Unclaimed", v:uncl.toLocaleString(),
+        n:"outside every project window", tone:"var(--warn)" },
+      { k:"Pending routing", v:pendingRouting.toLocaleString(),
+        n:"claimed, not yet a transaction", tone:"var(--accent)" }
+    ];
+    $("rail").innerHTML = tiles.map(function(t){
+      return '<div class="stat" style="--tone:' + t.tone + '"><div class="stat-k">' + t.k +
+        '</div><div class="stat-v mono">' + t.v + '</div><div class="stat-n">' + t.n + "</div></div>";
+    }).join("");
+  }
+
+  function renderTable(){
+    var cols = COLS[view], rows = filtered();
+    var pages = Math.max(1, Math.ceil(rows.length / per));
+    if (page > pages) page = pages;
+    var start = (page - 1) * per, slice = rows.slice(start, start + per);
+
+    $("thead").innerHTML = "<tr>" + cols.map(function(c){
+      return '<th scope="col" class="' + c.cls + '">' + c.k + "</th>";
+    }).join("") + "</tr>";
+
+    $("tbody").innerHTML = slice.length
+      ? slice.map(function(r, i){
+          return '<tr tabindex="0" data-i="' + (start + i) + '">' + cols.map(function(c){
+            return '<td class="' + c.cls + '">' + c.get(r) + "</td>";
+          }).join("") + "</tr>";
+        }).join("")
+      : '<tr><td colspan="' + cols.length + '" style="padding:48px; text-align:center; color:var(--ink-3)">' +
+        "No feeds match these filters.</td></tr>";
+
+    var noun = view === "upload" ? "uploads" : view === "bank" ? "bank feed lines" : "check feeds";
+    $("pinfo").innerHTML = rows.length
+      ? "Showing <b>" + (start + 1) + "</b>&ndash;<b>" + Math.min(start + per, rows.length) +
+        "</b> of <b>" + rows.length.toLocaleString() + "</b> " + noun
+      : "No " + noun;
+
+    var nav = [];
+    nav.push('<button class="pg" type="button" data-p="1"' + (page === 1 ? " disabled" : "") + ">First</button>");
+    nav.push('<button class="pg" type="button" data-p="' + (page - 1) + '"' + (page === 1 ? " disabled" : "") + ">Prev</button>");
+    var lo = Math.max(1, Math.min(page - 2, pages - 4)), hi = Math.min(pages, lo + 4);
+    for (var p = lo; p <= hi; p++){
+      nav.push('<button class="pg" type="button" data-p="' + p + '"' + (p === page ? ' aria-current="true"' : "") + ">" + p + "</button>");
+    }
+    nav.push('<button class="pg" type="button" data-p="' + (page + 1) + '"' + (page === pages ? " disabled" : "") + ">Next</button>");
+    nav.push('<button class="pg" type="button" data-p="' + pages + '"' + (page === pages ? " disabled" : "") + ">Last</button>");
+    $("pnav").innerHTML = nav.join("");
+
+    $("fnote").textContent = rows.length === source().length
+      ? "" : "Filtered from " + source().length.toLocaleString();
+  }
+
+  function renderAll(){ renderTable(); }
+
+  /* ---------- drawer ---------- */
+  function openDrawer(idx){
+    var r = filtered()[idx];
+    if (!r) return;
+    var isUp = view === "upload";
+    var up = isUp ? r : r.upload;
+
+    $("d-kind").textContent = isUp ? (up.kind === "bank" ? "Bank statement upload" : "Check pack upload")
+                                   : (r.kind === "bank" ? "Bank feed line" : "Check feed");
+    $("d-title").innerHTML = isUp ? esc(up.file)
+      : (r.kind === "bank" ? esc(r.desc)
+         : (r.checkNo ? "Check #" + esc(r.checkNo) : "Check, no number") + " &middot; " + esc(r.payee));
+
+    var facts = "";
+    if (!isUp){
+      facts += '<dl class="kv">' +
+        "<dt>Feed id</dt><dd class='mono'>" + r.id + "</dd>" +
+        (r.kind === "bank"
+          ? "<dt>Date</dt><dd class='mono'>" + r.date + "</dd>"
+          : "<dt>Feed date</dt><dd class='mono'>" + r.date + " <span class='t-dim'>(" + r.dateSrc + ")</span></dd>" +
+            "<dt>Written on face</dt><dd class='mono'>" + r.written + "</dd>" +
+            "<dt>Bank footer</dt><dd class='mono'>" + (r.posted || "&mdash; none printed") + "</dd>") +
+        "<dt>Amount</dt><dd class='mono'>" + money(r.amount) + "</dd>" +
+        "<dt>Account</dt><dd>" + acctCell(r.account) + "</dd>" +
+        "<dt>Status</dt><dd>" + (r.status === "active" ? "Active" : "Excluded from lists") + "</dd>" +
+        (r.kind === "check" ? "<dt>Check image</dt><dd>" + (r.image ? "In the library" : "None cut") + "</dd>" : "") +
+        "</dl>";
+    } else {
+      facts += '<dl class="kv">' +
+        "<dt>Upload id</dt><dd class='mono'>" + up.uid + "</dd>" +
+        "<dt>Account</dt><dd>" + acctCell(up.account) + "</dd>" +
+        "<dt>Feeds created</dt><dd class='mono'>" + up.items + "</dd>" +
+        (up.kind === "check"
+          ? "<dt>Sheets read</dt><dd class='mono'>" + up.sheetsRead + " of " + up.sheetsTotal + "</dd>" +
+            (up.sheetsRead < up.sheetsTotal
+              ? "<dt></dt><dd><span class='t-dim' style='font-weight:400'>Read in part, so this pack yielded fewer " +
+                "checks than it physically held. Not fixable from here &mdash; the pack's review is closed. " +
+                "Re-upload the missing sheets to add them.</span></dd>"
+              : "")
+          : "") +
+        "<dt>Committed</dt><dd class='mono'>" + up.committed + "</dd>" +
+        "</dl>";
+    }
+
+    var claimHtml;
+    if (isUp){
+      var dproj = projectFor(up.committed.slice(0,7) + "-15");
+      claimHtml = dproj
+        ? '<dl class="kv"><dt>Window match</dt><dd>' + esc(dproj.name) +
+          '</dd><dt>Period</dt><dd class="mono">' + dproj.start + " &rarr; " + dproj.end + "</dd></dl>"
+        : '<div class="note">No open close covers this file&rsquo;s period, so its feeds are sitting unclaimed. ' +
+          "Create the close and the pipeline claims them on its next sync.</div>";
+    } else if (r.project){
+      claimHtml = '<dl class="kv">' +
+        "<dt>Project</dt><dd>" + esc(r.project.name) + "</dd>" +
+        '<dt>Period</dt><dd class="mono">' + r.project.start + " &rarr; " + r.project.end + "</dd>" +
+        "<dt>Claim state</dt><dd>" + claimPill(r.claim) + "</dd>" +
+        (r.txn ? "<dt>Transaction</dt><dd class='mono'>" + r.txn + "</dd>" : "") +
+        "</dl>";
+    } else {
+      claimHtml = '<div class="note">This feed sits outside every open project window, so no project has claimed it. ' +
+        "It will be claimed automatically by the first close whose period covers " +
+        '<span class="mono">' + r.date + "</span>.</div>";
+    }
+
+    var steps = [
+      { t:"Committed to the vault", m:up.committed + " &middot; " + esc(up.uploader.name) },
+      { t: up.reviewer ? "Reviewed and approved" : "Auto-approved, no human review",
+        m: up.reviewer ? esc(up.reviewer.name) : "No reviewer recorded", dim: !up.reviewer },
+      { t:"Feeds committed", m:"Run " + up.runId + " &middot; " + up.items + " rows" }
+    ];
+    if (!isUp && r.project) steps.push({ t:"Claimed by " + esc(r.project.name), m:"Claim state: " + CLAIM_LABEL[r.claim] });
+    if (!isUp && r.txn) steps.push({ t:"Routed to a project transaction", m:r.txn });
+    if (!isUp && !r.project) steps.push({ t:"Awaiting a project claim", m:"No open window covers this date", dim:true });
+
+    $("d-body").innerHTML =
+      '<section><div class="dsec-k">' + (isUp ? "The upload" : "The feed as reported") + "</div>" + facts + "</section>" +
+      '<section><div class="dsec-k">People</div><dl class="kv">' +
+        "<dt>Uploaded by</dt><dd>" + whoCell(up.uploader, "System") + "</dd>" +
+        "<dt>Reviewed by</dt><dd>" + whoCell(up.reviewer, "Auto-approved") + "</dd>" +
+        '<dt>Source file</dt><dd class="mono">' + esc(up.file) + "</dd>" +
+      "</dl></section>" +
+      '<section><div class="dsec-k">' + (isUp ? "Project window" : "Project") + "</div>" + claimHtml + "</section>" +
+      '<section><div class="dsec-k">Provenance</div><ul class="tl">' +
+        steps.map(function(s){
+          return '<li class="' + (s.dim ? "dim" : "") + '"><div><div class="tl-t">' + s.t +
+            '</div><div class="tl-m">' + s.m + "</div></div></li>";
+        }).join("") +
+      "</ul></section>" +
+      (isUp ? "" : '<div class="note">A feed row is immutable. Its date, description, amount and account are ' +
+        "never rewritten after the read &mdash; only its active/excluded status can change.</div>");
+
+    $("drawer").classList.add("open");
+    $("drawer").setAttribute("aria-hidden", "false");
+    $("scrim").classList.add("open");
+    $("closeBtn").focus();
+  }
+  function closeDrawer(){
+    $("drawer").classList.remove("open");
+    $("drawer").setAttribute("aria-hidden", "true");
+    $("scrim").classList.remove("open");
+  }
+
+  /* ---------- wiring ---------- */
+  $("f-account").innerHTML = '<option value="">All accounts</option>' +
+    ACCOUNTS.map(function(a){ return '<option value="' + a.id + '">' + a.label + " ••" + a.mask + "</option>"; }).join("");
+  $("f-project").innerHTML = '<option value="">All projects</option>' +
+    PROJECTS.map(function(p){ return '<option value="' + p.id + '">' + p.name + "</option>"; }).join("");
+
+  $("c-bank").textContent = bank.length;
+  $("c-check").textContent = check.length;
+  $("c-upload").textContent = uploads.length;
+
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(t){
+    t.addEventListener("click", function(){
+      Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(o){
+        o.setAttribute("aria-selected", String(o === t));
+      });
+      view = t.dataset.view; page = 1;
+      $("panel").setAttribute("aria-labelledby", t.id);
+      if (view === "upload") { $("f-claim").value = ""; }
+      $("f-claim").disabled = (view === "upload");
+      renderAll();
+    });
+  });
+
+  ["q","f-account","f-project","f-claim"].forEach(function(id){
+    $(id).addEventListener("input", function(){ page = 1; renderAll(); });
+  });
+  $("per").addEventListener("change", function(){ per = Number(this.value); page = 1; renderAll(); });
+  $("pnav").addEventListener("click", function(e){
+    var b = e.target.closest(".pg");
+    if (!b || b.disabled) return;
+    page = Number(b.dataset.p); renderAll();
+    document.getElementById("panel").scrollIntoView({ block:"nearest" });
+  });
+  $("tbody").addEventListener("click", function(e){
+    var tr = e.target.closest("tr[data-i]");
+    if (tr) openDrawer(Number(tr.dataset.i));
+  });
+  $("tbody").addEventListener("keydown", function(e){
+    if (e.key !== "Enter" && e.key !== " ") return;
+    var tr = e.target.closest("tr[data-i]");
+    if (tr){ e.preventDefault(); openDrawer(Number(tr.dataset.i)); }
+  });
+  $("closeBtn").addEventListener("click", closeDrawer);
+  $("scrim").addEventListener("click", closeDrawer);
+  document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeDrawer(); });
+
+  $("themeBtn").addEventListener("click", function(){
+    var root = document.documentElement;
+    var dark = root.getAttribute("data-theme") === "dark" ||
+      (!root.getAttribute("data-theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    root.setAttribute("data-theme", dark ? "light" : "dark");
+  });
+
+  renderRail();
+  renderAll();
+})();
+</script>
+</body>
+</html>
