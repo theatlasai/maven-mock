@@ -1,760 +1,1064 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Atlas &mdash; Invoice review (Workflows &rarr; Run &rarr; Review)</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoice review — parse_invoice</title>
+<!--
+  Invoice review — the human gate on accounting/bookkeeping/workflows/parse_invoice.
+
+  Faithful to the six design artboards this screen was drawn on:
+    Main.dc.html      Lines — does not reconcile   (Feelflux, run 4187)
+    Clean.dc.html     Lines — reconciles           (Hangzhou, run 4192)
+    TotalsTax.dc.html Totals & tax                 (Kaapi, run 4190)
+    Triage.dc.html    Page census
+    ReAsk.dc.html     Re-ask dialog
+    Derived.dc.html   Derived — planned, not in v1
+
+  The artboards depended on a design-canvas React runtime (support.js + vendor bundles),
+  which this repo has no build step for. The markup here is rewritten against classes
+  instead of the canvas's inline styles, but the type stack, palette, spacing, copy and
+  figures are the artboards' own. Each artboard carries its own run id and vendor, so the
+  rail selects a view and the view brings its invoice with it.
+
+  Every figure is rendered as the backend emits it — see contracts/review-payload.md.
+  Nothing on this screen is summed in the browser.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Hanken+Grotesk:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap">
 <style>
-/* The review surface for `parse_invoice` (ATLS-316).
+  *{box-sizing:border-box}
+  :root{
+    --ink:#0f172a; --ink2:#334155; --slate:#475569; --muted:#64748b; --faint:#94a3b8; --ghost:#cbd5e1;
+    --line:#e2e8f0; --hair:#f1f5f9; --bg:#f8fafc; --wash:#eef2f6;
+    --primary:#4f46e5; --primary-d:#4338ca;
+    --ok-bg:#ecfdf5; --ok-fg:#047857; --ok-deep:#065f46; --ok-dot:#059669; --ok-line:#a7f3d0;
+    --warn-bg:#fffbeb; --warn-fg:#92400e; --warn-dot:#f59e0b; --warn-line:#fde68a;
+    --bad-bg:#fef2f2; --bad-fg:#b91c1c; --bad-deep:#991b1b; --bad-dot:#dc2626; --bad-line:#fecaca;
+    --indigo-bg:#eef2ff; --indigo-fg:#3730a3; --indigo-line:#c7d2fe;
+  }
+  body{
+    margin:0; padding:24px 16px 56px; background:#e8ecf1; color:var(--ink);
+    font-family:"Hanken Grotesk",Inter,system-ui,sans-serif; font-size:13px;
+    -webkit-font-smoothing:antialiased; font-feature-settings:"cv02","cv03","cv04","cv11";
+    display:flex; justify-content:center;
+  }
+  h1,h2,h3{font-family:'Bricolage Grotesque',Georgia,serif; letter-spacing:-.01em; margin:0; font-weight:600}
+  p{margin:0}
+  .mono{font-family:'Spline Sans Mono',Menlo,monospace; font-variant-numeric:tabular-nums}
+  .grow{flex-grow:1}
+  .vr{width:1px;height:22px;background:var(--line)}
 
-   Mirrors the shipped console rather than inventing a look -- same sources as
-   bookkeeping-feeds.html, whose palette and type stacks this reuses verbatim:
-     maven-frontend/tailwind.config.ts             - primary/success/warning/danger/slate
-     maven-frontend/src/app/globals.css            - radii, shadows, base body treatment
-     maven-frontend/src/features/layout/Sidebar/   - the navy gradient, 3px active accent
-     maven-frontend/src/components/ui/{Badge,PageHeader}.tsx
+  .frame{
+    position:relative; width:1280px; min-height:880px; display:flex; overflow:hidden;
+    background:var(--bg); border:1px solid #d8dee6; border-radius:14px;
+    box-shadow:0 24px 50px -24px rgba(15,23,42,.4);
+  }
 
-   Drawn against the REAL payload contract, not an imagined one:
-     maven-specs/.../ATLS-316-invoice-extraction-backend/contracts/review-payload.md
-   Every figure rendered here comes from the backend in that shape. Nothing on this
-   screen is computed in-page -- the residual, the counts and the verdicts are emitted,
-   which is contract rule 1 and the reason the real screen cannot drift from the ledger.
+  /* ── Left rail: 92px, mirrors ReviewRail.tsx ─────────────────────────────── */
+  .rail{width:92px; flex-shrink:0; display:flex; flex-direction:column; border-right:1px solid var(--line); background:#fff}
+  .rail .logo{height:56px; display:flex; align-items:center; justify-content:center; color:var(--muted)}
+  .rail .items{display:flex; flex-direction:column; gap:2px; padding:4px 0}
+  .rail button{
+    display:flex; flex-direction:column; align-items:center; gap:4px; width:100%; padding:10px 0;
+    border:0; background:none; cursor:pointer; color:var(--muted);
+    font-family:inherit; font-size:11px; font-weight:500;
+  }
+  .rail button:hover:not(.on):not([disabled]){background:var(--bg)}
+  .rail button.on{background:#eff6ff; color:#1d4ed8}
+  .rail button[disabled]{color:var(--ghost); cursor:not-allowed}
 
-   The three specimens carry their real measured figures, because each breaks something
-   a generic fixture would not:
-     Feelflux   a -21.90 coupon; a tax component labelled EUKT whose rate is genuinely null
-     Kaapi      CGST and SGST at 7,650 each -- two components identical but for their label
-     Hangzhou   six lines, two of them charges with no quantity and no rate, and no tax at all
-   A fourth invoice is a FAILED read, because every invoice reaches this gate including one
-   that could not be read (FR-018).
+  .main{flex-grow:1; min-width:0; display:flex; flex-direction:column}
 
-   Page pane: a schematic. The shipped screen renders the real PDF client-side through
-   pdfjs-dist, which this repo has no build step for. That is a mock limitation, not the
-   design. */
+  /* ── Top bar ─────────────────────────────────────────────────────────────── */
+  .bar{height:56px; flex-shrink:0; display:none; align-items:center; gap:14px; padding:0 20px; border-bottom:1px solid var(--line); background:#fff}
+  .bar.on{display:flex}
+  .bar .run{font-family:'Spline Sans Mono',Menlo,monospace; font-size:11.5px; color:var(--muted)}
+  .bar .sep{color:var(--ghost)}
+  .bar .where{font-size:12.5px; font-weight:600; color:var(--ink)}
+  .bar .who{font-family:'Spline Sans Mono',Menlo,monospace; font-size:11px; color:var(--faint)}
+  .picker{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--ghost); border-radius:8px; padding:4px 10px; font-size:12px; font-weight:600; color:var(--ink); background:#fff; cursor:pointer; font-family:inherit}
+  .tally{display:flex; align-items:center; gap:7px; font-size:11px}
+  .tally span{display:inline-flex; align-items:center; gap:5px}
+  .tally i{width:6px; height:6px; border-radius:999px; display:block}
+  .tally .a{color:var(--ok-fg)} .tally .a i{background:var(--ok-dot)}
+  .tally .u{color:var(--warn-fg)} .tally .u i{background:var(--warn-dot)}
+  .tally .x{color:var(--muted)} .tally .x i{background:var(--faint)}
 
-*, *::before, *::after{ box-sizing:border-box }
-body, h1, h2, h3, p, dl, dd, ul, figure{ margin:0 }
-ul{ padding:0; list-style:none }
-button{ font:inherit; color:inherit }
+  .btn{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); background:#fff; border-radius:8px; padding:7px 12px; font-family:inherit; font-size:12.5px; font-weight:600; color:var(--ink2); cursor:pointer}
+  .btn:hover{border-color:var(--ghost)}
+  .btn.primary{background:var(--primary); border-color:var(--primary-d); color:#fff}
+  .btn.danger{border-color:var(--ghost); color:var(--bad-fg)}
+  .btn.accepted{background:var(--ok-bg); border-color:var(--ok-line); color:var(--ok-fg)}
+  .btn.dim{opacity:.45; cursor:not-allowed}
+  .btn.off{background:var(--bg); border-color:var(--line); color:var(--faint); cursor:not-allowed}
 
-:root{
-  --bg:#f8fafc; --surface:#ffffff; --surface-2:#f1f5f9; --surface-3:#e9eef5;
-  --border:#e2e8f0; --border-strong:#cbd5e1;
-  --ink:#0f172a; --ink-2:#475569; --ink-3:#64748b;
-  --accent:#4f46e5; --accent-hover:#4338ca; --accent-weak:#eef2ff; --accent-ink:#4338ca;
-  --ok:#059669; --ok-weak:#ecfdf5; --warn:#d97706; --warn-weak:#fffbeb;
-  --bad:#e11d48; --bad-weak:#fff1f2;
-  --out:#b4441f; --in:#2f6f4e;
-  --ring:rgba(79,70,229,.35);
-  --shadow-sm:0 1px 3px 0 rgb(15 23 42 / .08), 0 1px 2px -1px rgb(15 23 42 / .06);
-  --shadow-lg:0 10px 15px -3px rgb(15 23 42 / .10), 0 4px 6px -4px rgb(15 23 42 / .10);
-}
+  /* ── Chips ───────────────────────────────────────────────────────────────── */
+  .chip{display:inline-flex; align-items:center; gap:6px; border-radius:6px; padding:4px 8px; font-size:11px; font-weight:500}
+  .chip i{width:6px; height:6px; border-radius:999px; display:block; flex-shrink:0}
+  .chip.ok{background:var(--ok-bg); color:var(--ok-fg); box-shadow:inset 0 0 0 1px rgba(5,150,105,.2)} .chip.ok i{background:var(--ok-dot)}
+  .chip.warn{background:var(--warn-bg); color:var(--warn-fg); box-shadow:inset 0 0 0 1px rgba(245,158,11,.25)} .chip.warn i{background:var(--warn-dot)}
+  .chip.bad{background:var(--bad-bg); color:var(--bad-fg); box-shadow:inset 0 0 0 1px rgba(220,38,38,.2)} .chip.bad i{background:var(--bad-dot)}
+  .chip.neutral{background:var(--hair); color:var(--ink2); box-shadow:inset 0 0 0 1px rgba(100,116,139,.2)} .chip.neutral i{background:var(--faint)}
+  .chip.indigo{background:var(--indigo-bg); color:var(--indigo-fg); box-shadow:inset 0 0 0 1px rgba(79,70,229,.2)} .chip.indigo i{background:var(--primary)}
+  button.chip{border:0; font-family:inherit; cursor:pointer}
 
-body{
-  font-family:'Hanken Grotesk','Plus Jakarta Sans',Inter,system-ui,-apple-system,'Segoe UI',sans-serif;
-  background:var(--bg); color:var(--ink); font-size:14px; line-height:1.5;
-  -webkit-font-smoothing:antialiased;
-}
-.mono{ font-family:'Spline Sans Mono','JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
-       font-variant-numeric:tabular-nums }
+  /* ── Identity strip + tiles ──────────────────────────────────────────────── */
+  .ident{display:flex; align-items:flex-end; gap:14px; padding:16px 20px 12px; background:#fff; border-bottom:1px solid var(--line)}
+  .ident h1{font-size:22px}
+  .ident .names{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+  .ident .meta{margin-top:5px; font-family:'Spline Sans Mono',Menlo,monospace; font-size:11.5px; color:var(--muted)}
+  .tiles{display:flex; gap:8px}
+  .tile{border:1px solid var(--line); background:rgba(248,250,252,.6); border-radius:12px; padding:6px 10px; min-width:92px}
+  .tile .k{font-size:9.5px; font-weight:500; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); display:flex; align-items:center; gap:4px}
+  .tile .v{margin-top:2px; font-family:'Spline Sans Mono',Menlo,monospace; font-size:13.5px; font-weight:500; font-variant-numeric:tabular-nums; color:var(--ink)}
+  .tile .n{font-size:9.5px; color:var(--muted)}
+  .tile.bad{border-color:#fca5a5; background:var(--bad-bg)}
+  .tile.bad .k,.tile.bad .v,.tile.bad .n{color:var(--bad-fg)}
+  .tile .q{margin-left:2px; display:grid; place-items:center; width:13px; height:13px; border:1px solid currentColor; border-radius:999px; font-size:8.5px; font-weight:700; line-height:1; opacity:.7}
 
-/* ── Shell ──────────────────────────────────────────────────────────────────── */
-.app{ display:grid; grid-template-columns:232px 1fr; min-height:100vh }
-.side{ background:linear-gradient(180deg,#111a2e 0%,#0d1424 100%); color:#cbd5e1; padding:18px 0 }
-.brand{ display:flex; align-items:center; gap:9px; padding:0 18px 18px; font-weight:700; color:#fff;
-        letter-spacing:-.2px }
-.brand .dot{ width:22px; height:22px; border-radius:7px; background:var(--accent); display:grid;
-             place-items:center; font-size:12px }
-.navgroup{ padding:14px 18px 6px; font-size:10.5px; letter-spacing:.09em; text-transform:uppercase;
-           color:#64748b; font-weight:700 }
-.navitem{ display:flex; align-items:center; gap:9px; padding:7px 18px; color:#cbd5e1; font-size:13px;
-          border-left:3px solid transparent; cursor:default }
-.navitem.child{ padding-left:34px; font-size:12.5px; color:#94a3b8 }
-.navitem.on{ background:rgba(79,70,229,.16); border-left-color:var(--accent); color:#fff; font-weight:600 }
+  /* ── Diagnosis band ──────────────────────────────────────────────────────── */
+  .diag{border-bottom:1px solid var(--bad-line); background:var(--bad-bg)}
+  .diag .headline{display:flex; align-items:flex-start; gap:10px; padding:10px 20px}
+  .diag .dot{margin-top:6px; width:6px; height:6px; flex-shrink:0; border-radius:999px; background:var(--bad-dot)}
+  .diag p{min-width:0; flex-grow:1; font-size:12.5px; line-height:1.6; color:var(--bad-deep)}
+  .diag b{font-weight:600}
+  .diag .act{flex-shrink:0; border:1px solid rgba(153,27,27,.25); background:transparent; border-radius:12px; padding:4px 10px; font-family:inherit; font-size:11.5px; font-weight:500; color:var(--bad-deep); cursor:pointer}
+  .diag .act:hover{background:rgba(255,255,255,.5)}
+  .findings{border-top:1px solid rgba(153,27,27,.15); padding:9px 20px 11px; display:flex; flex-direction:column; gap:7px}
+  .finding{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px; font-size:11.5px; color:var(--slate)}
+  .finding .kind{font-size:12.5px; font-weight:500}
+  .finding .where{border-radius:6px; background:rgba(255,255,255,.7); padding:2px 6px; font-size:10.5px; font-weight:500; color:var(--slate)}
 
-.main{ display:flex; flex-direction:column; min-width:0 }
+  /* ── Bands ───────────────────────────────────────────────────────────────── */
+  .band{display:flex; align-items:center; gap:10px; padding:10px 20px; border-bottom:1px solid var(--line)}
+  .band.wash{background:var(--bg)}
+  .band.plain{background:#fff; padding:9px 20px}
+  .band .cap{font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted)}
+  .band .sub{font-size:11px; color:var(--faint)}
+  .band .note{font-size:11.5px; color:var(--muted)}
 
-/* ── Header ─────────────────────────────────────────────────────────────────── */
-.head{ background:var(--surface); border-bottom:1px solid var(--border); padding:14px 22px }
-.crumbs{ font-size:12px; color:var(--ink-3); margin-bottom:5px }
-.headrow{ display:flex; align-items:flex-start; justify-content:space-between; gap:18px; flex-wrap:wrap }
-.title{ font-size:19px; font-weight:700; letter-spacing:-.3px }
-.subtitle{ font-size:12.5px; color:var(--ink-3); margin-top:2px }
-.headactions{ display:flex; align-items:center; gap:9px }
+  /* ── Tables ──────────────────────────────────────────────────────────────── */
+  .sheet{flex-grow:1; min-width:0; background:#fff}
+  table{width:100%; border-collapse:collapse}
+  th{white-space:nowrap; border-bottom:1px solid var(--line); background:#fff; padding:12px; text-align:left; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.025em; color:var(--muted)}
+  td{padding:10px 12px; border-bottom:1px solid var(--hair); font-size:12.5px; color:var(--ink)}
+  .r{text-align:right} .c{text-align:center}
+  td.num{white-space:nowrap; font-family:'Spline Sans Mono',Menlo,monospace; font-size:12px; font-variant-numeric:tabular-nums; color:var(--ink2); text-align:right}
+  td.net{font-weight:500; color:var(--ink)}
+  td.idx{white-space:nowrap; font-family:'Spline Sans Mono',Menlo,monospace; font-size:11.5px; font-variant-numeric:tabular-nums; color:var(--faint); text-align:right}
+  td.pg{white-space:nowrap; font-family:'Spline Sans Mono',Menlo,monospace; font-size:11.5px; color:var(--muted); text-align:center}
+  td.code{font-family:'Spline Sans Mono',Menlo,monospace; font-size:11.5px; color:var(--ink2)}
+  td.tax{color:var(--faint)}
+  td.go{text-align:center; color:var(--ghost)}
+  .lab{border-radius:6px; padding:3px 7px; font-size:9.5px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; white-space:nowrap}
+  .lab.product{background:var(--hair); color:var(--ink2)}
+  .lab.charge{background:#eff6ff; color:#1d4ed8}
+  .lab.discount{background:var(--bad-bg); color:var(--bad-fg)}
+  .missing{display:inline-flex; align-items:center; gap:7px; border:1px dashed #fca5a5; border-radius:8px; padding:4px 9px; font-size:11.5px; color:var(--bad-fg)}
+  .foot{display:flex; align-items:center; gap:10px; padding:12px 16px; font-size:11.5px; color:var(--muted)}
+  .sumrow td{padding:12px; font-size:11.5px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); border-bottom:0}
+  .sumrow td.total{font-family:'Spline Sans Mono',Menlo,monospace; font-size:13px; font-weight:500; font-variant-numeric:tabular-nums; color:var(--ok-fg); text-transform:none; letter-spacing:0}
 
-.btn{ border:1px solid var(--border-strong); background:var(--surface); border-radius:8px;
-      padding:7px 13px; font-size:13px; font-weight:600; cursor:pointer }
-.btn:hover{ background:var(--surface-2) }
-.btn.primary{ background:var(--accent); border-color:var(--accent); color:#fff }
-.btn.primary:hover{ background:var(--accent-hover) }
-.btn.danger{ color:var(--bad); border-color:#fecdd3 }
-.btn.danger:hover{ background:var(--bad-weak) }
-.btn[disabled]{ opacity:.45; cursor:not-allowed }
+  /* ── Page pane ───────────────────────────────────────────────────────────── */
+  .split{flex-grow:1; min-height:0; display:flex}
+  .pane{width:372px; flex-shrink:0; border-left:1px solid var(--line); background:var(--bg); display:flex; flex-direction:column}
+  .pane .head{display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid var(--line)}
+  .pane .head .cap{font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted)}
+  .pane .head .of{border-radius:6px; background:var(--hair); padding:2px 7px; font-size:10.5px; font-weight:500; color:var(--slate)}
+  .pane .head .n{font-size:10.5px; color:var(--faint)}
+  .strip{display:flex; gap:5px; padding:9px 14px; border-bottom:1px solid var(--line)}
+  .strip .p{flex-grow:1; display:flex; flex-direction:column; align-items:center; gap:3px}
+  .strip .sw{width:100%; height:26px; border-radius:3px; border:1px solid}
+  .strip .lbl{font-family:'Spline Sans Mono',Menlo,monospace; font-size:9px}
+  .preview{margin:14px; flex-grow:1; background:#fff; border:1px solid var(--line); border-radius:6px; padding:18px; display:flex; flex-direction:column; gap:9px}
+  .preview .rule{height:1px; background:var(--line)}
+  .preview .ln{height:7px; background:var(--wash); border-radius:2px}
+  .preview .amt{display:flex; align-items:center; gap:8px}
+  .preview .amt .v{font-family:'Spline Sans Mono',Menlo,monospace; font-size:10.5px; color:var(--faint)}
+  .preview .found{background:#fef2f6; outline:2px solid #f43f5e; outline-offset:3px; border-radius:2px}
+  .preview .found .ln{background:#fecdd3}
+  .preview .found .v{font-weight:500; color:#be123c}
+  .pane .notes{padding:0 14px 14px; display:flex; flex-direction:column; gap:7px}
+  .pane .notes p{font-size:11.5px; line-height:1.55; color:var(--muted)}
+  .pane .notes p.faint{color:var(--faint)}
 
-.pill{ display:inline-flex; align-items:center; gap:5px; border-radius:999px; padding:2px 9px;
-       font-size:11.5px; font-weight:700; border:1px solid transparent; white-space:nowrap }
-.pill.ok{ background:var(--ok-weak); color:var(--ok); border-color:#a7f3d0 }
-.pill.warn{ background:var(--warn-weak); color:var(--warn); border-color:#fde68a }
-.pill.bad{ background:var(--bad-weak); color:var(--bad); border-color:#fecdd3 }
-.pill.mute{ background:var(--surface-2); color:var(--ink-2); border-color:var(--border) }
-.pill.accent{ background:var(--accent-weak); color:var(--accent-ink); border-color:#c7d2fe }
+  /* ── Cards ───────────────────────────────────────────────────────────────── */
+  .card{background:#fff; border:1px solid var(--line); border-radius:12px}
+  .card .hd{display:flex; align-items:baseline; gap:10px; padding:14px 18px; border-bottom:1px solid var(--line)}
+  .card .hd h2{font-size:15px}
+  .card .hd .sub{font-size:11.5px; color:var(--muted)}
+  .card .bd{padding:16px 18px}
+  .card h3{font-size:14px; margin-bottom:10px}
+  .card .bd p{font-size:12px; line-height:1.6; color:var(--slate)}
+  .note{display:flex; align-items:flex-start; gap:10px; border-radius:12px; padding:14px 18px}
+  .note .dot{margin-top:6px; width:6px; height:6px; flex-shrink:0; border-radius:999px}
+  .note h3{font-family:"Hanken Grotesk",sans-serif; font-size:12.5px; letter-spacing:0; margin-bottom:5px}
+  .note p{font-size:12px; line-height:1.6}
+  .note.ok{background:var(--ok-bg); border:1px solid var(--ok-line)} .note.ok .dot{background:var(--ok-dot)} .note.ok h3,.note.ok p{color:var(--ok-deep)}
+  .note.warn{background:var(--warn-bg); border:1px solid var(--warn-line)} .note.warn .dot{background:var(--warn-dot)} .note.warn h3,.note.warn p{color:var(--warn-fg)}
+  .note.bad{background:var(--bad-bg); border:1px solid var(--bad-line)} .note.bad .dot{background:var(--bad-dot)} .note.bad h3,.note.bad p{color:var(--bad-deep)}
+  .note.plain{background:#fff; border:1px solid var(--line)} .note.plain .dot{background:var(--faint)} .note.plain p{color:var(--slate); font-size:11.5px}
+  .pill{border-radius:6px; background:var(--bg); box-shadow:inset 0 0 0 1px var(--line); padding:4px 8px; font-size:11px; color:var(--muted)}
 
-/* The read-only banner. A non-member sees the invoice and is told why, never an empty screen. */
-.banner{ display:flex; gap:9px; align-items:flex-start; padding:9px 13px; border-radius:9px;
-         font-size:12.5px; margin-top:11px; border:1px solid }
-.banner.info{ background:var(--accent-weak); border-color:#c7d2fe; color:#312e81 }
+  .view{display:none; flex-grow:1; min-height:0; flex-direction:column}
+  .view.on{display:flex}
+  .pad{padding:20px; display:flex; gap:20px; flex-grow:1; min-height:0}
 
-/* ── Invoice selector ───────────────────────────────────────────────────────── */
-.selector{ display:flex; align-items:center; gap:11px; padding:9px 22px; background:var(--surface-2);
-           border-bottom:1px solid var(--border); flex-wrap:wrap }
-.chips{ display:flex; gap:6px; flex-wrap:wrap }
-.chip{ border:1px solid var(--border-strong); background:var(--surface); border-radius:999px;
-       padding:4px 11px; font-size:12px; cursor:pointer; display:flex; align-items:center; gap:6px }
-.chip.on{ border-color:var(--accent); background:var(--accent-weak); color:var(--accent-ink); font-weight:700 }
-.chip .st{ width:7px; height:7px; border-radius:50% }
-.st.acc{ background:var(--ok) } .st.exc{ background:var(--bad) } .st.und{ background:var(--border-strong) }
-.counts{ margin-left:auto; font-size:12px; color:var(--ink-2) }
+  /* ── Census ──────────────────────────────────────────────────────────────── */
+  .census{padding:24px 28px; display:flex; flex-direction:column; gap:18px}
+  .census h2{font-size:19px}
+  .census .lede{margin-top:6px; font-size:12.5px; line-height:1.6; color:var(--slate); max-width:76ch}
+  .pages{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px}
+  .page{border:1px solid; border-radius:8px; overflow:hidden; display:flex; flex-direction:column}
+  .page .sheetish{height:132px; padding:12px; display:flex; flex-direction:column; gap:6px; background:#fff}
+  .page .sheetish div{border-radius:2px}
+  .page .cap{padding:8px 10px; border-top:1px solid; display:flex; flex-direction:column; gap:5px}
+  .page .cap .id{display:flex; align-items:baseline; gap:6px}
+  .page .cap .n{font-family:'Spline Sans Mono',Menlo,monospace; font-size:11px; font-weight:500; color:var(--ink2)}
+  .page .cap .kind{border-radius:6px; padding:2px 6px; font-size:9.5px; font-weight:600; text-transform:uppercase; letter-spacing:.04em}
+  .page .cap .note2{font-size:10.5px; line-height:1.4; color:var(--muted)}
+  .two{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px}
 
-/* ── Body ───────────────────────────────────────────────────────────────────── */
-.body{ display:grid; grid-template-columns:92px minmax(0,1fr) 340px; gap:0; flex:1; min-height:0 }
+  /* ── Derived ─────────────────────────────────────────────────────────────── */
+  .planned{display:flex; align-items:center; gap:10px; padding:9px 20px; background:var(--indigo-bg); border-bottom:1px solid var(--indigo-line)}
+  .planned .tag{border-radius:6px; padding:3px 8px; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; background:var(--primary); color:#fff}
+  .planned span.txt{font-size:12px; color:var(--indigo-fg)}
+  .mini{border:1px solid var(--line); border-radius:8px; padding:4px 9px; font-size:11px; font-weight:500; color:var(--ink2); background:#fff; font-family:inherit; cursor:pointer}
+  .mini.indigo{border-color:var(--indigo-line); color:var(--indigo-fg); background:var(--indigo-bg)}
+  .src{display:inline-flex; align-items:center; gap:5px; align-self:flex-start; border-radius:6px; padding:2px 7px; font-size:10px; font-weight:500}
+  .src i{width:4px; height:4px; border-radius:999px; display:block}
 
-/* The rail. `derived` is present and disabled on purpose -- a reviewer can see it is coming
-   and that nothing is hiding behind it. An empty column nobody expected reads as a bug. */
-.rail{ border-right:1px solid var(--border); background:var(--surface); padding:11px 0 }
-.railitem{ width:100%; border:0; background:none; display:grid; gap:3px; justify-items:center;
-           padding:11px 4px; cursor:pointer; color:var(--ink-2); font-size:10.5px; font-weight:600 }
-.railitem .ic{ font-size:17px; line-height:1 }
-.railitem.on{ background:var(--accent-weak); color:var(--accent-ink) }
-.railitem[disabled]{ color:var(--border-strong); cursor:not-allowed }
+  /* ── Activity ────────────────────────────────────────────────────────────── */
+  .log{padding:20px; display:flex; flex-direction:column; gap:10px}
+  .ev{display:flex; align-items:flex-start; gap:12px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px 16px}
+  .ev .kind{font-family:'Spline Sans Mono',Menlo,monospace; font-size:11.5px; color:var(--indigo-fg); white-space:nowrap}
+  .ev .body{flex-grow:1; min-width:0; font-size:12px; line-height:1.6; color:var(--slate)}
+  .ev .when{font-family:'Spline Sans Mono',Menlo,monospace; font-size:10.5px; color:var(--faint); white-space:nowrap}
 
-.pane{ padding:18px 22px; overflow:auto; min-width:0 }
-.card{ background:var(--surface); border:1px solid var(--border); border-radius:11px;
-       box-shadow:var(--shadow-sm); margin-bottom:15px }
-.cardhead{ display:flex; align-items:center; justify-content:space-between; gap:11px;
-           padding:11px 15px; border-bottom:1px solid var(--border) }
-.cardtitle{ font-weight:700; font-size:13.5px }
-.cardbody{ padding:13px 15px }
-
-table{ width:100%; border-collapse:collapse; font-size:13px }
-th{ text-align:left; font-size:10.5px; letter-spacing:.07em; text-transform:uppercase;
-    color:var(--ink-3); font-weight:700; padding:7px 9px; border-bottom:1px solid var(--border) }
-td{ padding:8px 9px; border-bottom:1px solid var(--surface-2); vertical-align:top }
-tr:last-child td{ border-bottom:0 }
-td.num, th.num{ text-align:right }
-.neg{ color:var(--out); font-weight:600 }
-
-.lbl{ display:inline-block; border-radius:5px; padding:1px 6px; font-size:10.5px; font-weight:700;
-      background:var(--surface-2); color:var(--ink-2); border:1px solid var(--border) }
-.lbl.item{ background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe }
-.lbl.charge{ background:var(--warn-weak); color:var(--warn); border-color:#fde68a }
-.lbl.discount{ background:var(--bad-weak); color:var(--bad); border-color:#fecdd3 }
-
-/* "Printed on the page, not read" -- visibly NOT data. Code never turns one into a line. */
-.notread td{ background:repeating-linear-gradient(45deg,#fff,#fff 6px,#fffbeb 6px,#fffbeb 12px);
-             border-top:1px dashed var(--warn); border-bottom:1px dashed var(--warn) }
-
-/* ── Findings ───────────────────────────────────────────────────────────────── */
-.finding{ border:1px solid var(--border); border-left:3px solid var(--warn); border-radius:9px;
-          padding:11px 13px; margin-bottom:9px; background:var(--surface) }
-.finding.error{ border-left-color:var(--bad) }
-.finding.note{ border-left-color:var(--ink-3) }
-.finding .headline{ font-size:13px; margin:5px 0 }
-.finding .remedy{ font-size:12.5px; color:var(--accent-ink); font-weight:600 }
-.finding .meta{ font-size:11px; color:var(--ink-3) }
-
-/* ── Identities / totals ladder ─────────────────────────────────────────────── */
-.ladder{ display:grid; grid-template-columns:1fr auto; gap:4px 13px; font-size:13px }
-.ladder .k{ color:var(--ink-2) }
-.ladder .v{ text-align:right }
-.ladder .rule{ grid-column:1/-1; border-top:1px solid var(--border); margin:4px 0 }
-.ladder .total{ font-weight:700 }
-
-.identity{ display:flex; gap:9px; align-items:flex-start; padding:9px 0; border-top:1px solid var(--surface-2) }
-.identity:first-child{ border-top:0 }
-
-/* ── Right column ───────────────────────────────────────────────────────────── */
-.aside{ border-left:1px solid var(--border); background:var(--surface); padding:15px; overflow:auto }
-.asidehead{ font-size:10.5px; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-3);
-            font-weight:700; margin:15px 0 7px }
-.asidehead:first-child{ margin-top:0 }
-
-/* The page pane is schematic -- see the header comment. */
-.pagestrip{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:9px }
-.pagethumb{ width:44px; height:58px; border-radius:5px; border:1px solid var(--border-strong);
-            background:var(--surface-2); display:grid; place-items:center; font-size:10px;
-            color:var(--ink-3); cursor:pointer; position:relative }
-.pagethumb.on{ border-color:var(--accent); box-shadow:0 0 0 2px var(--ring) }
-.pagethumb.att{ background:repeating-linear-gradient(45deg,#f8fafc,#f8fafc 4px,#eef2f7 4px,#eef2f7 8px) }
-.pagesheet{ border:1px solid var(--border-strong); border-radius:7px; background:#fff; height:230px;
-            display:grid; place-items:center; color:var(--ink-3); font-size:12px; text-align:center;
-            padding:15px; background-image:linear-gradient(var(--surface-2) 1px, transparent 1px);
-            background-size:100% 13px }
-
-.evt{ display:grid; gap:2px; padding:8px 0; border-top:1px solid var(--surface-2); font-size:12.5px }
-.evt:first-of-type{ border-top:0 }
-.evt .who{ font-size:11px; color:var(--ink-3) }
-
-.note{ width:100%; border:1px solid var(--border-strong); border-radius:8px; padding:8px 10px;
-       font-size:12.5px; font-family:inherit; resize:vertical; min-height:64px }
-.note:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--ring) }
-.refusal{ border:1px solid #fecdd3; background:var(--bad-weak); border-radius:8px; padding:9px 11px;
-          font-size:12px; color:#9f1239; margin-top:8px }
-.refusal .rule{ font-weight:700; text-transform:uppercase; font-size:10px; letter-spacing:.06em }
-
-.footer{ border-top:1px solid var(--border); background:var(--surface); padding:11px 22px;
-         display:flex; align-items:center; gap:11px; justify-content:flex-end }
-.footer .left{ margin-right:auto; font-size:12.5px; color:var(--ink-2) }
-.hint{ font-size:11.5px; color:var(--ink-3); margin-top:5px }
-.mut{ color:var(--ink-3) }
+  /* ── Re-ask overlay ──────────────────────────────────────────────────────── */
+  .overlay{position:absolute; inset:0; background:rgba(15,23,42,.35); display:none; align-items:flex-start; justify-content:center; padding:48px 28px; z-index:20}
+  .overlay.on{display:flex}
+  .dialog{width:584px; background:#fff; border-radius:16px; box-shadow:0 20px 25px -5px rgb(0 0 0/.1),0 8px 10px -6px rgb(0 0 0/.1); overflow:hidden; display:flex; flex-direction:column}
+  .dialog .hd{padding:18px 22px 14px; border-bottom:1px solid var(--line)}
+  .dialog .hd h2{font-size:17px}
+  .dialog .hd p{margin-top:5px; font-size:12px; color:var(--muted)}
+  .dialog .bd{padding:18px 22px; display:flex; flex-direction:column; gap:16px}
+  .field{display:flex; flex-direction:column; gap:6px}
+  .field .cap{font-size:9.5px; font-weight:500; text-transform:uppercase; letter-spacing:.05em; color:var(--muted)}
+  .ro{border:1px solid var(--line); border-radius:8px; padding:9px 11px; font-family:'Spline Sans Mono',Menlo,monospace; font-size:12px; color:var(--ink); background:var(--bg)}
+  textarea{width:100%; height:96px; resize:none; border:1px solid var(--ghost); border-radius:8px; padding:10px 11px; font-family:"Hanken Grotesk",sans-serif; font-size:12.5px; line-height:1.6; color:var(--ink); outline:none}
+  textarea:focus{border-color:var(--primary)}
+  textarea.refused{border-color:#fca5a5; background:#fffbfb}
+  .hintnote{margin-top:2px; font-size:11px; line-height:1.55; color:var(--muted)}
+  .refusal{display:none; align-items:flex-start; gap:8px; border:1px solid var(--bad-line); background:var(--bad-bg); border-radius:8px; padding:9px 11px; font-size:11.5px; line-height:1.55; color:var(--bad-deep)}
+  .refusal.on{display:flex}
+  .evidence{border:1px solid var(--line); background:var(--bg); border-radius:12px; padding:13px 15px; display:flex; flex-direction:column; gap:9px}
+  .evidence .row{display:flex; align-items:baseline; gap:8px; font-size:11.5px; color:var(--slate)}
+  .dialog .ft{display:flex; align-items:center; gap:10px; padding:14px 22px; border-top:1px solid var(--line); background:var(--bg)}
+  .dialog .ft .cost{font-size:11.5px; color:var(--muted)}
 </style>
 </head>
 <body>
-<div class="app">
-  <nav class="side">
-    <div class="brand"><span class="dot">A</span> Atlas</div>
-    <div class="navgroup">Bookkeeping</div>
-    <div class="navitem child">Feeds</div>
-    <div class="navitem child">Projects</div>
-    <div class="navitem child">Documents</div>
-    <div class="navgroup">Workflows</div>
-    <div class="navitem child on">Runs</div>
-    <div class="navitem child">Recipes</div>
+
+<div class="frame">
+
+  <!-- ── Left rail ───────────────────────────────────────────────────────── -->
+  <nav class="rail">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>
+    </div>
+    <div class="items">
+      <button data-rail="lines" onclick="show('lines-feelflux')">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+        Lines
+      </button>
+      <button data-rail="totals" onclick="show('totals')">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5m0 14h16M8 15l4-5 3 3 4-6"/></svg>
+        Totals
+      </button>
+      <button data-rail="derived" disabled title="Derived — not built yet">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l3-7 3 14 3-7h4"/></svg>
+        Derived
+      </button>
+      <button data-rail="activity" onclick="show('activity')">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>
+        Activity
+      </button>
+    </div>
   </nav>
 
   <div class="main">
-    <header class="head">
-      <div class="crumbs">Workflows &rsaquo; Run #610 &mdash; Read a Supplier Invoice &rsaquo; Review</div>
-      <div class="headrow">
-        <div>
-          <h1 class="title" id="fileName">feelflux-batch.pdf</h1>
-          <div class="subtitle" id="fileSub"></div>
+
+    <!-- ══ Top bars, one per artboard context ═════════════════════════════ -->
+
+    <!-- Feelflux · run 4187 -->
+    <div class="bar" data-bar="feelflux">
+      <span class="run">parse_invoice · run 4187</span>
+      <span class="sep">/</span>
+      <!-- A file can hold many invoices; each is accepted or excluded on its own, and the
+           run's single decision only means "review is finished". -->
+      <button class="picker" onclick="show('lines-hangzhou')" title="Switch to the invoice that reconciles">
+        Invoice 3 of 20
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="tally">
+        <span class="a"><i></i>16 accepted</span>
+        <span class="u"><i></i>3 undecided</span>
+        <span class="x"><i></i>1 excluded</span>
+      </div>
+      <div class="grow"></div>
+      <button class="btn">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 19h16"/></svg>
+        Download CSV
+      </button>
+      <button class="btn danger" title="An invoice whose arithmetic cannot be made to close is excluded, not approved">Exclude&hellip;</button>
+      <button class="btn primary dim" title="Accept is unavailable while the arithmetic is open">Accept</button>
+      <div class="vr"></div>
+      <button class="btn off" title="3 invoices still have no decision">Finish review · 3 left</button>
+    </div>
+
+    <!-- Hangzhou · run 4192 -->
+    <div class="bar" data-bar="hangzhou">
+      <span class="run">parse_invoice · run 4192</span>
+      <span class="sep">/</span>
+      <button class="picker" onclick="show('lines-feelflux')" title="Switch to the invoice that does not reconcile">
+        Invoice 20 of 20
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="tally">
+        <span class="a"><i></i>19 accepted</span>
+        <span class="u"><i></i>0 undecided</span>
+        <span class="x"><i></i>1 excluded</span>
+      </div>
+      <div class="grow"></div>
+      <button class="btn">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 19h16"/></svg>
+        Download CSV
+      </button>
+      <button class="btn danger">Exclude&hellip;</button>
+      <button class="btn accepted">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>
+        Accepted
+      </button>
+      <div class="vr"></div>
+      <button class="btn primary">Finish review &amp; commit</button>
+    </div>
+
+    <!-- Kaapi · run 4190 -->
+    <div class="bar" data-bar="totals">
+      <span class="run">parse_invoice · run 4190</span>
+      <span class="sep">/</span>
+      <span class="where">Totals &amp; tax</span>
+      <div class="grow"></div>
+      <span class="who">Kaapi Machines (India) Pvt. Ltd. · 252910650 · INR</span>
+    </div>
+
+    <div class="bar" data-bar="derived">
+      <span class="run">parse_invoice · run 4190</span>
+      <span class="sep">/</span>
+      <span class="where">Derived</span>
+      <div class="grow"></div>
+      <span class="who">Kaapi Machines (India) Pvt. Ltd. · 252910650 · INR</span>
+    </div>
+
+    <div class="bar" data-bar="activity">
+      <span class="run">parse_invoice · run 4187</span>
+      <span class="sep">/</span>
+      <span class="where">Activity</span>
+      <div class="grow"></div>
+      <span class="who">append-only · every reviewer action, in order</span>
+    </div>
+
+    <!-- ══ Lines — does not reconcile (Main.dc.html) ══════════════════════ -->
+    <section class="view" data-view="lines-feelflux">
+
+      <div class="ident">
+        <div style="min-width:0">
+          <div class="names">
+            <h1>Feel Flux Kft.</h1>
+            <span class="chip bad"><i></i>Does not reconcile</span>
+            <button class="chip neutral" onclick="show('census')" title="Open the page census"><i></i>2 copies · pages 1, 3</button>
+          </div>
+          <div class="meta">FLX-2025-235 · 2025-09-26 · USD · PO #3864 · HU24985846</div>
         </div>
-        <div class="headactions">
-          <button class="btn" id="btnReask">Re-ask the model&hellip;</button>
-          <button class="btn danger" id="btnExclude">Exclude&hellip;</button>
-          <button class="btn primary" id="btnAccept">Accept</button>
-          <button class="btn primary" id="btnFinish">Finish review</button>
+        <div class="grow"></div>
+        <div class="tiles">
+          <div class="tile"><div class="k">Grand total</div><div class="v">222.10</div><div class="n">printed</div></div>
+          <div class="tile"><div class="k">Lines sum to</div><div class="v">244.00</div><div class="n">3 lines</div></div>
+          <div class="tile bad" style="min-width:100px">
+            <div class="k">Difference <span class="q">?</span></div>
+            <div class="v">+21.90</div>
+            <div class="n">lines exceed total</div>
+          </div>
+          <div class="tile" style="min-width:78px"><div class="k">Tax</div><div class="v">0.00</div><div class="n">exempt</div></div>
         </div>
       </div>
-      <div class="banner info" id="readonlyBanner" hidden></div>
-    </header>
 
-    <div class="selector">
-      <div class="chips" id="chips"></div>
-      <div class="counts" id="counts"></div>
-    </div>
+      <!-- The headline diagnosis. One sentence saying WHAT the difference is. -->
+      <div class="diag">
+        <div class="headline">
+          <span class="dot"></span>
+          <p><b>A line looks merged.</b> The difference of <b>+21.90</b> is exactly a coupon of <b>&minus;21.90</b> printed on page 1 between <i>Spin Flux</i> and <i>Flat Rate Shipping</i> — and no line carries it. The second copy on page 3 prints the same coupon.</p>
+          <button class="act" onclick="openReask()">Re-ask the model</button>
+          <button class="act" onclick="addLine(this)">Add the line</button>
+        </div>
+        <div class="findings">
+          <div class="finding">
+            <span class="kind" style="color:var(--bad-deep)">merged_line</span>
+            <span class="where">page 1</span>
+            <span class="mono" style="font-size:11.5px">+21.90</span>
+          </div>
+          <div class="finding">
+            <span class="kind" style="color:var(--warn-fg)">copy_disagreement</span>
+            <span class="where">pages 1 · 3</span>
+            <span>the two copies read this vendor line differently — <span class="mono">“Feel Flur”</span> on 1, <span class="mono">“Feel Flux”</span> on 3</span>
+          </div>
+        </div>
+      </div>
 
-    <div class="body">
-      <nav class="rail" id="rail"></nav>
-      <section class="pane" id="pane"></section>
-      <aside class="aside" id="aside"></aside>
-    </div>
+      <div class="split">
+        <div class="sheet">
+          <table>
+            <thead>
+              <tr>
+                <th class="r" style="width:44px">#</th>
+                <th class="c" style="width:44px">Pg</th>
+                <th style="width:108px">Label</th>
+                <th>Description</th>
+                <th class="r">Qty</th>
+                <th class="r">Rate</th>
+                <th class="r">Net</th>
+                <th class="r">Tax</th>
+                <th class="c" style="width:40px"></th>
+              </tr>
+            </thead>
+            <tbody id="feelflux-lines"></tbody>
+          </table>
+          <div class="foot"><span>Every figure comes from the backend — nothing on this screen is summed in the browser.</span></div>
+        </div>
 
-    <footer class="footer">
-      <div class="left" id="footNote"></div>
-      <button class="btn" id="btnPrev">&larr; Previous</button>
-      <button class="btn" id="btnNext">Next &rarr;</button>
-    </footer>
+        <!-- Page pane: where the figure actually is -->
+        <aside class="pane">
+          <div class="head">
+            <span class="cap">Page 1</span>
+            <span class="of">of 6</span>
+            <div class="grow"></div>
+            <span class="n">6 pages</span>
+          </div>
+          <!-- The census classification rides the thumbnails, so an attachment page is
+               visibly not part of this invoice. -->
+          <div class="strip" id="feelflux-strip"></div>
+          <div class="preview">
+            <div style="height:9px;width:46%;background:var(--line);border-radius:2px"></div>
+            <div style="height:14px;width:62%;background:var(--ghost);border-radius:2px"></div>
+            <div class="rule" style="margin:4px 0"></div>
+            <div style="display:flex;gap:12px">
+              <div style="flex-grow:1;display:flex;flex-direction:column;gap:5px">
+                <div class="ln" style="width:80%"></div><div class="ln" style="width:66%"></div><div class="ln" style="width:72%"></div>
+              </div>
+              <div style="flex-grow:1;display:flex;flex-direction:column;gap:5px">
+                <div class="ln" style="width:74%"></div><div class="ln" style="width:58%"></div>
+              </div>
+            </div>
+            <div class="rule" style="margin:6px 0 2px"></div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div class="amt"><div class="ln grow"></div><span class="v">120 USD</span></div>
+              <div class="amt"><div class="ln grow"></div><span class="v">99 USD</span></div>
+              <div class="amt found"><div class="ln grow"></div><span class="v">&minus;21.9 USD</span></div>
+              <div class="amt"><div class="ln grow"></div><span class="v">25 USD</span></div>
+            </div>
+            <div class="grow"></div>
+            <div style="display:flex;justify-content:flex-end;gap:10px;border-top:1px solid var(--line);padding-top:8px">
+              <span class="mono" style="font-size:10.5px;font-weight:500;color:var(--ink2)">222.1 USD</span>
+            </div>
+          </div>
+          <div class="notes">
+            <p><i>Mockup note:</i> the real page renders here, client-side from the source PDF — the block above is a placeholder. Nothing new is needed on the backend for it.</p>
+            <p class="faint"><i>Mockup note:</i> the red outline is <b style="font-weight:600">deferred</b>. Pointing at a figure needs its position on the page, which a text layer gives for free and a scan does not — until that is added, the pane shows the page without a highlight.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ══ Lines — reconciles (Clean.dc.html) ═════════════════════════════ -->
+    <section class="view" data-view="lines-hangzhou">
+
+      <div class="ident">
+        <div style="min-width:0">
+          <div class="names">
+            <h1>Hangzhou Yuanxintong Technology Co., Ltd.</h1>
+            <span class="chip ok"><i></i>Reconciles</span>
+          </div>
+          <div class="meta">GP1154 · 2026-01-26 · USD · scanned, no text layer</div>
+        </div>
+        <div class="grow"></div>
+        <div class="tiles">
+          <div class="tile"><div class="k">Grand total</div><div class="v">550.39</div><div class="n">printed</div></div>
+          <div class="tile"><div class="k">Lines sum to</div><div class="v">550.39</div><div class="n">6 lines</div></div>
+          <div class="tile" style="min-width:100px"><div class="k">Difference</div><div class="v" style="color:var(--ok-fg)">0.00</div><div class="n">closes to the cent</div></div>
+          <div class="tile" style="min-width:78px"><div class="k">Tax</div><div class="v">0.00</div><div class="n">none printed</div></div>
+        </div>
+      </div>
+
+      <!-- Verdicts: chips on the figures they are about, never a screen of prose -->
+      <div class="band wash">
+        <span class="cap">Second reading</span>
+        <span class="sub">An independent reader, shown the pages and none of our figures</span>
+        <div class="grow"></div>
+        <span class="chip ok"><i></i>Grand total agrees</span>
+        <span class="chip ok"><i></i>Line count agrees · 6 of 6</span>
+        <span class="chip neutral"><i></i>Tax split · does not apply</span>
+      </div>
+
+      <div class="band plain">
+        <span class="chip neutral"><i></i>1 page · all accounted for</span>
+        <span class="note">No duplicate copies, no attachments.</span>
+      </div>
+
+      <div class="sheet">
+        <table>
+          <thead>
+            <tr>
+              <th class="r" style="width:44px">#</th>
+              <th style="width:108px">Label</th>
+              <th style="width:168px">Item code</th>
+              <th>Description</th>
+              <th class="r">Qty</th>
+              <th class="r">Rate</th>
+              <th class="r">Net</th>
+              <th class="c" style="width:40px"></th>
+            </tr>
+          </thead>
+          <tbody id="hangzhou-lines"></tbody>
+        </table>
+
+        <div class="note ok" style="margin:14px 20px">
+          <span class="dot"></span>
+          <p><b style="font-weight:600">Nothing to fix.</b> The six lines close the printed total to the cent, the independent reading agrees on both the total and the line count, and every page is accounted for. Approving commits four product lines and two charge lines.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Totals & tax (TotalsTax.dc.html) ═══════════════════════════════ -->
+    <section class="view" data-view="totals">
+      <div class="pad">
+
+        <div class="card grow" style="min-width:0;overflow:hidden">
+          <div class="hd">
+            <h2>As printed</h2>
+            <span class="sub">every figure read off the page — none computed here</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="padding-left:18px">Figure</th>
+                <th class="r" style="width:68px">Rate</th>
+                <th class="r" style="width:128px">Amount</th>
+                <th class="r" style="width:132px;padding-right:18px">Field conf.</th>
+              </tr>
+            </thead>
+            <tbody id="kaapi-totals"></tbody>
+          </table>
+          <div style="padding:14px 18px;border-top:1px solid var(--line);background:var(--bg)">
+            <div style="display:flex;align-items:center;gap:10px" class="mono">
+              <span style="font-size:12px;color:var(--ink2)">85,000.00 + 15,300.00 + 0.00 + 0.00</span>
+              <span style="color:var(--faint)">==</span>
+              <span style="font-size:12px;font-weight:500;color:var(--ink2)">100,300.00</span>
+              <span class="chip ok"><i></i>identity holds</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="width:380px;flex-shrink:0;display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div class="bd">
+              <h3>How the tax block was read</h3>
+              <p style="margin-bottom:12px">Each component was read with its own <b style="font-weight:600">printed label</b>, rate and amount — not as three unlabelled figures. That is what makes CGST distinguishable from SGST on this invoice, and it is asked for explicitly rather than inferred from the order the columns happen to appear in.</p>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span class="chip ok"><i></i>3 of 3 labelled</span>
+                <span style="font-size:11.5px;color:var(--muted)">CGST · SGST · IGST</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="note warn">
+            <span class="dot"></span>
+            <div style="min-width:0">
+              <h3>tax_undercount — resolved</h3>
+              <p>The first read carried <span class="mono">7,650.00</span> as this invoice&rsquo;s whole tax — CGST only. The printed tax total is <span class="mono">15,300.00</span>. Re-asked with a hint about the two tax columns; both components now read.</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="bd">
+              <h3>Not extracted, by design</h3>
+              <p style="margin-bottom:10px">These are derived from vendor masters and place-of-supply rules, not read off the page:</p>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                <span class="pill">Source of Supply</span><span class="pill">Destination of Supply</span>
+                <span class="pill">GST Treatment</span><span class="pill">ITC Eligibility</span>
+                <span class="pill">TDS Section</span><span class="pill">Reverse Charge</span>
+              </div>
+              <button class="mini indigo" style="margin-top:12px" onclick="show('derived')">Preview the planned Derived screen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Derived — planned (Derived.dc.html) ════════════════════════════ -->
+    <section class="view" data-view="derived">
+      <!-- Planned banner: this screen does not exist in v1 -->
+      <div class="planned">
+        <span class="tag">Planned</span>
+        <span class="txt">Not in v1 — nothing is inferred yet. Shown so the four decisions in &sect;06d are made against a real surface rather than in the abstract.</span>
+        <div class="grow"></div>
+        <button class="mini" onclick="show('totals')">Back to Totals</button>
+      </div>
+
+      <!-- The snapshot the derivation ran against -->
+      <div class="band plain" style="gap:12px;padding:11px 20px">
+        <span class="chip neutral"><i></i>Masters pinned at 2026-09-08 14:22</span>
+        <span class="note">Approving commits <b style="font-weight:600">these</b> values — not whatever the masters say later.</span>
+        <div class="grow"></div>
+        <button class="btn" style="padding:6px 11px;font-size:11.5px">Refresh masters</button>
+      </div>
+
+      <div style="padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+        <div class="card" style="overflow:hidden">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:190px;padding-left:16px">Field</th>
+                <th style="width:148px">Value</th>
+                <th>Derived from</th>
+                <th style="width:230px">Rule &amp; source</th>
+                <th class="r" style="width:168px;padding-right:16px"></th>
+              </tr>
+            </thead>
+            <tbody id="kaapi-derived"></tbody>
+          </table>
+        </div>
+
+        <!-- The two actions are not the same action -->
+        <div class="two">
+          <div class="card"><div class="bd" style="padding:15px 17px">
+            <h3 style="font-size:13.5px;margin-bottom:7px">Override — a one-off</h3>
+            <p style="font-size:11.5px">Stamped with who and why, and shown as an override on this bill forever. The rule keeps producing its own answer on every other invoice.</p>
+          </div></div>
+          <div style="background:var(--indigo-bg);border:1px solid var(--indigo-line);border-radius:12px;padding:15px 17px">
+            <h3 style="font-size:13.5px;margin-bottom:7px;color:#312e81">Fix the source — the usual right answer</h3>
+            <p style="font-size:11.5px;line-height:1.6;color:var(--indigo-fg)">A wrong derived value almost always means the master or the rule is wrong. Fixing it there re-derives this bill and every later one — instead of the same correction being made by hand a hundred times.</p>
+          </div>
+        </div>
+
+        <div class="note plain">
+          <span class="dot"></span>
+          <p><b style="font-weight:600">Nothing here is a reading.</b> Every value on this screen is a function of the extracted fields plus the pinned snapshot — so fixing an extracted value on the Lines screen re-derives this one at zero cost, and a value whose inputs are wrong is fixed <i>there</i>, not here.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Page census (Triage.dc.html) ═══════════════════════════════════ -->
+    <section class="view" data-view="census">
+      <div class="census">
+        <div style="display:flex;align-items:flex-start;gap:16px">
+          <div>
+            <h2>Page census</h2>
+            <p class="lede">Shown above the lines whenever a file holds more than the invoice. Every page is classified and counted — the assertion is that the three counts add up to the page total, so a page can never be dropped in silence.</p>
+          </div>
+          <div class="grow"></div>
+          <button class="mini" onclick="show('lines-feelflux')">Back to the lines</button>
+        </div>
+
+        <div class="card" style="padding:18px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <span class="cap" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">Feelflux invoice.pdf</span>
+            <span class="mono" style="font-size:11px;color:var(--faint)">6 pages · scanned · text layer unreliable → vision</span>
+            <div class="grow"></div>
+            <span class="chip ok"><i></i>1 + 1 + 4 = 6 · all accounted for</span>
+          </div>
+          <div class="pages" id="census-pages"></div>
+        </div>
+
+        <!-- The two states, side by side -->
+        <div class="two">
+          <div class="note ok">
+            <span class="dot"></span>
+            <div>
+              <h3>Census passes — the run proceeds</h3>
+              <p>The duplicate on page 3 collapses into one invoice carrying both ranges. Both are kept: they disagree with each other, and that disagreement is free signal the reviewer sees as <span class="mono" style="font-size:11.5px">copy_disagreement</span>.</p>
+            </div>
+          </div>
+          <div class="note bad">
+            <span class="dot"></span>
+            <div>
+              <h3>Census fails — the invoice holds at review</h3>
+              <p><span class="mono" style="font-size:11.5px">unaccounted_page</span> — 5 of 6 pages classified. The unclassified page is shown, named, and offered for classification by hand. It is never assumed empty.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Activity ═══════════════════════════════════════════════════════ -->
+    <section class="view" data-view="activity">
+      <div class="log">
+        <p style="font-size:12.5px;line-height:1.6;color:var(--slate);max-width:80ch;margin-bottom:4px">
+          Every reviewer action on this run, in the order it happened. The log is append-only: a correction is a new
+          entry, never an edit to an old one, and a re-ask is recorded twice — once when it is asked for, once when
+          the re-read reports back.
+        </p>
+        <div id="activity-log"></div>
+      </div>
+    </section>
+
   </div>
+
+  <!-- ══ Re-ask dialog (ReAsk.dc.html) ════════════════════════════════════ -->
+  <div class="overlay" id="reask" onclick="if(event.target===this)closeReask()">
+    <div class="dialog">
+      <div class="hd">
+        <h2>Re-ask the model</h2>
+        <p>Scoped to one invoice and its pages. Nothing else in the run is re-read.</p>
+      </div>
+      <div class="bd">
+
+        <div class="field">
+          <span class="cap">Scope</span>
+          <div style="display:flex;gap:8px">
+            <div class="ro grow">FLX-2025-235</div>
+            <div class="ro" style="width:148px">pages 1, 3</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="cap">Hint</span>
+            <span style="border-radius:6px;background:var(--hair);padding:2px 7px;font-size:10px;font-weight:500;color:var(--slate)">suggested by merged_line</span>
+          </div>
+          <textarea id="hint" oninput="validateHint()">The line grid has a discount row printed between the product rows and the shipping row. Read every printed row in order, including rows whose amount is negative.</textarea>
+          <div class="refusal" id="refusal">
+            <span></span>
+          </div>
+          <p class="hintnote">Editable. Describes layout and labelling only — a hint naming a figure is refused, so the model is never told the answer it is being asked to find.</p>
+        </div>
+
+        <div class="evidence">
+          <span class="cap" style="font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">Evidence from this run</span>
+          <div class="row">
+            <span class="mono" style="font-size:11.5px;font-weight:500;color:var(--bad-fg)">+21.90</span>
+            <span>lines exceed the printed total by exactly one printed figure</span>
+          </div>
+          <div class="row">
+            <span class="mono" style="font-size:11.5px;color:var(--slate)">3 / 4</span>
+            <span>the second reading counts four printed lines; three were read</span>
+          </div>
+        </div>
+
+        <div class="field" style="gap:7px">
+          <span class="cap">Kind of read</span>
+          <div style="display:flex;align-items:center;gap:9px">
+            <span class="chip indigo"><i></i>Re-read</span>
+            <span style="font-size:11.5px;color:var(--muted)">by the reader that read it first — this is not a second opinion</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grow"></div>
+
+      <div class="ft">
+        <span class="cost">Costs one page-send per page.</span>
+        <div class="grow"></div>
+        <button class="btn" onclick="closeReask()">Cancel</button>
+        <button class="btn primary" id="reask-go" onclick="sendReask()">Re-ask these pages</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
-/* ---------------------------------------------------------------------------
-   The payload, in the shape `contracts/review-payload.md` specifies.
+/* ── The data each artboard carried in its own renderVals() ──────────────── */
 
-   Written out rather than generated, because the point of this mock is that the
-   figures are the MEASURED ones. Every amount below appears in the backend's own
-   fixtures (accounting/bookkeeping/workflows/parse_invoice/tests/fixtures/).
-   --------------------------------------------------------------------------- */
-const PAYLOAD = {
-  run: {
-    run_id: '610', requested_run_id: '609', status: 'PAUSED_FOR_GATE',
-    gate_node_id: 'review', file_name: 'feelflux-batch.pdf',
-    may_review: true, read_only_reason: '', applied_changes: 2,
-    page_census: {
-      page_count: 11, classified_count: 11, accounted_for: true, unaccounted: [],
-      counts: { invoice: 4, continuation: 1, duplicate: 1, attachment: 5 },
-      pages: []
-    },
-    cost: { triage: { reads: 2, page_sends: 11 }, transcription: { reads: 20, page_sends: 24 },
-            verify: { reads: 4, page_sends: 6 } },
-    undecided_count: 3, accepted_count: 1, excluded_count: 0, invoice_count: 4,
-    can_finish: false,
-    invoices: [
-      {
-        invoice_key: 'doc-1371:p1', page_ranges: [[1,1],[3,3]], copy_count: 2,
-        basis: 'page 1 prints the start of an invoice; page 3 reprints it',
-        decision: 'accepted', excluded_reason: null, read_failed: false, failure: '',
-        header: { vendor_name: 'Feel Flux Kft.', vendor_tax_id: 'HU24985846',
-                  invoice_number: 'FLX-2025-235', invoice_date: '2025-09-26',
-                  currency_code: 'USD', payment_terms: 'TransferWise',
-                  subtotal_printed: '222.10', tax_total_printed: '0.00',
-                  grand_total_printed: '222.10', amount_due_printed: '222.10',
-                  vendor_bank_account: 'HU42 1177 3016 1111 1018 0000 0000' },
-        lines: [
-          { ordinal:1, label:'item', page_number:1, item_name:'Feel Flux - FLUX Original',
-            quantity:'1', unit:'EA', unit_price:'120.00', line_amount:'120.00' },
-          { ordinal:2, label:'item', page_number:1, item_name:'Spin Flux (Mirror Nickel)',
-            quantity:'1', unit:'EA', unit_price:'99.00', line_amount:'99.00' },
-          { ordinal:3, label:'discount', page_number:1, item_name:'COUPON',
-            quantity:'1', unit_price:'-21.90', line_amount:'-21.90' },
-          { ordinal:4, label:'charge', page_number:1, item_name:'Flat Rate Shipping',
-            quantity:'1', unit_price:'25.00', line_amount:'25.00' }
-        ],
-        tax_components: [ { ordinal:1, label:'EUKT', rate:null, amount:'0.00' } ],
-        reconcile: { reconciles:true, residual:'0.00', findings:[], not_read:[],
-          identities:[
-            { name:'printed_total', left:'222.10', right:'222.10', holds:true,
-              sentence:"The invoice's own summary block adds up: its subtotal, tax, freight and adjustments come to the total it prints." },
-            { name:'lines_against_subtotal', left:'222.10', right:'222.10', holds:true,
-              sentence:'Every line we read adds up to the pre-tax subtotal the invoice prints.' }
-          ],
-          census:{ transcribed:4, presented:3, excluded:0, charge_lines:1, holds:true } },
-        verdicts:[
-          { check:'total_agreement', outcome:'passed', figure:'222.10', ours:'222.10',
-            sentence:'A second reading of the pages, shown none of our figures, also read the total as 222.10.' },
-          { check:'line_count', outcome:'passed', sentence:'A second reading counted 4 lines in the grid, as we did.' }
-        ],
-        auto_verify:{ gates:[
-          { name:'arithmetic', passed:true, evaluated:true, sentence:'The lines and tax add up to the printed total exactly.' },
-          { name:'independent_checks', passed:true, evaluated:true, sentence:'All 2 independent checks agree.' },
-          { name:'confidence_floor', passed:false, evaluated:false,
-            sentence:'No per-field confidence signal exists in this version, so this gate could not be evaluated. It is recorded as unevaluated rather than as satisfied: an absent signal is not a high-confidence one.' }
-        ], may_skip_review:false,
-           sentence:'This invoice needs a reviewer: 2 of 3 gates passed (arithmetic, independent_checks); 1 could not be evaluated (confidence_floor). The arithmetic closing is not on its own grounds to skip review.' }
-      },
-      {
-        invoice_key: 'doc-1371:p4', page_ranges: [[4,5]], copy_count: 1,
-        basis: 'page 4 prints the start of an invoice and page 5 continues it',
-        decision: 'undecided', excluded_reason: null, read_failed: false, failure: '',
-        header: { vendor_name: 'Kaapi Machines (India) Pvt. Ltd.', vendor_gstin:'29AACCK9538Q1ZK',
-                  invoice_number: '252910650', invoice_date: '2025-07-31',
-                  currency_code: 'INR', payment_terms: 'Immediate',
-                  subtotal_printed:'85000.00', tax_total_printed:'15300.00',
-                  grand_total_printed:'100300.00', amount_due_printed:'100300.00',
-                  source_of_supply_printed:'29/Karnataka' },
-        lines: [
-          { ordinal:1, label:'item', page_number:1, item_code:'BUDM80L', item_name:'Budan M80',
-            quantity:'1.00', unit:'NOS', unit_price:'85000.00', line_amount:'85000.00',
-            hsn_sac:'84.19.8190' }
-        ],
-        tax_components: [
-          { ordinal:1, label:'CGST', rate:'9', amount:'7650.00' },
-          { ordinal:2, label:'SGST', rate:'9', amount:'7650.00' },
-          { ordinal:3, label:'IGST', rate:'0', amount:'0.00' }
-        ],
-        reconcile:{ reconciles:true, residual:'0.00', findings:[], not_read:[],
-          identities:[
-            { name:'printed_total', left:'100300.00', right:'100300.00', holds:true,
-              sentence:"The invoice's own summary block adds up." },
-            { name:'lines_against_subtotal', left:'85000.00', right:'85000.00', holds:true,
-              sentence:'Every line we read adds up to the pre-tax subtotal the invoice prints.' }
-          ],
-          census:{ transcribed:1, presented:1, excluded:0, charge_lines:0, holds:true } },
-        verdicts:[
-          { check:'total_agreement', outcome:'passed', figure:'100300.00', ours:'100300.00',
-            sentence:'A second reading of the pages also read the total as 100300.00.' },
-          { check:'line_count', outcome:'does_not_apply',
-            sentence:'The second reading returned no line count, so there is nothing to compare. That is not a disagreement.' }
-        ],
-        auto_verify:{ gates:[], may_skip_review:false, sentence:'This invoice needs a reviewer.' }
-      },
-      {
-        invoice_key: 'doc-1371:p6', page_ranges: [[6,6]], copy_count: 1,
-        basis: 'page 6 prints the start of an invoice',
-        decision: 'undecided', excluded_reason: null, read_failed: false, failure: '',
-        header: { vendor_name: 'Hangzhou Yuanxintong Technology Co., Ltd.',
-                  invoice_number:'GP1154', invoice_date:'2026-01-26', currency_code:'USD',
-                  subtotal_printed:'497.87', grand_total_printed:'550.39' },
-        lines: [
-          { ordinal:1, label:'item', page_number:6, item_code:'H2B-C9F-AI00036A',
-            item_name:'H2B-C9F-AI00036A', quantity:'100', unit:'PCS', unit_price:'1.17', line_amount:'116.97' },
-          { ordinal:2, label:'item', page_number:6, item_code:'H2B-C8F-AI00036A',
-            item_name:'H2B-C8F-AI00036A', quantity:'100', unit:'PCS', unit_price:'1.17', line_amount:'116.97' },
-          { ordinal:3, label:'item', page_number:6, item_code:'H2B-C7F-AI00036A',
-            item_name:'H2B-C7F-AI00036A', quantity:'100', unit:'PCS', unit_price:'1.17', line_amount:'116.97' },
-          { ordinal:4, label:'item', page_number:6, item_code:'H2B-C6F-AI00036A',
-            item_name:'H2B-C6F-AI00036A', quantity:'250', unit:'PCS', unit_price:'0.59', line_amount:'146.96' },
-          { ordinal:5, label:'charge', page_number:6, item_name:'Shipping fee', line_amount:'28.00' }
-        ],
-        tax_components: [],
-        reconcile:{ reconciles:false, residual:'24.52',
-          not_read:[ { source:'a printed charge', value:'24.52', pages:[6] } ],
-          findings:[
-            { kind:'merged_line', severity:'error', money_at_stake:'24.52', pages:[6], occurrences:1,
-              headline:'One line looks to have been missed. The 24.52 left unaccounted for is exactly a charge or item of 24.52 — the invoice’s own total carries it and the 5 lines we read do not.',
-              remedy:'Find a charge or item of 24.52 on the page and add it. The invoice then closes exactly.',
-              suggested_note:{ kind:'merged_line',
-                text:'Read every row printed in the item grid, including rows for shipping, fees, discounts and coupons. A row whose amount column is printed in brackets or with a leading minus is a discount row; report it at the sign printed.',
-                because:'the arithmetic says one line is missing, and discount rows are the commonest miss' } },
-            { kind:'line_census_failed', severity:'warning', pages:[6], occurrences:1,
-              headline:'6 lines were read from this invoice but only 5 are accounted for — 1 has gone missing between the reading and the output. This is usually a response that was cut short.',
-              remedy:'Ask for these pages to be read again — a cut-short response recovers on a retry.', suggested_note:null }
-          ],
-          identities:[
-            { name:'printed_total', left:'497.87', right:'550.39', holds:false,
-              sentence:'The invoice disagrees with itself: its own subtotal, tax, freight and adjustments do not come to the total it prints.' },
-            { name:'lines_against_subtotal', left:'525.87', right:'497.87', holds:false,
-              sentence:'The lines we read do not add up to the subtotal the invoice prints, so the grid was read wrongly — a line missed, doubled, or read at the wrong sign.' }
-          ],
-          census:{ transcribed:6, presented:4, excluded:0, charge_lines:1, holds:false } },
-        verdicts:[
-          { check:'total_agreement', outcome:'passed', figure:'550.39', ours:'550.39',
-            sentence:'A second reading of the pages also read the total as 550.39.' },
-          { check:'line_count', outcome:'failed',
-            sentence:'A second reading counted 6 lines in the grid where we read 5. Two rows read as one leave the total unchanged, so the arithmetic cannot catch this — only the count can.' }
-        ],
-        auto_verify:{ gates:[], may_skip_review:false, sentence:'This invoice needs a reviewer.' }
-      },
-      {
-        invoice_key: 'doc-1371:p7', page_ranges: [[7,7]], copy_count: 1, basis: 'page 7 prints an invoice',
-        decision: 'undecided', excluded_reason: null,
-        read_failed: true,
-        failure: 'the provider returned no answer for these pages after three attempts',
-        header: {}, lines: [], tax_components: [],
-        reconcile:{ reconciles:false, residual:null, not_read:[],
-          findings:[ { kind:'does_not_close', severity:'warning', pages:[7], occurrences:1,
-            headline:'This invoice could not be checked: no total was read from this invoice, so nothing can be checked. Read the total from the page, or ask for the pages to be read again.',
-            remedy:'', suggested_note:null } ],
-          identities:[], census:{ transcribed:0, presented:0, excluded:0, charge_lines:0, holds:true } },
-        verdicts:[ { check:'total_agreement', outcome:'failed',
-          sentence:'We read no total from this invoice, so there is nothing to check the second reading against.' } ],
-        auto_verify:{ gates:[], may_skip_review:false, sentence:'This invoice needs a reviewer.' }
-      }
-    ],
-    activity: [
-      { ordinal:1, kind:'line_corrected', at:'2026-09-11T09:14:00Z',
-        actor:{ id:'u1', display_name:'priya@theatlas.ai' }, invoice_key:'doc-1371:p1',
-        sentence:'priya@theatlas.ai corrected line_amount on line 3 from -2.19 to -21.90.',
-        detail:{ field:'line_amount', line_ordinal:3, before:'-2.19', after:'-21.90' } },
-      { ordinal:2, kind:'invoice_accepted', at:'2026-09-11T09:15:00Z',
-        actor:{ id:'u1', display_name:'priya@theatlas.ai' }, invoice_key:'doc-1371:p1',
-        sentence:'priya@theatlas.ai accepted this invoice.', detail:{ reconciles:true } }
-    ]
-  }
-};
-
-/* The four refusals the server returns for a re-ask note. Rendered verbatim: the wording is the
-   backend's, and a screen that paraphrased a refusal would be a second owner of the rule. */
-const REFUSALS = {
-  no_figure:{ rule:'no_figure', detail:'This note names a figure, so it cannot be sent. A model told what a total should be will produce that total, and the invoice then appears to add up against a number we supplied rather than one it printed — a false proof, which is the one outcome this check exists to prevent. Describe the LAYOUT and the LABELS instead.' },
-  scope:{ rule:'scope', detail:'This note reaches beyond this invoice. A re-read covers the pages you selected and only those — which pages are read comes from your selection, never from the note.' },
-  direction:{ rule:'direction', detail:'This finding says something is MISSING, and this note asks for less to be returned. That combination has lost real data twice. Ask for the rows to be read, not for any to be left out.' },
-  length:{ rule:'length', detail:'This note is over the 300-character limit. A note says where to look on the page; a long one is usually trying to describe the data instead.' }
-};
-
-/* --------------------------------------------------------------------------- */
-const run = PAYLOAD.run;
-let current = 0;
-let section = 'lines';
-let reaskOpen = false;
-let refusal = null;
-
-const $ = (id) => document.getElementById(id);
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-
-/* Currency-aware, because the register's own money() is USD-hardcoded and an INR invoice
-   rendered as dollars is worse than an unformatted number. */
-function amt(v, ccy){
-  if (v === null || v === undefined || v === '') return '<span class="mut">&mdash;</span>';
-  const n = Number(v);
-  if (Number.isNaN(n)) return esc(v);
-  const s = new Intl.NumberFormat('en-US',{ style:'currency', currency: ccy || 'USD',
-    minimumFractionDigits:2, maximumFractionDigits:2 }).format(n);
-  return n < 0 ? '<span class="neg">' + esc(s) + '</span>' : esc(s);
-}
-const inv = () => run.invoices[current];
-const ccy = () => inv().header.currency_code || 'USD';
-
-const SECTIONS = [
-  { key:'lines',    icon:'≡', label:'Lines' },
-  { key:'totals',   icon:'Σ', label:'Totals & tax' },
-  /* Present and disabled on purpose. Calculated values arrive with the later inference feature;
-     a greyed section that says so beats an empty column nobody expected. */
-  { key:'derived',  icon:'ƒ', label:'Derived', ready:false, title:'Derived — not built yet' },
-  { key:'activity', icon:'↺', label:'Activity' }
+const FEELFLUX_LINES = [
+  {n:1, page:1, label:'product',  desc:'Feel Flux - FLUX Original — Leather colour: Dark Brown, Desktop Stand: Walnut wood', qty:'1', rate:'120.00', net:'120.00', tax:'0.00'},
+  {n:2, page:1, label:'product',  desc:'Spin Flux (Mirror Nickel)', qty:'1', rate:'99.00', net:'99.00', tax:'0.00'},
+  {n:3, page:1, label:'charge',   desc:'Flat Rate Shipping', qty:'1', rate:'25.00', net:'25.00', tax:'0.00'},
 ];
 
-function renderRail(){
-  $('rail').innerHTML = SECTIONS.map((s) =>
-    '<button class="railitem' + (s.key === section ? ' on' : '') + '"' +
-    (s.ready === false ? ' disabled title="' + esc(s.title) + '"' : '') +
-    ' data-sec="' + s.key + '"><span class="ic">' + s.icon + '</span>' + esc(s.label) + '</button>'
-  ).join('');
-  $('rail').querySelectorAll('[data-sec]').forEach((b) => {
-    b.onclick = () => { if (!b.disabled) { section = b.dataset.sec; renderAll(); } };
-  });
+const FEELFLUX_PAGES = [
+  {n:1, border:'#818cf8', bg:'#c7d2fe', fg:'#3730a3'},
+  {n:2, border:'#fcd34d', bg:'#fef3c7', fg:'#92400e'},
+  {n:3, border:'#cbd5e1', bg:'#f1f5f9', fg:'#475569'},
+  {n:4, border:'#fcd34d', bg:'#fef3c7', fg:'#92400e'},
+  {n:5, border:'#fcd34d', bg:'#fef3c7', fg:'#92400e'},
+  {n:6, border:'#fcd34d', bg:'#fef3c7', fg:'#92400e'},
+];
+
+const HANGZHOU_LINES = [
+  {n:1, label:'product', code:'H2B-C9F-AI00036A', desc:'Printed Circuit Board: Flexible Board, 2 layers', qty:'100', rate:'1.17', net:'116.97'},
+  {n:2, label:'product', code:'H2B-C8F-AI00036A', desc:'Printed Circuit Board: Flexible Board, 2 layers', qty:'100', rate:'1.17', net:'116.97'},
+  {n:3, label:'product', code:'H2B-C7F-AI00036A', desc:'Printed Circuit Board: Flexible Board, 2 layers', qty:'100', rate:'1.17', net:'116.97'},
+  {n:4, label:'product', code:'H2B-C6F-AI00036A', desc:'Printed Circuit Board: Flexible Board, 2 layers', qty:'250', rate:'0.59', net:'146.96'},
+  {n:5, label:'charge',  code:'—', desc:'Shipping fee', qty:'—', rate:'—', net:'28.00'},
+  {n:6, label:'charge',  code:'—', desc:'Payment fee',  qty:'—', rate:'—', net:'24.52'},
+];
+
+const HIGH = {conf:'0.93', cls:'ok'}, MID = {conf:'0.82', cls:'warn'},
+      NINE = {conf:'0.89', cls:'ok'}, NA = {conf:'not read', cls:'neutral'};
+
+const KAAPI_TOTALS = [
+  {name:'Total before tax', rate:'—',  amount:'85,000.00',  bold:false, ...HIGH},
+  {name:'CGST',             rate:'9%', amount:'7,650.00',   bold:false, ...NINE},
+  {name:'SGST',             rate:'9%', amount:'7,650.00',   bold:false, ...NINE},
+  {name:'IGST',             rate:'0%', amount:'0.00',       bold:false, ...NINE},
+  {name:'Freight',          rate:'—',  amount:'0.00',       bold:false, ...NA},
+  {name:'Round off',        rate:'—',  amount:'0.00',       bold:false, ...NA},
+  {name:'Total after tax',  rate:'—',  amount:'100,300.00', bold:true,  ...MID},
+];
+
+const RULE   = {source:'rule',                 sBg:'#f1f5f9', sFg:'#334155', sDot:'#94a3b8'};
+const MASTER = {source:'vendor master · v7',   sBg:'#eef2ff', sFg:'#3730a3', sDot:'#6366f1'};
+const FX     = {source:'FX table · 2025-07-31',sBg:'#ecfdf5', sFg:'#047857', sDot:'#059669'};
+const COA    = {source:'COA rule #142',        sBg:'#eef2ff', sFg:'#3730a3', sDot:'#6366f1'};
+
+const KAAPI_DERIVED = [
+  {field:'Exchange Rate',         value:'1.0000',            inputs:'Currency Code INR + Bill Date 2025-07-31', rule:'invoice currency == book currency', ...FX,     over:false, fixable:false},
+  {field:'Payment Terms',         value:'0',                 inputs:'Payment Terms Label "Immediate"',          rule:'label to day count',                ...RULE,   over:false, fixable:false},
+  {field:'Supply Type',           value:'Intra-state',       inputs:'Source 29 · Destination 29',               rule:'source == destination',             ...RULE,   over:false, fixable:false},
+  {field:'Destination of Supply', value:'29 — Karnataka',    inputs:'own GSTIN 29ABDCA0102A1ZM',                rule:'registered state of the buying entity', ...MASTER, over:false, fixable:true},
+  {field:'Account',               value:'5210 · Equipment',  inputs:'Item Name "Budan M80…" + vendor history',  rule:'categorisation · 0.91 confidence',  ...COA,    over:false, fixable:true},
+  {field:'Item Type',             value:'Goods',             inputs:'HSN/SAC 84.19.8190',                       rule:'HSN chapter to goods, SAC to service', ...RULE, over:false, fixable:false},
+  {field:'TDS Section',           value:'194Q',              inputs:'vendor TDS profile + Account 5210',        rule:'purchase of goods over the threshold', ...MASTER, over:true, fixable:true},
+];
+
+const CENSUS = [
+  {n:1, note:'FLX-2025-235 — the invoice',   kind:'invoice'},
+  {n:2, note:'DHL waybill',                  kind:'attachment'},
+  {n:3, note:'FLX-2025-235 — second copy',   kind:'duplicate'},
+  {n:4, note:'DHL air waybill',              kind:'attachment'},
+  {n:5, note:'DHL waybill doc',              kind:'attachment'},
+  {n:6, note:'AWB continuation',             kind:'attachment'},
+];
+const KINDS = {
+  invoice:   {chipBg:'#e0e7ff', chipFg:'#3730a3', border:'#c7d2fe', bg:'#eef2ff', ink:'#c7d2fe', inkStrong:'#a5b4fc'},
+  duplicate: {chipBg:'#f1f5f9', chipFg:'#334155', border:'#e2e8f0', bg:'#f8fafc', ink:'#e2e8f0', inkStrong:'#cbd5e1'},
+  attachment:{chipBg:'#fffbeb', chipFg:'#92400e', border:'#fde68a', bg:'#fffbeb', ink:'#fde68a', inkStrong:'#fcd34d'},
+};
+
+const ACTIVITY = [
+  {kind:'reask_requested', when:'14:02', body:'Pages 1, 3 of <span class="mono">FLX-2025-235</span> re-read, suggested by <span class="mono">merged_line</span>. Hint described the discount row between the product rows and the shipping row.'},
+  {kind:'reask_completed', when:'14:03', body:'The re-read reported four printed rows on page 1, including a coupon at <span class="mono">&minus;21.90</span>. Only the re-asked pages were replaced; the rest of the reading stands.'},
+  {kind:'line_added',      when:'14:05', body:'A discount line was added from the re-read — <span class="mono">COUPON 2TJF-AMMK-BBQ1</span>, <span class="mono">&minus;21.90</span>. Recorded as the reviewer&rsquo;s instruction; the arithmetic was re-run, not patched.'},
+  {kind:'header_corrected',when:'14:06', body:'Vendor name taken from the page-3 copy: <span class="mono">Feel Flur</span> → <span class="mono">Feel Flux</span>. The page-1 reading is kept as read.'},
+];
+
+/* ── Render ──────────────────────────────────────────────────────────────── */
+
+const CHEV = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>';
+
+function esc(s){ return String(s).replace(/&(?![a-z#])/g,'&amp;').replace(/</g,'&lt;'); }
+
+document.getElementById('feelflux-lines').innerHTML = FEELFLUX_LINES.map(l => `
+  <tr>
+    <td class="idx">${l.n}</td>
+    <td class="pg">${l.page}</td>
+    <td><span class="lab ${l.label}">${l.label}</span></td>
+    <td style="max-width:300px">${esc(l.desc)}</td>
+    <td class="num">${l.qty}</td>
+    <td class="num">${l.rate}</td>
+    <td class="num net">${l.net}</td>
+    <td class="num tax">${l.tax}</td>
+    <td class="go">${CHEV}</td>
+  </tr>`).join('') + `
+  <!-- The gap the detector found, offered rather than invented. -->
+  <tr id="missing-line">
+    <td class="idx" style="color:var(--ghost)">—</td>
+    <td class="pg" style="color:var(--bad-fg)">1</td>
+    <td colspan="5">
+      <span class="missing">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Printed on the page, not read — <span class="mono">COUPON 2TJF-AMMK-BBQ1</span>
+      </span>
+    </td>
+    <td class="num net" style="color:var(--bad-fg)">&minus;21.90</td>
+    <td></td>
+  </tr>`;
+
+document.getElementById('feelflux-strip').innerHTML = FEELFLUX_PAGES.map(p => `
+  <div class="p">
+    <div class="sw" style="border-color:${p.border};background:${p.bg}"></div>
+    <span class="lbl" style="color:${p.fg}">${p.n}</span>
+  </div>`).join('');
+
+document.getElementById('hangzhou-lines').innerHTML = HANGZHOU_LINES.map(l => `
+  <tr>
+    <td class="idx">${l.n}</td>
+    <td><span class="lab ${l.label}">${l.label}</span></td>
+    <td class="code">${l.code}</td>
+    <td>${esc(l.desc)}</td>
+    <td class="num">${l.qty}</td>
+    <td class="num">${l.rate}</td>
+    <td class="num net">${l.net}</td>
+    <td class="go">${CHEV}</td>
+  </tr>`).join('') + `
+  <tr class="sumrow">
+    <td colspan="6" class="r">Lines sum</td>
+    <td class="total r">550.39</td>
+    <td></td>
+  </tr>`;
+
+document.getElementById('kaapi-totals').innerHTML = KAAPI_TOTALS.map(r => `
+  <tr>
+    <td style="padding-left:18px;color:${r.bold?'var(--ink)':'var(--ink2)'};font-weight:${r.bold?600:400}">${r.name}</td>
+    <td class="num" style="color:var(--muted)">${r.rate}</td>
+    <td class="num net" style="font-size:12.5px">${r.amount}</td>
+    <td class="r" style="padding-right:18px">
+      <span class="chip ${r.cls}" style="font-size:10.5px;padding:3px 7px"><i style="width:5px;height:5px"></i>${r.conf}</span>
+    </td>
+  </tr>`).join('');
+
+document.getElementById('kaapi-derived').innerHTML = KAAPI_DERIVED.map(r => `
+  <tr>
+    <td style="padding:12px 16px">${esc(r.field)}</td>
+    <td>
+      <div style="display:flex;align-items:center;gap:7px">
+        <span class="mono" style="font-size:12px;font-weight:500;color:${r.over?'var(--warn-fg)':'var(--ink)'}">${esc(r.value)}</span>
+        ${r.over?'<span style="border-radius:6px;padding:2px 6px;font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;background:var(--warn-bg);color:var(--warn-fg)">override</span>':''}
+      </div>
+    </td>
+    <td style="font-size:11.5px;color:var(--slate)">${esc(r.inputs)}</td>
+    <td>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:11.5px;color:var(--slate)">${esc(r.rule)}</span>
+        <span class="src" style="background:${r.sBg};color:${r.sFg}"><i style="background:${r.sDot}"></i>${esc(r.source)}</span>
+      </div>
+    </td>
+    <td class="r" style="padding-right:16px">
+      <div style="display:inline-flex;gap:6px">
+        <span class="mini">Override</span>
+        ${r.fixable?'<span class="mini indigo">Fix the source</span>':''}
+      </div>
+    </td>
+  </tr>`).join('');
+
+document.getElementById('census-pages').innerHTML = CENSUS.map(p => {
+  const k = KINDS[p.kind];
+  return `
+  <div class="page" style="border-color:${k.border};background:${k.bg}">
+    <div class="sheetish">
+      <div style="height:6px;width:58%;background:${k.ink}"></div>
+      <div style="height:9px;width:74%;background:${k.inkStrong}"></div>
+      <div style="height:1px;background:var(--wash);margin:3px 0"></div>
+      <div style="height:5px;width:88%;background:var(--wash)"></div>
+      <div style="height:5px;width:70%;background:var(--wash)"></div>
+      <div style="height:5px;width:80%;background:var(--wash)"></div>
+      <div style="height:5px;width:52%;background:var(--wash)"></div>
+    </div>
+    <div class="cap" style="border-top-color:${k.border}">
+      <div class="id">
+        <span class="n">p${p.n}</span>
+        <span class="kind" style="background:${k.chipBg};color:${k.chipFg}">${p.kind}</span>
+      </div>
+      <span class="note2">${esc(p.note)}</span>
+    </div>
+  </div>`;
+}).join('');
+
+function renderLog(){
+  document.getElementById('activity-log').innerHTML = ACTIVITY.map(e => `
+    <div class="ev">
+      <span class="kind">${e.kind}</span>
+      <div class="body">${e.body}</div>
+      <span class="when">${e.when}</span>
+    </div>`).join('');
 }
+renderLog();
 
-function renderChips(){
-  $('chips').innerHTML = run.invoices.map((iv, i) => {
-    const st = iv.decision === 'accepted' ? 'acc' : iv.decision === 'excluded' ? 'exc' : 'und';
-    const name = iv.read_failed ? 'Could not be read'
-      : (iv.header.invoice_number || iv.invoice_key);
-    return '<button class="chip' + (i === current ? ' on' : '') + '" data-i="' + i + '">' +
-           '<span class="st ' + st + '"></span>' + esc(name) + '</button>';
-  }).join('');
-  $('chips').querySelectorAll('[data-i]').forEach((b) => {
-    b.onclick = () => { current = Number(b.dataset.i); reaskOpen = false; refusal = null; renderAll(); };
-  });
-  $('counts').innerHTML =
-    '<strong>Invoice ' + (current + 1) + ' of ' + run.invoice_count + '</strong> &nbsp;&middot;&nbsp; ' +
-    run.accepted_count + ' accepted &middot; ' + run.undecided_count + ' undecided &middot; ' +
-    run.excluded_count + ' excluded';
+/* ── Navigation ──────────────────────────────────────────────────────────── */
+
+const BARS = {
+  'lines-feelflux':'feelflux', 'lines-hangzhou':'hangzhou', 'census':'feelflux',
+  'totals':'totals', 'derived':'derived', 'activity':'activity',
+};
+const RAIL = {
+  'lines-feelflux':'lines', 'lines-hangzhou':'lines', 'census':'lines',
+  'totals':'totals', 'derived':'derived', 'activity':'activity',
+};
+
+function show(view){
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.dataset.view === view));
+  document.querySelectorAll('.bar').forEach(b => b.classList.toggle('on', b.dataset.bar === BARS[view]));
+  document.querySelectorAll('.rail button').forEach(b => b.classList.toggle('on', b.dataset.rail === RAIL[view]));
+  window.scrollTo({top:0, behavior:'smooth'});
 }
+show('lines-feelflux');
 
-function renderHeader(){
-  const c = run.page_census;
-  $('fileName').textContent = run.file_name;
-  $('fileSub').innerHTML =
-    run.invoice_count + ' invoices &middot; ' + c.page_count + ' pages, all accounted for ' +
-    '(' + Object.entries(c.counts).map(([k, v]) => v + ' ' + k).join(', ') + ')';
+/* ── Re-ask: the hint is validated before any model call ─────────────────── */
 
-  const banner = $('readonlyBanner');
-  if (!run.may_review){ banner.hidden = false; banner.innerHTML = '<span>&#128274;</span><span>' + esc(run.read_only_reason) + '</span>'; }
-  else banner.hidden = true;
+/* The three HintValidator rules live on the backend; this reproduces the first of
+   them — no figure named — because it is the one the reviewer can trip while typing.
+   A refused hint stays editable: the refusal names the rule, not just the failure. */
+const FIGURE = /\d[\d,]*\.\d+|\b\d{3,}\b/;
 
-  /* Finishing is refused while any invoice is undecided -- the button says so rather than
-     failing on click. */
-  const fin = $('btnFinish');
-  fin.disabled = !run.can_finish || !run.may_review;
-  fin.textContent = run.can_finish ? 'Finish review' : 'Finish review · ' + run.undecided_count + ' left';
-  fin.title = run.can_finish ? '' :
-    run.undecided_count + ' invoice(s) have not been accepted or excluded yet. Every invoice needs a decision.';
+function openReask(){ document.getElementById('reask').classList.add('on'); validateHint(); }
+function closeReask(){ document.getElementById('reask').classList.remove('on'); }
 
-  ['btnAccept','btnExclude','btnReask'].forEach((id) => { $(id).disabled = !run.may_review; });
-  $('btnAccept').textContent = inv().decision === 'accepted' ? 'Accepted ✓' : 'Accept';
-  $('footNote').innerHTML = run.applied_changes + ' reviewer change(s) folded into this view';
-}
-
-function linesTable(){
-  const iv = inv();
-  if (iv.read_failed){
-    return '<div class="cardbody"><span class="pill bad">Could not be read</span>' +
-      '<p class="headline" style="margin-top:9px">' + esc(iv.failure) + '</p>' +
-      '<p class="hint">It still reaches this review, carrying its page accounting and no lines &mdash; ' +
-      'so it can be repaired here rather than disappearing from the run.</p></div>';
-  }
-  const rows = iv.lines.map((l) =>
-    '<tr><td class="mono">' + l.ordinal + '</td>' +
-    '<td><span class="lbl ' + esc(l.label) + '">' + esc(l.label) + '</span></td>' +
-    '<td>' + esc(l.item_name || '') +
-      (l.item_code ? '<div class="hint mono">' + esc(l.item_code) + '</div>' : '') + '</td>' +
-    '<td class="num mono">' + (l.quantity ? esc(l.quantity) : '<span class="mut">&mdash;</span>') + '</td>' +
-    '<td class="num mono">' + (l.unit_price ? amt(l.unit_price, ccy()) : '<span class="mut">&mdash;</span>') + '</td>' +
-    '<td class="num mono">' + amt(l.line_amount, ccy()) + '</td></tr>'
-  ).join('');
-
-  /* A figure the page carries that no line does. Offered, never invented. */
-  const notread = (iv.reconcile.not_read || []).map((n) =>
-    '<tr class="notread"><td colspan="3"><strong>Printed on the page, not read</strong> ' +
-    '<span class="hint">&mdash; ' + esc(n.source) + ', page ' + n.pages.join(', ') + '</span></td>' +
-    '<td colspan="2" class="num mut">not a line</td>' +
-    '<td class="num mono">' + amt(n.value, ccy()) +
-    '<div><button class="btn" style="margin-top:5px;padding:3px 8px;font-size:11.5px">Add the line</button></div>' +
-    '</td></tr>'
-  ).join('');
-
-  return '<table><thead><tr><th>#</th><th>Label</th><th>Item</th>' +
-    '<th class="num">Qty</th><th class="num">Rate</th><th class="num">Amount</th></tr></thead>' +
-    '<tbody>' + rows + notread + '</tbody></table>';
-}
-
-function findings(){
-  const f = inv().reconcile.findings || [];
-  if (!f.length) return '';
-  return '<div class="card"><div class="cardhead"><span class="cardtitle">What does not add up</span>' +
-    '<span class="pill mute">' + f.length + '</span></div><div class="cardbody">' +
-    f.map((x) =>
-      '<div class="finding ' + esc(x.severity) + '">' +
-      '<div class="meta"><span class="pill ' + (x.severity === 'error' ? 'bad' : x.severity === 'note' ? 'mute' : 'warn') + '">' +
-        esc(x.kind) + '</span>' +
-        (x.money_at_stake ? ' &nbsp;' + amt(x.money_at_stake, ccy()) + ' at stake' : '') +
-        (x.pages && x.pages.length ? ' &nbsp;&middot;&nbsp; page ' + x.pages.join(', ') : '') + '</div>' +
-      '<p class="headline">' + esc(x.headline) + '</p>' +
-      (x.remedy ? '<p class="remedy">&rarr; ' + esc(x.remedy) + '</p>' : '') +
-      '</div>'
-    ).join('') + '</div></div>';
-}
-
-function totalsSection(){
-  const iv = inv(), h = iv.header, r = iv.reconcile;
-  const row = (k, v, cls) => v === undefined || v === null ? '' :
-    '<div class="k ' + (cls || '') + '">' + k + '</div><div class="v mono ' + (cls || '') + '">' + amt(v, ccy()) + '</div>';
-  const tax = iv.tax_components.length
-    ? '<table><thead><tr><th>Label</th><th class="num">Rate</th><th class="num">Amount</th></tr></thead><tbody>' +
-      iv.tax_components.map((t) =>
-        '<tr><td><strong>' + esc(t.label) + '</strong></td>' +
-        '<td class="num mono">' + (t.rate === null
-            ? '<span class="mut" title="A tax CODE, not a percentage — inventing a rate here is a wrong return">not a rate</span>'
-            : esc(t.rate) + '%') + '</td>' +
-        '<td class="num mono">' + amt(t.amount, ccy()) + '</td></tr>').join('') +
-      '</tbody></table>'
-    : '<p class="hint">This invoice prints no tax component. An empty tax block is a correct answer.</p>';
-
-  return '<div class="card"><div class="cardhead"><span class="cardtitle">Printed totals</span>' +
-      '<span class="pill ' + (r.reconciles ? 'ok' : 'bad') + '">' +
-      (r.reconciles ? 'Adds up' : 'Out by ' + r.residual) + '</span></div>' +
-    '<div class="cardbody"><div class="ladder">' +
-      row('Subtotal', h.subtotal_printed) + row('Tax total', h.tax_total_printed) +
-      '<div class="rule"></div>' + row('Grand total', h.grand_total_printed, 'total') +
-      row('Amount due', h.amount_due_printed) +
-    '</div></div></div>' +
-    '<div class="card"><div class="cardhead"><span class="cardtitle">Tax, as printed</span>' +
-      '<span class="hint">rows, not columns</span></div><div class="cardbody">' + tax + '</div></div>' +
-    '<div class="card"><div class="cardhead"><span class="cardtitle">The two identities</span>' +
-      '<span class="hint">reported whether they hold or not</span></div><div class="cardbody">' +
-      (r.identities.length ? r.identities.map((i) =>
-        '<div class="identity"><span class="pill ' + (i.holds ? 'ok' : 'bad') + '">' +
-        (i.holds ? 'holds' : 'fails') + '</span><div><div class="mono hint">' + esc(i.name) +
-        ': ' + esc(i.left) + ' vs ' + esc(i.right) + '</div>' + esc(i.sentence) + '</div></div>'
-      ).join('') : '<p class="hint">Nothing was read, so neither identity was tested.</p>') +
-    '</div></div>';
-}
-
-function activitySection(){
-  const mine = run.activity.filter((a) => a.invoice_key === inv().invoice_key);
-  return '<div class="card"><div class="cardhead"><span class="cardtitle">Activity</span>' +
-    '<span class="hint">append-only</span></div><div class="cardbody">' +
-    (mine.length ? mine.map((a) =>
-      '<div class="evt"><div>' + esc(a.sentence) + '</div>' +
-      '<div class="who mono">' + esc(a.kind) + ' &middot; ' + esc(a.at) + '</div></div>').join('')
-      : '<p class="hint">Nothing has been changed on this invoice yet.</p>') +
-    '<p class="hint" style="margin-top:9px">A correction that is itself corrected leaves both entries. ' +
-    'The log is not a picture of the current state &mdash; it is the record of how it came about.</p>' +
-    '</div></div>';
-}
-
-function derivedSection(){
-  return '<div class="card"><div class="cardbody">' +
-    '<span class="pill mute">Not built yet</span>' +
-    '<p class="headline">Calculated values &mdash; currency conversion, TDS, place of supply, account coding &mdash; ' +
-    'arrive with the later inference feature.</p>' +
-    '<p class="hint">They will live in their own table, so <em>where a value lives</em> answers whether it was ' +
-    'read off the page or computed. Of the 98 export columns, 42 are read and populated today; the other 56 ' +
-    'are written deliberately empty.</p></div></div>';
-}
-
-function renderPane(){
-  const iv = inv();
-  let body = '';
-  if (section === 'lines'){
-    body = findings() +
-      '<div class="card"><div class="cardhead"><span class="cardtitle">Lines, as printed</span>' +
-      '<span class="hint">' + iv.reconcile.census.transcribed + ' transcribed &middot; ' +
-      iv.reconcile.census.presented + ' presented &middot; ' + iv.reconcile.census.charge_lines +
-      ' charge' + (iv.reconcile.census.holds ? '' : ' &mdash; does not balance') + '</span></div>' +
-      (iv.read_failed ? linesTable() : linesTable()) + '</div>';
-  } else if (section === 'totals'){ body = findings() + totalsSection(); }
-  else if (section === 'activity'){ body = activitySection(); }
-  else { body = derivedSection(); }
-  $('pane').innerHTML = body;
-}
-
-function renderAside(){
-  const iv = inv();
-  const pages = iv.page_ranges.flatMap(([a, b]) => { const o = []; for (let p = a; p <= b; p++) o.push(p); return o; });
-  const strip = Array.from({ length: run.page_census.page_count }, (_, i) => i + 1).map((p) => {
-    const own = pages.includes(p);
-    return '<div class="pagethumb' + (own ? ' on' : ' att') + '" title="' +
-      (own ? 'This invoice' : 'Another invoice, or an attachment') + '">' + p + '</div>';
-  }).join('');
-
-  const verdicts = iv.verdicts.map((v) =>
-    '<div class="evt"><div><span class="pill ' +
-      (v.outcome === 'passed' ? 'ok' : v.outcome === 'failed' ? 'bad' : 'mute') + '">' +
-      esc(v.outcome.replace(/_/g, ' ')) + '</span> <strong>' + esc(v.check.replace(/_/g, ' ')) + '</strong></div>' +
-    '<div class="who">' + esc(v.sentence) + '</div></div>').join('');
-
-  const note = reaskOpen ? reaskPanel() : '';
-
-  const gates = (iv.auto_verify.gates || []).length
-    ? '<div class="asidehead">Could this skip review?</div>' +
-      iv.auto_verify.gates.map((g) =>
-        '<div class="evt"><div><span class="pill ' +
-        (g.passed && g.evaluated ? 'ok' : g.evaluated ? 'bad' : 'mute') + '">' +
-        (g.passed && g.evaluated ? 'passed' : g.evaluated ? 'failed' : 'not evaluated') + '</span> ' +
-        esc(g.name.replace(/_/g, ' ')) + '</div><div class="who">' + esc(g.sentence) + '</div></div>').join('') +
-      '<p class="hint">' + esc(iv.auto_verify.sentence) + '</p>'
-    : '';
-
-  $('aside').innerHTML =
-    '<div class="asidehead">Pages</div>' +
-    '<div class="pagestrip">' + strip + '</div>' +
-    '<div class="pagesheet">The shipped screen renders the real PDF here.<br />' +
-      '<span class="hint">A mock limitation, not the design.</span></div>' +
-    '<p class="hint">' + esc(iv.basis) + (iv.copy_count > 1
-      ? ' &mdash; printed ' + iv.copy_count + ' times, and both ranges are kept so either printing can be checked.'
-      : '') + '</p>' +
-    '<div class="asidehead">Checked independently</div>' + (verdicts || '<p class="hint">No second reading.</p>') +
-    gates +
-    '<div class="asidehead">Re-ask the model</div>' + (note ||
-      '<p class="hint">Ask for chosen pages to be read again, with a note about where to look. ' +
-      'The note is checked before anything is read.</p>');
-}
-
-function reaskPanel(){
-  const f = (inv().reconcile.findings || []).find((x) => x.suggested_note);
-  const suggested = f ? f.suggested_note : null;
-  return '<div>' +
-    (suggested ? '<p class="hint">Suggested because ' + esc(suggested.because) + '.</p>' : '') +
-    '<textarea class="note" id="noteBox">' + esc(suggested ? suggested.text : '') + '</textarea>' +
-    '<p class="hint">Pages ' + inv().page_ranges.map(([a, b]) => a === b ? a : a + '–' + b).join(', ') +
-      ' &mdash; from your selection, never from the note.</p>' +
-    (refusal ? '<div class="refusal"><div class="rule">Refused &middot; ' + esc(refusal.rule) + '</div>' +
-      esc(refusal.detail) + '<p class="hint" style="color:inherit;margin-top:5px">' +
-      'Your note is still here, unchanged. It was refused, not stripped.</p></div>' : '') +
-    '<div style="display:flex;gap:7px;margin-top:9px">' +
-      '<button class="btn primary" id="btnSend">Send</button>' +
-      '<button class="btn" id="btnTryFigure">Try one that names a figure</button>' +
-    '</div></div>';
-}
-
-function renderAll(){
-  renderHeader(); renderChips(); renderRail(); renderPane(); renderAside();
-  const box = $('btnSend');
-  if (box){
-    box.onclick = () => { refusal = null; reaskOpen = false; renderAll(); };
-    $('btnTryFigure').onclick = () => { refusal = REFUSALS.no_figure; renderAll(); };
+function validateHint(){
+  const box = document.getElementById('hint');
+  const out = document.getElementById('refusal');
+  const go  = document.getElementById('reask-go');
+  const hit = box.value.match(FIGURE);
+  if (hit){
+    out.querySelector('span').innerHTML =
+      `A hint may not name a figure. Remove <span class="mono">${esc(hit[0])}</span> and describe where to look instead — ` +
+      `telling the model the answer is how a re-read comes back agreeing with a number it was handed.`;
+    out.classList.add('on'); box.classList.add('refused');
+    go.classList.add('dim'); go.disabled = true;
+  } else {
+    out.classList.remove('on'); box.classList.remove('refused');
+    go.classList.remove('dim'); go.disabled = false;
   }
 }
 
-$('btnReask').onclick = () => { reaskOpen = !reaskOpen; refusal = null; renderAll(); };
-$('btnAccept').onclick = () => {
-  const iv = inv();
-  if (iv.decision === 'accepted') return;
-  if (iv.decision === 'undecided') run.undecided_count -= 1;
-  if (iv.decision === 'excluded') run.excluded_count -= 1;
-  iv.decision = 'accepted'; run.accepted_count += 1;
-  run.can_finish = run.undecided_count === 0;
-  run.applied_changes += 1;
-  run.activity.push({ ordinal: run.activity.length + 1, kind:'invoice_accepted',
-    at:'2026-09-11T09:20:00Z', actor:{ id:'u1', display_name:'priya@theatlas.ai' },
-    invoice_key: iv.invoice_key, sentence:'priya@theatlas.ai accepted this invoice.', detail:{} });
-  renderAll();
-};
-$('btnExclude').onclick = () => {
-  const iv = inv();
-  /* A reason is required to exclude and not to accept. Excluding is the one that has to be
-     explicable later; asking for a reason to accept trains people to type "ok". */
-  const reason = prompt('Excluding an invoice needs a reason.\n\nIt is the field somebody reads when they ask why this bill was never paid, and a blank one answers nothing.');
-  if (!reason || !reason.trim()) return;
-  if (iv.decision === 'undecided') run.undecided_count -= 1;
-  if (iv.decision === 'accepted') run.accepted_count -= 1;
-  iv.decision = 'excluded'; iv.excluded_reason = reason.trim(); run.excluded_count += 1;
-  run.can_finish = run.undecided_count === 0;
-  run.applied_changes += 1;
-  run.activity.push({ ordinal: run.activity.length + 1, kind:'invoice_excluded',
-    at:'2026-09-11T09:21:00Z', actor:{ id:'u1', display_name:'priya@theatlas.ai' },
-    invoice_key: iv.invoice_key,
-    sentence:'priya@theatlas.ai excluded this invoice: ' + reason.trim() + '.', detail:{ reason } });
-  renderAll();
-};
-$('btnPrev').onclick = () => { current = (current - 1 + run.invoices.length) % run.invoices.length; reaskOpen = false; renderAll(); };
-$('btnNext').onclick = () => { current = (current + 1) % run.invoices.length; reaskOpen = false; renderAll(); };
-$('btnFinish').onclick = () => { if (run.can_finish) alert('Review finished. Each invoice is recorded as it was decided — accepted ones with their lines and tax, excluded ones with their reason.'); };
+function sendReask(){
+  closeReask();
+  ACTIVITY.push({
+    kind:'reask_requested', when:'now',
+    body:'Pages 1, 3 of <span class="mono">FLX-2025-235</span> queued for re-reading. The request is recorded here; ' +
+         'the re-read runs as its own child workflow and appends <span class="mono">reask_completed</span> when it reports back.',
+  });
+  renderLog();
+  show('activity');
+}
 
-renderAll();
+function addLine(btn){
+  const row = document.getElementById('missing-line');
+  if (!row || row.dataset.added) return;
+  row.dataset.added = '1';
+  row.innerHTML = `
+    <td class="idx">4</td>
+    <td class="pg">1</td>
+    <td><span class="lab discount">discount</span></td>
+    <td style="max-width:300px">COUPON 2TJF-AMMK-BBQ1 <span style="color:var(--muted)">— added by the reviewer</span></td>
+    <td class="num">1</td>
+    <td class="num">&minus;21.90</td>
+    <td class="num net">&minus;21.90</td>
+    <td class="num tax">0.00</td>
+    <td class="go">${CHEV}</td>`;
+  btn.textContent = 'Line added';
+  btn.disabled = true;
+  btn.style.opacity = '.5';
+  ACTIVITY.push({
+    kind:'line_added', when:'now',
+    body:'A discount line was added — <span class="mono">COUPON 2TJF-AMMK-BBQ1</span>, <span class="mono">&minus;21.90</span>. ' +
+         'Recorded as an instruction; the backend re-runs the arithmetic and re-sends the tiles. ' +
+         '<i>Mockup note:</i> the tiles above are left as the backend last sent them rather than re-summed here.',
+  });
+  renderLog();
+}
 </script>
 </body>
 </html>
