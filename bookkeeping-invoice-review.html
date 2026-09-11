@@ -297,32 +297,12 @@
   .wide td.long{max-width:260px; overflow:hidden; text-overflow:ellipsis}
   .wide th.held,.wide td.heldcol{background:rgba(254,252,232,.5)}
 
-  /* ── As read: the field census ───────────────────────────────────────────── */
-  .census-band{display:flex; align-items:center; gap:10px; padding:11px 20px; background:#fff; border-bottom:1px solid var(--line); flex-wrap:wrap}
-  .fgroup{background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden}
-  .fgroup .ghd{display:flex; align-items:baseline; gap:10px; padding:11px 16px; border-bottom:1px solid var(--line); background:var(--bg)}
-  .fgroup .ghd h3{font-family:"Hanken Grotesk",sans-serif; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:0}
-  .fgroup .ghd .n{font-size:11px; color:var(--faint)}
-  .frow{display:flex; align-items:baseline; gap:12px; padding:8px 16px; border-bottom:1px solid var(--hair)}
-  .frow:last-child{border-bottom:0}
-  .frow .fn{width:186px; flex-shrink:0; font-size:12px; color:var(--muted)}
-  .frow .fv{flex-grow:1; min-width:0; font-family:'Spline Sans Mono',Menlo,monospace; font-size:11.5px; color:var(--ink); word-break:break-word}
-  .frow .fv.none{color:var(--faint); font-family:"Hanken Grotesk",sans-serif; font-style:italic}
-  .frow .fp{width:34px; flex-shrink:0; text-align:right; font-family:'Spline Sans Mono',Menlo,monospace; font-size:10.5px; color:var(--faint)}
-  .frow .fc{width:196px; flex-shrink:0; text-align:right; font-size:10.5px; color:var(--faint)}
-  .frow .fc .col{font-family:'Spline Sans Mono',Menlo,monospace; color:var(--slate)}
+  /* ── Field rows: the shared vocabulary the drawer, Totals and the grid use ── */
   .nocol{border-radius:5px; padding:2px 6px; font-size:9.5px; font-weight:600; letter-spacing:.03em}
   .nocol.held{background:var(--warn-bg); color:var(--warn-fg)}
   .nocol.reconcile{background:var(--indigo-bg); color:var(--indigo-fg)}
   .nocol.unused{background:var(--bad-bg); color:var(--bad-fg)}
   .nocol.structural{background:var(--hair); color:var(--slate)}
-  .frow.flagged{background:var(--warn-bg)}
-  .fmatrix{width:100%; border-collapse:collapse}
-  .fmatrix th{padding:9px 12px; font-size:10px; background:var(--bg)}
-  .fmatrix td{padding:7px 12px; font-size:11.5px}
-  .fmatrix td.fn{color:var(--muted); font-size:12px; width:172px}
-  .fmatrix td.lv{font-family:'Spline Sans Mono',Menlo,monospace; font-size:11px; color:var(--ink)}
-  .fmatrix td.lv.none{color:var(--faint); font-family:"Hanken Grotesk",sans-serif; font-style:italic}
 
   /* ── Identity drawer + line expander ─────────────────────────────────────── */
   .morebtn{display:inline-flex; align-items:center; gap:5px; border:1px solid var(--line); background:#fff; border-radius:8px; padding:3px 9px; font-family:inherit; font-size:11px; font-weight:500; color:var(--slate); cursor:pointer; margin-left:8px}
