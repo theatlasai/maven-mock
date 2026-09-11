@@ -264,6 +264,54 @@
   .dialog .ft{display:flex; align-items:center; gap:10px; padding:14px 22px; border-top:1px solid var(--line); background:var(--bg)}
   .dialog .ft .cost{font-size:11.5px; color:var(--muted)}
 
+  /* ── As read: the field census ───────────────────────────────────────────── */
+  .census-band{display:flex; align-items:center; gap:10px; padding:11px 20px; background:#fff; border-bottom:1px solid var(--line); flex-wrap:wrap}
+  .asread{padding:18px 20px; display:flex; flex-direction:column; gap:16px}
+  .fgroup{background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden}
+  .fgroup .ghd{display:flex; align-items:baseline; gap:10px; padding:11px 16px; border-bottom:1px solid var(--line); background:var(--bg)}
+  .fgroup .ghd h3{font-family:"Hanken Grotesk",sans-serif; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:0}
+  .fgroup .ghd .n{font-size:11px; color:var(--faint)}
+  .frow{display:flex; align-items:baseline; gap:12px; padding:8px 16px; border-bottom:1px solid var(--hair)}
+  .frow:last-child{border-bottom:0}
+  .frow .fn{width:186px; flex-shrink:0; font-size:12px; color:var(--muted)}
+  .frow .fv{flex-grow:1; min-width:0; font-family:'Spline Sans Mono',Menlo,monospace; font-size:11.5px; color:var(--ink); word-break:break-word}
+  .frow .fv.none{color:var(--faint); font-family:"Hanken Grotesk",sans-serif; font-style:italic}
+  .frow .fp{width:34px; flex-shrink:0; text-align:right; font-family:'Spline Sans Mono',Menlo,monospace; font-size:10.5px; color:var(--faint)}
+  .frow .fc{width:196px; flex-shrink:0; text-align:right; font-size:10.5px; color:var(--faint)}
+  .frow .fc .col{font-family:'Spline Sans Mono',Menlo,monospace; color:var(--slate)}
+  .nocol{border-radius:5px; padding:2px 6px; font-size:9.5px; font-weight:600; letter-spacing:.03em}
+  .nocol.held{background:var(--warn-bg); color:var(--warn-fg)}
+  .nocol.reconcile{background:var(--indigo-bg); color:var(--indigo-fg)}
+  .nocol.unused{background:var(--bad-bg); color:var(--bad-fg)}
+  .nocol.structural{background:var(--hair); color:var(--slate)}
+  .frow.flagged{background:var(--warn-bg)}
+  .fmatrix{width:100%; border-collapse:collapse}
+  .fmatrix th{padding:9px 12px; font-size:10px; background:var(--bg)}
+  .fmatrix td{padding:7px 12px; font-size:11.5px}
+  .fmatrix td.fn{color:var(--muted); font-size:12px; width:172px}
+  .fmatrix td.lv{font-family:'Spline Sans Mono',Menlo,monospace; font-size:11px; color:var(--ink)}
+  .fmatrix td.lv.none{color:var(--faint); font-family:"Hanken Grotesk",sans-serif; font-style:italic}
+
+  /* ── Identity drawer + line expander ─────────────────────────────────────── */
+  .morebtn{display:inline-flex; align-items:center; gap:5px; border:1px solid var(--line); background:#fff; border-radius:8px; padding:3px 9px; font-family:inherit; font-size:11px; font-weight:500; color:var(--slate); cursor:pointer; margin-left:8px}
+  .morebtn:hover{border-color:var(--ghost); color:var(--ink)}
+  .drawer{border-top:1px solid var(--line); background:var(--bg); padding:12px 20px 14px; display:none; flex-direction:column; gap:12px}
+  .drawer.on{display:flex}
+  .drawer .dhd{display:flex; align-items:center; gap:9px}
+  .drawer .dhd .cap{font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--faint)}
+  .dgrid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px}
+  .dcell{display:flex; align-items:baseline; gap:10px; background:#fff; border:1px solid var(--line); border-radius:8px; padding:7px 11px}
+  .dcell.held{border-color:var(--warn-line); background:var(--warn-bg)}
+  .dcell .k{width:144px; flex-shrink:0; font-size:11px; color:var(--muted)}
+  .dcell .v{flex-grow:1; min-width:0; font-family:'Spline Sans Mono',Menlo,monospace; font-size:11px; color:var(--ink); word-break:break-word}
+  .dcell .v.none{color:var(--faint); font-family:"Hanken Grotesk",sans-serif; font-style:italic}
+  tr.lrow{cursor:pointer}
+  tr.lrow:hover{background:var(--bg)}
+  tr.lrow.open{background:var(--bg)}
+  tr.lrow.open td.go{color:var(--muted)}
+  tr.lx > td{background:var(--bg); border-bottom:1px solid var(--line); padding:10px 20px 12px 56px}
+  .lxgrid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px}
+
   /* ── Derived: the level split ────────────────────────────────────────────── */
   .lvl{background:#fff; border-bottom:1px solid var(--line)}
   .lvl-hd{display:flex; align-items:center; gap:10px; padding:11px 20px}
@@ -338,6 +386,10 @@
       <button data-rail="totals" onclick="show('totals')">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5m0 14h16M8 15l4-5 3 3 4-6"/></svg>
         Totals
+      </button>
+      <button data-rail="asread" onclick="show('asread')" title="Every field read off the page">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5zM9 9h6M9 13h6M9 17h3"/></svg>
+        As read
       </button>
       <!-- Planned, not shipped: the artboards drew this item greyed out, and it stays
            visually subordinate. But a mock whose only way in is a button two panels
@@ -428,6 +480,15 @@
       <span class="who">Kaapi Machines (India) Pvt. Ltd. · 252910650 · INR</span>
     </div>
 
+    <div class="bar" data-bar="asread">
+      <span class="run" id="ar-run"></span>
+      <span class="sep">/</span>
+      <span class="where">As read</span>
+      <button class="picker" id="ar-picker" onclick="flipAsRead()"></button>
+      <div class="grow"></div>
+      <span class="who">every field the asks read, and where each one goes</span>
+    </div>
+
     <div class="bar" data-bar="activity">
       <span class="run">parse_invoice · run 4187</span>
       <span class="sep">/</span>
@@ -446,7 +507,7 @@
             <span class="chip bad"><i></i>Does not reconcile</span>
             <button class="chip neutral" onclick="show('census')" title="Open the page census"><i></i>2 copies · pages 1, 3</button>
           </div>
-          <div class="meta">FLX-2025-235 · 2025-09-26 · USD · PO #3864 · HU24985846</div>
+          <div class="meta">FLX-2025-235 · 2025-09-26 · USD · PO #3864 · HU24985846<button class="morebtn" id="feelflux-more" onclick="toggleDrawer('feelflux')"></button></div>
         </div>
         <div class="grow"></div>
         <div class="tiles">
@@ -460,6 +521,7 @@
           <div class="tile" style="min-width:78px"><div class="k">Tax</div><div class="v">0.00</div><div class="n">exempt</div></div>
         </div>
       </div>
+      <div class="drawer" id="feelflux-drawer"></div>
 
       <!-- The headline diagnosis. One sentence saying WHAT the difference is. -->
       <div class="diag">
@@ -556,7 +618,7 @@
             <h1>Hangzhou Yuanxintong Technology Co., Ltd.</h1>
             <span class="chip ok"><i></i>Reconciles</span>
           </div>
-          <div class="meta">GP1154 · 2026-01-26 · USD · scanned, no text layer</div>
+          <div class="meta">GP1154 · 2026-01-26 · USD · scanned, no text layer<button class="morebtn" id="hangzhou-more" onclick="toggleDrawer('hangzhou')"></button></div>
         </div>
         <div class="grow"></div>
         <div class="tiles">
@@ -566,6 +628,7 @@
           <div class="tile" style="min-width:78px"><div class="k">Tax</div><div class="v">0.00</div><div class="n">none printed</div></div>
         </div>
       </div>
+      <div class="drawer" id="hangzhou-drawer"></div>
 
       <!-- Verdicts: chips on the figures they are about, never a screen of prose -->
       <div class="band wash">
@@ -821,6 +884,12 @@
       </div>
     </section>
 
+    <!-- ══ As read — the field census ══════════════════════════════════════ -->
+    <section class="view" data-view="asread">
+      <div class="census-band" id="ar-census"></div>
+      <div class="asread" id="ar-body"></div>
+    </section>
+
     <!-- ══ Activity ═══════════════════════════════════════════════════════ -->
     <section class="view" data-view="activity">
       <div class="log">
@@ -902,9 +971,12 @@
 /* ── The data each artboard carried in its own renderVals() ──────────────── */
 
 const FEELFLUX_LINES = [
-  {n:1, page:1, label:'product',  desc:'Feel Flux - FLUX Original — Leather colour: Dark Brown, Desktop Stand: Walnut wood', qty:'1', rate:'120.00', net:'120.00', tax:'0.00'},
-  {n:2, page:1, label:'product',  desc:'Spin Flux (Mirror Nickel)', qty:'1', rate:'99.00', net:'99.00', tax:'0.00'},
-  {n:3, page:1, label:'charge',   desc:'Flat Rate Shipping', qty:'1', rate:'25.00', net:'25.00', tax:'0.00'},
+  {n:1, page:1, label:'product', desc:'Feel Flux - FLUX Original — Leather colour: Dark Brown, Desktop Stand: Walnut wood',
+   name:'Feel Flux - FLUX Original', code:'', unit:'EA', hsn:'', serial:'', dpct:'', damt:'', qty:'1', rate:'120.00', net:'120.00', tax:'0.00'},
+  {n:2, page:1, label:'product', desc:'Spin Flux (Mirror Nickel)',
+   name:'Spin Flux', code:'', unit:'EA', hsn:'', serial:'', dpct:'', damt:'', qty:'1', rate:'99.00', net:'99.00', tax:'0.00'},
+  {n:3, page:1, label:'charge', desc:'Flat Rate Shipping',
+   name:'Flat Rate Shipping', code:'', unit:'EA', hsn:'', serial:'', dpct:'', damt:'', qty:'1', rate:'25.00', net:'25.00', tax:'0.00'},
 ];
 
 const FEELFLUX_PAGES = [
@@ -917,12 +989,18 @@ const FEELFLUX_PAGES = [
 ];
 
 const HANGZHOU_LINES = [
-  {n:1, label:'product', code:'H2B-C9F-AI00036A', desc:'Printed Circuit Board: Flexible Board, 2 layers', qty:'100', rate:'1.17', net:'116.97'},
-  {n:2, label:'product', code:'H2B-C8F-AI00036A', desc:'Printed Circuit Board: Flexible Board, 2 layers', qty:'100', rate:'1.17', net:'116.97'},
-  {n:3, label:'product', code:'H2B-C7F-AI00036A', desc:'Printed Circuit Board: Flexible Board, 2 layers', qty:'100', rate:'1.17', net:'116.97'},
-  {n:4, label:'product', code:'H2B-C6F-AI00036A', desc:'Printed Circuit Board: Flexible Board, 2 layers', qty:'250', rate:'0.59', net:'146.96'},
-  {n:5, label:'charge',  code:'—', desc:'Shipping fee', qty:'—', rate:'—', net:'28.00'},
-  {n:6, label:'charge',  code:'—', desc:'Payment fee',  qty:'—', rate:'—', net:'24.52'},
+  {n:1, label:'product', code:'H2B-C9F-AI00036A', desc:'Printed Circuit Board: Flexible Board, 2 layers',
+   name:'Printed Circuit Board', page:1, unit:'PCS', hsn:'', serial:'', dpct:'', damt:'', tax:'', qty:'100', rate:'1.17', net:'116.97'},
+  {n:2, label:'product', code:'H2B-C8F-AI00036A', desc:'Printed Circuit Board: Flexible Board, 2 layers',
+   name:'Printed Circuit Board', page:1, unit:'PCS', hsn:'', serial:'', dpct:'', damt:'', tax:'', qty:'100', rate:'1.17', net:'116.97'},
+  {n:3, label:'product', code:'H2B-C7F-AI00036A', desc:'Printed Circuit Board: Flexible Board, 2 layers',
+   name:'Printed Circuit Board', page:1, unit:'PCS', hsn:'', serial:'', dpct:'', damt:'', tax:'', qty:'100', rate:'1.17', net:'116.97'},
+  {n:4, label:'product', code:'H2B-C6F-AI00036A', desc:'Printed Circuit Board: Flexible Board, 2 layers',
+   name:'Printed Circuit Board', page:1, unit:'PCS', hsn:'', serial:'', dpct:'', damt:'', tax:'', qty:'250', rate:'0.59', net:'146.96'},
+  {n:5, label:'charge', code:'—', desc:'Shipping fee',
+   name:'Shipping fee', page:1, unit:'—', hsn:'', serial:'', dpct:'', damt:'', tax:'', qty:'—', rate:'—', net:'28.00'},
+  {n:6, label:'charge', code:'—', desc:'Payment fee',
+   name:'Payment fee', page:1, unit:'—', hsn:'', serial:'', dpct:'', damt:'', tax:'', qty:'—', rate:'—', net:'24.52'},
 ];
 
 const HIGH = {conf:'0.93', cls:'ok'}, MID = {conf:'0.82', cls:'warn'},
@@ -1211,7 +1289,7 @@ const CHEV = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke
 function esc(s){ return String(s).replace(/&(?![a-z#])/g,'&amp;').replace(/</g,'&lt;'); }
 
 document.getElementById('feelflux-lines').innerHTML = FEELFLUX_LINES.map(l => `
-  <tr>
+  <tr class="lrow" id="feelflux-lr-${l.n}" onclick="toggleLineRow('feelflux',${l.n})">
     <td class="idx">${l.n}</td>
     <td class="pg">${l.page}</td>
     <td><span class="lab ${l.label}">${l.label}</span></td>
@@ -1221,7 +1299,8 @@ document.getElementById('feelflux-lines').innerHTML = FEELFLUX_LINES.map(l => `
     <td class="num net">${l.net}</td>
     <td class="num tax">${l.tax}</td>
     <td class="go">${CHEV}</td>
-  </tr>`).join('') + `
+  </tr>
+  <tr class="lx" id="feelflux-lx-${l.n}" hidden><td colspan="9"><div class="lxgrid"></div></td></tr>`).join('') + `
   <!-- The gap the detector found, offered rather than invented. -->
   <tr id="missing-line">
     <td class="idx" style="color:var(--ghost)">—</td>
@@ -1243,7 +1322,7 @@ document.getElementById('feelflux-strip').innerHTML = FEELFLUX_PAGES.map(p => `
   </div>`).join('');
 
 document.getElementById('hangzhou-lines').innerHTML = HANGZHOU_LINES.map(l => `
-  <tr>
+  <tr class="lrow" id="hangzhou-lr-${l.n}" onclick="toggleLineRow('hangzhou',${l.n})">
     <td class="idx">${l.n}</td>
     <td><span class="lab ${l.label}">${l.label}</span></td>
     <td class="code">${l.code}</td>
@@ -1252,7 +1331,8 @@ document.getElementById('hangzhou-lines').innerHTML = HANGZHOU_LINES.map(l => `
     <td class="num">${l.rate}</td>
     <td class="num net">${l.net}</td>
     <td class="go">${CHEV}</td>
-  </tr>`).join('') + `
+  </tr>
+  <tr class="lx" id="hangzhou-lx-${l.n}" hidden><td colspan="8"><div class="lxgrid"></div></td></tr>`).join('') + `
   <tr class="sumrow">
     <td colspan="6" class="r">Lines sum</td>
     <td class="total r">550.39</td>
@@ -1423,15 +1503,376 @@ function renderLog(){
 }
 renderLog();
 
+
+/* ══ As read — every field the asks extract ════════════════════════════════════
+   Values are the real ones from the reference extraction runs in maven-backend
+   (Feelflux invoice.gemini.raw.json, Hangzhou … .gemini.raw.json), not invented.
+
+   `col` is the export column a field reaches, or null with a reason:
+     held        read and kept, but the 98-column format has no column for it
+     reconcile   an input to the arithmetic or a detector, correctly not a column
+     structural  ordering and counts, not content
+     unused      read, normalised, and consumed by nothing  ← a defect, not a design
+   The census counts are derived from this data, never written by hand. */
+
+const R = (f, v, pg, col, extra) => ({f, v, pg, col: col || null, ...(extra || {})});
+
+const READ_FIELDS = {
+  feelflux: {
+    run:'run 4187', ref:'FLX-2025-235', label:'Invoice 3 of 20 · FLX-2025-235', other:'hangzhou',
+    groups:[
+      {ask:'IdentityAsk', name:'Identity', fields:[
+        R('Invoice number','FLX-2025-235',1,'Bill Number'),
+        R('Invoice date','2025-09-26',1,'Bill Date'),
+        R('Due date','2025-09-26',1,'Due Date'),
+        R('Date of supply',null,null,null,{why:'held'}),
+        R('Order reference','#3864',1,'PurchaseOrder + Purchase Order Number'),
+        R('Currency code','USD',1,'Currency Code'),
+        R('Payment terms',null,null,'Payment Terms Label'),
+        R('IRN',null,null,null,{why:'held'}),
+        R('Ack number',null,null,null,{why:'held'}),
+        R('Ack date',null,null,null,{why:'held'}),
+        R('Source of supply (printed)',null,null,'Source of Supply'),
+      ]},
+      {ask:'PartyAsk', name:'Parties', fields:[
+        R('Vendor name','Feel Flux Kft.',1,'Vendor Name'),
+        R('Vendor tax id','24985846-2-19, HU24985846',1,'Tax ID'),
+        R('Vendor GSTIN',null,null,'GST Identification Number (GSTIN)'),
+        R('Vendor address','8272 Óbudavár, Fő utca 19., HUNGARY',1,null,{why:'held'}),
+        R('Vendor bank account','10102237-46851600-01004009',1,null,{why:'held'}),
+        R('Customer name','Aina Computer Private Limited',1,null,{why:'held', flag:1,
+          note:'The format HAS a "Customer Name" column — but it is the re-bill target, a person’s decision, not the invoice’s customer. Wiring these together is the obvious mistake.'}),
+        R('Customer GSTIN',null,null,null,{why:'held'}),
+        R('Customer billing address','India, IN-560068 Bengaluru, No 2 Sy No 49/1 & 49/3, AM Industrial area, Hosur rd',1,null,{why:'held'}),
+        R('Customer shipping address',null,null,null,{why:'held'}),
+      ]},
+      {ask:'TotalsAsk', name:'Totals and notes', fields:[
+        R('Subtotal printed','222.10',1,'SubTotal'),
+        R('Tax total printed','0.00',1,null,{why:'reconcile'}),
+        R('Grand total printed','222.10',1,'Total'),
+        R('Amount due printed',null,null,'Balance'),
+        R('Freight printed',null,null,null,{why:'reconcile'}),
+        R('Round off printed',null,null,null,{why:'reconcile'}),
+        R('Adjustment printed',null,null,'Adjustment'),
+        R('Adjustment description',null,null,'Adjustment Description'),
+        R('Entity discount percent',null,null,'Entity Discount Percent'),
+        R('Entity discount amount',null,null,'Entity Discount Amount'),
+        R('Vendor notes','Mentes az adó alól az ÁFA tv. 98§ szerint',1,'Vendor Notes'),
+        R('Terms & conditions',null,null,'Terms & Conditions'),
+        R('Printed exchange rate',null,null,null,{why:'reconcile'}),
+        R('Printed secondary total','ÁFA összege: 0 Ft (MNB árfolyam: 335.04 Ft), bruttó összeg: 74 412 Ft.',1,null,{why:'reconcile', flag:1,
+          note:'A conversion rate of 335.04 is printed inside this string and is not applied anywhere. That is what printed_fx_not_applied reports — the rate is read as part of the secondary total, never as a rate of its own.'}),
+        R('Printed line count','4',1,null,{why:'unused', flag:1,
+          note:'Read, normalised into types.py, and consumed by nothing. The line-count check compares transcribed_count against the verify ask’s own count — so this is a third count nobody uses.'}),
+      ]},
+      {ask:'TaxAsk', name:'Tax components', fields:[
+        R('Component label','EUKT',1,'Tax Name'),
+        R('Component rate',null,null,'Tax Percentage',{note:'"EUKT" is a label, not a rate — the exemption token this invoice prints. No percentage is printed, so none is read.'}),
+        R('Component amount','0.00',1,'CGST/SGST/IGST/CESS (FCY), or Tax Name + Tax Percentage'),
+      ]},
+    ],
+    lineFields:[
+      {f:'Ordinal', k:'n', col:null, why:'structural'},
+      {f:'Label', k:'label', col:'Discount Type'},
+      {f:'Page number', k:'page', col:null, why:'structural'},
+      {f:'Item code', k:'code', col:'Product ID'},
+      {f:'Item name', k:'name', col:'Item Name'},
+      {f:'Description', k:'desc', col:'Description'},
+      {f:'Quantity', k:'qty', col:'Quantity'},
+      {f:'Unit', k:'unit', col:'Usage unit'},
+      {f:'Unit price', k:'rate', col:'Rate'},
+      {f:'Line amount', k:'net', col:'Item Total'},
+      {f:'Line tax amount', k:'tax', col:'Tax Amount'},
+      {f:'Discount percent', k:'dpct', col:'Discount'},
+      {f:'Discount amount', k:'damt', col:'Discount Amount'},
+      {f:'HSN / SAC', k:'hsn', col:'HSN/SAC'},
+      {f:'Serial / batch', k:'serial', col:null, why:'held'},
+    ],
+    transcribed:{f:'Transcribed count', v:'4', why:'structural',
+      note:'The ask’s own count of rows it read. Compared against the second reading by reconcile/census.py — this is the count that is actually used.'},
+  },
+
+  hangzhou: {
+    run:'run 4192', ref:'GP1154', label:'Invoice 20 of 20 · GP1154', other:'feelflux',
+    groups:[
+      {ask:'IdentityAsk', name:'Identity', fields:[
+        R('Invoice number','GP1154',1,'Bill Number'),
+        R('Invoice date','2026-01-26',1,'Bill Date'),
+        R('Due date',null,null,'Due Date'),
+        R('Date of supply',null,null,null,{why:'held'}),
+        R('Order reference',null,null,'PurchaseOrder + Purchase Order Number'),
+        R('Currency code','USD',1,'Currency Code'),
+        R('Payment terms',null,null,'Payment Terms Label'),
+        R('IRN',null,null,null,{why:'held'}),
+        R('Ack number',null,null,null,{why:'held'}),
+        R('Ack date',null,null,null,{why:'held'}),
+        R('Source of supply (printed)',null,null,'Source of Supply'),
+      ]},
+      {ask:'PartyAsk', name:'Parties', fields:[
+        R('Vendor name','Hangzhou Yuanxintong Technology Co., Ltd.',1,'Vendor Name'),
+        R('Vendor tax id',null,null,'Tax ID'),
+        R('Vendor GSTIN',null,null,'GST Identification Number (GSTIN)'),
+        R('Vendor address','Room 1305, Building 10, No. 19 Chuxin Rd, Yunhe Net Valley, Gongshu District, Hangzhou',1,null,{why:'held'}),
+        R('Vendor bank account','356951400100058983 (USD) · 356950100100328118 (CNY) · 356951100100002086 (EUR)',1,null,{why:'held', flag:1,
+          note:'Three accounts in three currencies, read as one string. Nothing downstream can pick the USD one, because there is no column and no structure — this is the field most likely to matter and least likely to be noticed.'}),
+        R('Customer name','Aina Computer Pvt Ltd',1,null,{why:'held'}),
+        R('Customer GSTIN','ABDCA0102A',1,null,{why:'held', flag:1,
+          note:'This is a PAN, not a GSTIN — ten characters, no state prefix. Read into the GSTIN field because that is the field the ask offers.'}),
+        R('Customer billing address','No 2 Sy No 49/1 & 49/3, Zreyah Semiconductor, AM Industrial area, Bengaluru',1,null,{why:'held'}),
+        R('Customer shipping address',null,null,null,{why:'held'}),
+      ]},
+      {ask:'TotalsAsk', name:'Totals and notes', fields:[
+        R('Subtotal printed',null,null,'SubTotal'),
+        R('Tax total printed',null,null,null,{why:'reconcile'}),
+        R('Grand total printed','550.39',1,'Total'),
+        R('Amount due printed',null,null,'Balance'),
+        R('Freight printed',null,null,null,{why:'reconcile',
+          note:'Not read as freight — the shipping fee is printed as a LINE on this invoice, and is read as one. That is why the line sum closes without a freight figure.'}),
+        R('Round off printed',null,null,null,{why:'reconcile'}),
+        R('Adjustment printed',null,null,'Adjustment'),
+        R('Adjustment description',null,null,'Adjustment Description'),
+        R('Entity discount percent',null,null,'Entity Discount Percent'),
+        R('Entity discount amount',null,null,'Entity Discount Amount'),
+        R('Vendor notes',null,null,'Vendor Notes'),
+        R('Terms & conditions',null,null,'Terms & Conditions'),
+        R('Printed exchange rate',null,null,null,{why:'reconcile'}),
+        R('Printed secondary total',null,null,null,{why:'reconcile'}),
+        R('Printed line count','6',1,null,{why:'unused'}),
+      ]},
+      {ask:'TaxAsk', name:'Tax components', fields:[
+        R('Component label',null,null,'Tax Name',{note:'No tax is printed on this invoice. Nothing read is not the same as zero — the tax tile shows 0.00 "none printed" for exactly this reason.'}),
+        R('Component rate',null,null,'Tax Percentage'),
+        R('Component amount',null,null,'CGST/SGST/IGST/CESS (FCY)'),
+      ]},
+    ],
+    lineFields:null,   // same 15 fields; filled from feelflux below
+    transcribed:{f:'Transcribed count', v:'6', why:'structural'},
+  },
+};
+READ_FIELDS.hangzhou.lineFields = READ_FIELDS.feelflux.lineFields;
+
+const READ_LINES = {feelflux:'feelflux', hangzhou:'hangzhou'};
+
+/* ── Render ──────────────────────────────────────────────────────────────── */
+
+let arKey = 'feelflux';
+
+function linesOf(key){ return key === 'feelflux' ? FEELFLUX_LINES : HANGZHOU_LINES; }
+
+function val(v){
+  return v === null || v === undefined || v === ''
+    ? '<span class="fv none">— not printed</span>'
+    : `<span class="fv">${esc(v)}</span>`;
+}
+function colCell(f){
+  if (f.col) return `<span class="fc"><span class="col">${esc(f.col)}</span></span>`;
+  return `<span class="fc"><span class="nocol ${f.why}">${f.why === 'held' ? 'no column' : f.why}</span></span>`;
+}
+
+function renderAsRead(){
+  const inv = READ_FIELDS[arKey];
+  const lines = linesOf(arKey);
+
+  document.getElementById('ar-run').textContent = `parse_invoice · ${inv.run}`;
+  document.getElementById('ar-picker').innerHTML = esc(inv.label) +
+    ' <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>';
+
+  /* Counted from the data, so the assertion cannot drift from what is rendered. */
+  const header = inv.groups.flatMap(g => g.fields);
+  const all = [...header, ...inv.lineFields, inv.transcribed];
+  const reach = all.filter(f => f.col).length;
+  const by = w => all.filter(f => f.why === w).length;
+  const columns = header.filter(f => f.col).reduce((n, f) => n + f.col.split(' + ').length, 0);
+
+  document.getElementById('ar-census').innerHTML = `
+    <span class="chip ok"><i></i>${all.length} fields read · ${all.length} shown</span>
+    <span class="note" style="font-size:11.5px;color:var(--muted)">Every field the five asks read is on this page — the same assertion the page census makes about pages.</span>
+    <div class="grow"></div>
+    <span class="chip neutral"><i></i>${reach} reach an export column</span>
+    <span class="chip warn"><i></i>${by('held')} held · no column exists</span>
+    <span class="chip indigo"><i></i>${by('reconcile')} feed the arithmetic</span>
+    ${by('unused') ? `<span class="chip bad"><i></i>${by('unused')} read and unused</span>` : ''}`;
+
+  const groups = inv.groups.map(g => `
+    <div class="fgroup">
+      <div class="ghd">
+        <h3>${esc(g.name)}</h3>
+        <span class="n">${g.fields.length} fields · ${esc(g.ask)}</span>
+        <div class="grow"></div>
+        <span class="n">${g.fields.filter(f => f.v).length} printed on this invoice</span>
+      </div>
+      ${g.fields.map(f => `
+        <div class="frow ${f.flag ? 'flagged' : ''}">
+          <span class="fn">${esc(f.f)}</span>
+          ${val(f.v)}
+          <span class="fp">${f.pg ? 'p' + f.pg : ''}</span>
+          ${colCell(f)}
+        </div>
+        ${f.note ? `<div class="frow" style="padding-top:0"><span class="fn"></span><span class="fv" style="font-family:inherit;font-size:11.5px;line-height:1.55;color:var(--muted)">${esc(f.note)}</span></div>` : ''}
+      `).join('')}
+    </div>`).join('');
+
+  /* The line fields are read once per line, so they are a matrix, not a list. */
+  const matrix = `
+    <div class="fgroup">
+      <div class="ghd">
+        <h3>Line items</h3>
+        <span class="n">${inv.lineFields.length} fields · LinesAsk · read for each of ${lines.length} ${lines.length === 1 ? 'line' : 'lines'}</span>
+        <div class="grow"></div>
+        <span class="n">${inv.lineFields.length} × ${lines.length} = ${inv.lineFields.length * lines.length} values</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="fmatrix">
+          <thead>
+            <tr>
+              <th class="fn">Field</th>
+              ${lines.map(l => `<th class="r">Line ${l.n}</th>`).join('')}
+              <th class="r" style="width:196px">Column</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${inv.lineFields.map(lf => `
+              <tr>
+                <td class="fn">${esc(lf.f)}</td>
+                ${lines.map(l => {
+                  const v = l[lf.k];
+                  return (v === undefined || v === null || v === '' || v === '—')
+                    ? '<td class="lv none r">—</td>'
+                    : `<td class="lv r">${esc(String(v).length > 38 ? String(v).slice(0, 36) + '…' : v)}</td>`;
+                }).join('')}
+                <td class="r">${lf.col ? `<span class="fc"><span class="col">${esc(lf.col)}</span></span>` : `<span class="nocol ${lf.why}">${lf.why === 'held' ? 'no column' : lf.why}</span>`}</td>
+              </tr>`).join('')}
+            <tr>
+              <td class="fn">${esc(inv.transcribed.f)}</td>
+              <td class="lv r" colspan="${lines.length}">${esc(inv.transcribed.v)} — one value for the invoice, not per line</td>
+              <td class="r"><span class="nocol structural">structural</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      ${inv.transcribed.note ? `<div class="frow"><span class="fn"></span><span class="fv" style="font-family:inherit;font-size:11.5px;line-height:1.55;color:var(--muted)">${esc(inv.transcribed.note)}</span></div>` : ''}
+    </div>`;
+
+  const closing = `
+    <div class="note plain">
+      <span class="dot"></span>
+      <p><b style="font-weight:600">Why this page exists.</b> The asks read ${all.length} fields and the export format has a column for
+      ${reach} of them. Without this page a reviewer approves ${by('held')} values they never saw — an IRN, a vendor's bank account,
+      the buyer's registration — and "approved" would mean "approved the part we happened to render". The census line at the
+      top is the claim: read and shown are the same number.</p>
+    </div>
+    <div class="note warn">
+      <span class="dot"></span>
+      <div style="min-width:0">
+        <h3>${by('held')} fields are read and held, with nowhere to go</h3>
+        <p>They reach the JSON and stop. The 98-column format carries none of them, so anything downstream that needs a
+        vendor's bank account or a buyer's GSTIN cannot have it from here. Worth deciding deliberately: read and hold,
+        stop reading them, or add the columns.</p>
+      </div>
+    </div>
+    ${by('unused') ? `<div class="note bad">
+      <span class="dot"></span>
+      <div style="min-width:0">
+        <h3>1 field is read and used by nothing</h3>
+        <p><span class="mono" style="font-size:11px">printed_line_count</span> is asked for, normalised into
+        <span class="mono" style="font-size:11px">types.py</span>, and consumed nowhere. The line-count check compares
+        <span class="mono" style="font-size:11px">transcribed_count</span> against the verify ask's own count. It costs no
+        extra page-send, but it is a third count sitting beside the two that matter — which is how the wrong pair gets
+        compared later.</p>
+      </div>
+    </div>` : ''}
+    <div class="note plain">
+      <span class="dot"></span>
+      <p><i>Mockup note:</i> every value on this page is the real one from the reference extraction runs in
+      <span class="mono" style="font-size:11px">maven-backend</span> — including the Hungarian exemption note and the
+      three bank accounts in one string. Nothing here is illustrative.</p>
+    </div>`;
+
+  document.getElementById('ar-body').innerHTML = groups + matrix + closing;
+}
+
+function flipAsRead(){ arKey = READ_FIELDS[arKey].other; renderAsRead(); }
+
+/* ── The same data, inline: the identity drawer ──────────────────────────── */
+
+function renderDrawer(key){
+  const inv = READ_FIELDS[key];
+  const shown = key === 'feelflux'
+    ? ['Invoice number','Invoice date','Currency code','Order reference','Vendor tax id','Vendor name']
+    : ['Invoice number','Invoice date','Currency code','Vendor name'];
+  const rest = inv.groups
+    .filter(g => g.ask === 'IdentityAsk' || g.ask === 'PartyAsk')
+    .flatMap(g => g.fields)
+    .filter(f => !shown.includes(f.f));
+
+  document.getElementById(`${key}-more`).innerHTML =
+    `+${rest.length} more read <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>`;
+
+  document.getElementById(`${key}-drawer`).innerHTML = `
+    <div class="dhd">
+      <span class="cap">Also read on this invoice</span>
+      <span class="chip warn" style="font-size:10px;padding:3px 7px"><i style="width:5px;height:5px"></i>${rest.filter(f => !f.col).length} have no export column</span>
+      <div class="grow"></div>
+      <button class="mini" onclick="show('asread')">See all ${inv.groups.flatMap(g => g.fields).length + inv.lineFields.length + 1} in As read</button>
+    </div>
+    <div class="dgrid">
+      ${rest.map(f => `
+        <div class="dcell ${f.col ? '' : 'held'}">
+          <span class="k">${esc(f.f)}</span>
+          ${f.v ? `<span class="v">${esc(String(f.v).length > 52 ? String(f.v).slice(0, 50) + '…' : f.v)}</span>`
+                : '<span class="v none">— not printed</span>'}
+        </div>`).join('')}
+    </div>`;
+}
+
+function toggleDrawer(key){
+  document.getElementById(`${key}-drawer`).classList.toggle('on');
+}
+
+/* ── The same data, inline: the per-line expander ────────────────────────── */
+
+function lineExtras(key, line){
+  const inv = READ_FIELDS[key];
+  const inColumns = ['n','page','label','desc','qty','rate','net','tax'];   // already visible
+  return inv.lineFields.filter(lf => !inColumns.includes(lf.k)).map(lf => `
+    <div class="dcell ${lf.col ? '' : 'held'}">
+      <span class="k">${esc(lf.f)}</span>
+      ${line[lf.k] && line[lf.k] !== '—' ? `<span class="v">${esc(line[lf.k])}</span>`
+                                          : '<span class="v none">— not printed</span>'}
+    </div>`).join('');
+}
+
+function toggleLineRow(key, i){
+  const row = document.getElementById(`${key}-lx-${i}`);
+  const head = document.getElementById(`${key}-lr-${i}`);
+  if (!row) return;
+  const grid = row.querySelector('.lxgrid');
+  if (!grid.innerHTML) {
+    const line = linesOf(key).find(l => l.n === i);
+    grid.innerHTML = lineExtras(key, line) +
+      `<div class="dcell" style="grid-column:1/-1;border-style:dashed">
+         <span class="k">Not read here</span>
+         <span class="v none">Account, Item Type, ITC and the other 16 derived fields — see Derived</span>
+       </div>`;
+  }
+  const open = !row.hidden;
+  row.hidden = open;
+  head.classList.toggle('open', !open);
+}
+
+renderAsRead();
+renderDrawer('feelflux');
+renderDrawer('hangzhou');
+
 /* ── Navigation ──────────────────────────────────────────────────────────── */
 
 const BARS = {
   'lines-feelflux':'feelflux', 'lines-hangzhou':'hangzhou', 'census':'feelflux',
-  'totals':'totals', 'derived':'derived', 'activity':'activity',
+  'totals':'totals', 'derived':'derived', 'activity':'activity', 'asread':'asread',
 };
 const RAIL = {
   'lines-feelflux':'lines', 'lines-hangzhou':'lines', 'census':'lines',
-  'totals':'totals', 'derived':'derived', 'activity':'activity',
+  'totals':'totals', 'derived':'derived', 'activity':'activity', 'asread':'asread',
 };
 
 function show(view){
