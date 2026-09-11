@@ -1840,7 +1840,7 @@ function renderDrawer(key){
       <span class="chip ok" style="font-size:10px;padding:3px 7px"><i style="width:5px;height:5px"></i>${fields.length} read · ${fields.length} shown</span>
       <span class="chip warn" style="font-size:10px;padding:3px 7px"><i style="width:5px;height:5px"></i>${fields.filter(f => !f.col).length} have no export column</span>
       <div class="grow"></div>
-      <span class="note" style="font-size:11px;color:var(--faint)">${totals.length} more in Totals · ${inv.lineFields.length + 1} per line in the grid</span>
+      <span class="note" style="font-size:11px;color:var(--faint)">${whereTheRest(key, 'invoice')}</span>
     </div>
     ${groups.map(g => `
       <div>
@@ -1862,7 +1862,7 @@ function toggleDrawer(key){
 
 function lineExtras(key, line){
   const inv = READ_FIELDS[key];
-  const inColumns = ['n','page','label','desc','qty','rate','net','tax'];   // already visible
+  const inColumns = KEY_COLUMNS[key];   // already visible in THIS invoice's key grid
   return inv.lineFields.filter(lf => !inColumns.includes(lf.k)).map(lf => `
     <div class="dcell ${lf.col ? '' : 'held'}">
       <span class="k">${esc(lf.f)}</span>
@@ -1900,6 +1900,38 @@ renderDrawer('hangzhou');
 
 const gridMode = {feelflux:'key', hangzhou:'key'};
 
+/* What the DEFAULT mode puts on screen. Needed because a claim of "15 shown" on a grid
+   showing 8 columns is false, and a false completeness claim is worse than none: it is
+   the thing that stops a reviewer looking for the rest. */
+const KEY_COLUMNS = {
+  feelflux: ['n','page','label','desc','qty','rate','net','tax'],
+  hangzhou: ['n','label','code','desc','qty','rate','net'],
+};
+KEY_COLUMNS.kaapi = KEY_COLUMNS.feelflux;
+
+/* The as-printed ladder on Totals surfaces these seven of the eighteen. */
+const LADDER_FIELDS = [
+  'Subtotal printed','Grand total printed','Freight printed','Round off printed',
+  'Component label','Component rate','Component amount',
+];
+
+/* One sentence naming the whole, wherever a surface states its own part. Removing the
+   As read section removed the only place that said what "all of them" was — a reviewer
+   counted 20 + 16 and had no way to know 18 were elsewhere. */
+function whereTheRest(key, here){
+  const inv = READ_FIELDS[key] || READ_FIELDS.feelflux;
+  const ident = inv.groups.filter(g => g.ask === 'IdentityAsk' || g.ask === 'PartyAsk').flatMap(g => g.fields).length;
+  const tot   = inv.groups.filter(g => g.ask === 'TotalsAsk' || g.ask === 'TaxAsk').flatMap(g => g.fields).length;
+  const line  = inv.lineFields.length + 1;
+  const all   = ident + tot + line;
+  const parts = [
+    `${ident} invoice${here === 'invoice' ? ' (here)' : ''}`,
+    `${tot} in Totals${here === 'totals' ? ' (here)' : ''}`,
+    `${line} per line${here === 'line' ? ' (here)' : ''}`,
+  ];
+  return `${all} fields read in all — ${parts.join(' · ')}`;
+}
+
 function lineCensus(key){
   const lf = READ_FIELDS[key].lineFields;
   const lines = linesOf(key);
@@ -1915,12 +1947,18 @@ function lineCensus(key){
 function renderGridBar(key){
   const c = lineCensus(key);
   const mode = gridMode[key];
+  const onScreen = mode === 'all' ? c.fields : KEY_COLUMNS[key].length;
+  const complete = onScreen === c.fields;
   document.getElementById(`${key}-gridbar`).innerHTML = `
     <span class="cap">Per line</span>
-    <span class="chip ok" style="font-size:10.5px;padding:3px 8px"><i style="width:5px;height:5px"></i>${c.fields} fields read · ${c.fields} shown</span>
-    <span class="note" style="font-size:11.5px;color:var(--muted)">${c.reach} reach an export column · ${c.structural} structural · ${c.held} held, no column</span>
+    <span class="chip ${complete ? 'ok' : 'warn'}" style="font-size:10.5px;padding:3px 8px"><i style="width:5px;height:5px"></i>${
+      complete ? `${c.fields} fields read · ${c.fields} shown`
+               : `${onScreen} of ${c.fields} fields shown`}</span>
+    <span class="note" style="font-size:11.5px;color:var(--muted)">${
+      complete ? `${c.reach} reach an export column · ${c.structural} structural · ${c.held} held, no column`
+               : `${c.fields - onScreen} more are read for every line — <b style="font-weight:600">All read fields</b> shows them`}</span>
     <div class="grow"></div>
-    <span class="note" style="font-size:11px;color:var(--faint)">${c.fields} × ${c.lines} = ${c.fields * c.lines} values</span>
+    <span class="note" style="font-size:11px;color:var(--faint)">${c.fields} × ${c.lines} = ${c.fields * c.lines} values · ${whereTheRest(key, 'line')}</span>
     <div class="seg">
       <button class="${mode === 'key' ? 'on' : ''}" onclick="setGrid('${key}','key')">Key columns</button>
       <button class="${mode === 'all' ? 'on' : ''}" onclick="setGrid('${key}','all')">All read fields</button>
@@ -1996,11 +2034,18 @@ function renderTotals(){
   const groups = inv.groups.filter(g => g.ask === 'TotalsAsk' || g.ask === 'TaxAsk');
   const fields = groups.flatMap(g => g.fields);
 
+  const onScreen = totalsMode === 'all' ? fields.length : LADDER_FIELDS.length;
+  const complete = onScreen === fields.length;
   document.getElementById('totals-gridbar').innerHTML = `
     <span class="cap">Invoice figures</span>
-    <span class="chip ok" style="font-size:10.5px;padding:3px 8px"><i style="width:5px;height:5px"></i>${fields.length} fields read · ${fields.length} shown</span>
-    <span class="note" style="font-size:11.5px;color:var(--muted)">${fields.filter(f => f.col).length} reach an export column · ${fields.filter(f => f.why === 'reconcile').length} feed the arithmetic · ${fields.filter(f => f.why === 'unused').length} read and unused</span>
+    <span class="chip ${complete ? 'ok' : 'warn'}" style="font-size:10.5px;padding:3px 8px"><i style="width:5px;height:5px"></i>${
+      complete ? `${fields.length} fields read · ${fields.length} shown`
+               : `${onScreen} of ${fields.length} fields shown`}</span>
+    <span class="note" style="font-size:11.5px;color:var(--muted)">${
+      complete ? `${fields.filter(f => f.col).length} reach an export column · ${fields.filter(f => f.why === 'reconcile').length} feed the arithmetic · ${fields.filter(f => f.why === 'unused').length} read and unused`
+               : `${fields.length - onScreen} more were read and are not on the ladder — including the ${fields.filter(f => f.why === 'reconcile').length} that feed the arithmetic without reaching a column. <b style="font-weight:600">All read fields</b> shows them`}</span>
     <div class="grow"></div>
+    <span class="note" style="font-size:11px;color:var(--faint)">${whereTheRest('kaapi', 'totals')}</span>
     <div class="seg">
       <button class="${totalsMode === 'key' ? 'on' : ''}" onclick="setTotals('key')">As printed</button>
       <button class="${totalsMode === 'all' ? 'on' : ''}" onclick="setTotals('all')">All read fields</button>
