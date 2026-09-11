@@ -264,6 +264,19 @@
   .dialog .ft{display:flex; align-items:center; gap:10px; padding:14px 22px; border-top:1px solid var(--line); background:var(--bg)}
   .dialog .ft .cost{font-size:11.5px; color:var(--muted)}
 
+  /* ── Editing ─────────────────────────────────────────────────────────────── */
+  .v.edit{cursor:text; border-radius:3px; border-bottom:1px dashed transparent}
+  .v.edit:hover{border-bottom-color:var(--ghost); background:rgba(79,70,229,.06)}
+  .v.locked{cursor:not-allowed}
+  .lock,.mark{margin-left:7px; border-radius:4px; padding:1px 5px; font-family:"Hanken Grotesk",sans-serif; font-size:9px; font-weight:600; font-style:normal; letter-spacing:.03em}
+  .lock{background:var(--hair); color:var(--faint)}
+  .mark{background:var(--indigo-bg); color:var(--indigo-fg)}
+  input.fedit{width:100%; min-width:90px; border:1px solid var(--primary); border-radius:5px; padding:3px 6px; font-family:'Spline Sans Mono',Menlo,monospace; font-size:11px; color:var(--ink); background:#fff; outline:none}
+  .dcell.flagged{border-color:var(--warn-line); background:var(--warn-bg)}
+  .fnote{grid-column:1/-1; margin:-2px 0 3px; padding:0 11px; font-size:11px; line-height:1.55; color:var(--muted)}
+  .fnote.flagged{color:var(--warn-fg)}
+  .wide td .v{display:inline-block; max-width:100%}
+
   /* ── Lines: the all-read-fields mode ─────────────────────────────────────── */
   .gridbar{display:flex; align-items:center; gap:10px; padding:9px 20px; background:var(--bg); border-bottom:1px solid var(--line); flex-wrap:wrap}
   .gridbar .cap{font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted)}
@@ -286,7 +299,6 @@
 
   /* ── As read: the field census ───────────────────────────────────────────── */
   .census-band{display:flex; align-items:center; gap:10px; padding:11px 20px; background:#fff; border-bottom:1px solid var(--line); flex-wrap:wrap}
-  .asread{padding:18px 20px; display:flex; flex-direction:column; gap:16px}
   .fgroup{background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden}
   .fgroup .ghd{display:flex; align-items:baseline; gap:10px; padding:11px 16px; border-bottom:1px solid var(--line); background:var(--bg)}
   .fgroup .ghd h3{font-family:"Hanken Grotesk",sans-serif; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:0}
@@ -407,10 +419,6 @@
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5m0 14h16M8 15l4-5 3 3 4-6"/></svg>
         Totals
       </button>
-      <button data-rail="asread" onclick="show('asread')" title="Every field read off the page">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5zM9 9h6M9 13h6M9 17h3"/></svg>
-        As read
-      </button>
       <!-- Planned, not shipped: the artboards drew this item greyed out, and it stays
            visually subordinate. But a mock whose only way in is a button two panels
            deep is a mock nobody finds, so it opens. -->
@@ -498,15 +506,6 @@
       <span class="where">Derived</span>
       <div class="grow"></div>
       <span class="who">Kaapi Machines (India) Pvt. Ltd. · 252910650 · INR</span>
-    </div>
-
-    <div class="bar" data-bar="asread">
-      <span class="run" id="ar-run"></span>
-      <span class="sep">/</span>
-      <span class="where">As read</span>
-      <button class="picker" id="ar-picker" onclick="flipAsRead()"></button>
-      <div class="grow"></div>
-      <span class="who">every field the asks read, and where each one goes</span>
     </div>
 
     <div class="bar" data-bar="activity">
@@ -700,6 +699,9 @@
 
     <!-- ══ Totals & tax (TotalsTax.dc.html) ═══════════════════════════════ -->
     <section class="view" data-view="totals">
+      <div class="gridbar" id="totals-gridbar"></div>
+      <div id="totals-all" style="display:none"></div>
+      <div id="totals-key">
       <div class="pad">
 
         <div class="card grow" style="min-width:0;overflow:hidden">
@@ -761,6 +763,7 @@
             </div>
           </div>
         </div>
+      </div>
       </div>
     </section>
 
@@ -911,12 +914,6 @@
           </div>
         </div>
       </div>
-    </section>
-
-    <!-- ══ As read — the field census ══════════════════════════════════════ -->
-    <section class="view" data-view="asread">
-      <div class="census-band" id="ar-census"></div>
-      <div class="asread" id="ar-body"></div>
     </section>
 
     <!-- ══ Activity ═══════════════════════════════════════════════════════ -->
@@ -1677,174 +1674,184 @@ const READ_FIELDS = {
     lineFields:null,   // same 15 fields; filled from feelflux below
     transcribed:{f:'Transcribed count', v:'6', why:'structural'},
   },
+
+  /* Kaapi — the Totals artboard's invoice, and the only reference invoice with a real
+     tax split. Header fields only: it has no Lines artboard. */
+  kaapi: {
+    run:'run 4190', ref:'252910650', label:'Invoice 3 of 20 · 252910650', other:'kaapi',
+    groups:[
+      {ask:'IdentityAsk', name:'Identity', fields:[
+        R('Invoice number','252910650',1,'Bill Number'),
+        R('Invoice date','2025-07-31',1,'Bill Date'),
+        R('Due date','2025-07-31',1,'Due Date'),
+        R('Date of supply',null,null,null,{why:'held'}),
+        R('Order reference','25291103',1,'PurchaseOrder + Purchase Order Number'),
+        R('Currency code','INR',1,'Currency Code'),
+        R('Payment terms','Immediate',1,'Payment Terms Label'),
+        R('IRN',null,null,null,{why:'held'}),
+        R('Ack number',null,null,null,{why:'held'}),
+        R('Ack date',null,null,null,{why:'held'}),
+        R('Source of supply (printed)','29 / Karnataka',1,'Source of Supply'),
+      ]},
+      {ask:'PartyAsk', name:'Parties', fields:[
+        R('Vendor name','Kaapi Machines (India) Pvt. Ltd.',1,'Vendor Name'),
+        R('Vendor tax id','29AACCK9538Q1ZK',1,'Tax ID'),
+        R('Vendor GSTIN','29AACCK9538Q1ZK',1,'GST Identification Number (GSTIN)',{
+          note:'One printed registration read into two fields, because both ask for it. Correct, and worth being able to see.'}),
+        R('Vendor address','Reg Office: No. 3320, 7th Cross 12 ‘A’ Main, HAL 2nd Stage, Bengaluru',1,null,{why:'held'}),
+        R('Vendor bank account','HSBC · A/c 073810749001 · IFSC HSBC0560002',1,null,{why:'held'}),
+        R('Customer name','Aina Computer Pvt Ltd',1,null,{why:'held'}),
+        R('Customer GSTIN','29ABDCA0102A1ZM',1,null,{why:'held'}),
+        R('Customer billing address','No. 2, Sy No. 49/1 & 49/3, AM Industrial Area, Hosur Main Road, Bengaluru',1,null,{why:'held'}),
+        R('Customer shipping address',null,null,null,{why:'held'}),
+      ]},
+      {ask:'TotalsAsk', name:'Totals and notes', fields:[
+        R('Subtotal printed','85,000.00',1,'SubTotal'),
+        R('Tax total printed','15,300.00',1,null,{why:'reconcile'}),
+        R('Grand total printed','100,300.00',1,'Total'),
+        R('Amount due printed','100,300.00',1,'Balance'),
+        R('Freight printed',null,null,null,{why:'reconcile'}),
+        R('Round off printed','0.00',1,null,{why:'reconcile'}),
+        R('Adjustment printed','0.00',1,'Adjustment'),
+        R('Adjustment description','Round Off',1,'Adjustment Description'),
+        R('Entity discount percent',null,null,'Entity Discount Percent'),
+        R('Entity discount amount',null,null,'Entity Discount Amount'),
+        R('Vendor notes',null,null,'Vendor Notes'),
+        R('Terms & conditions','1. Goods once sold will not be taken back. 2. Interest @18% p.a. 3. Subject to Bengaluru jurisdiction.',1,'Terms & Conditions'),
+        R('Printed exchange rate',null,null,null,{why:'reconcile'}),
+        R('Printed secondary total',null,null,null,{why:'reconcile'}),
+        R('Printed line count','1',1,null,{why:'unused', flag:1,
+          note:'Read, normalised into types.py, consumed by nothing. The line-count check uses transcribed_count instead.'}),
+      ]},
+      {ask:'TaxAsk', name:'Tax components', fields:[
+        R('Component label','CGST · SGST · IGST',1,'Tax Name',{
+          note:'Three components, each read WITH its printed label — which is what keeps CGST distinguishable from SGST when both are 7,650.00.'}),
+        R('Component rate','9% · 9% · 0%',1,'Tax Percentage'),
+        R('Component amount','7,650.00 · 7,650.00 · 0.00',1,'CGST/SGST/IGST (FCY)'),
+      ]},
+    ],
+    lineFields:null,
+    transcribed:{f:'Transcribed count', v:'1', why:'structural'},
+  },
 };
 READ_FIELDS.hangzhou.lineFields = READ_FIELDS.feelflux.lineFields;
+READ_FIELDS.kaapi.lineFields = READ_FIELDS.feelflux.lineFields;
 
-const READ_LINES = {feelflux:'feelflux', hangzhou:'hangzhou'};
 
 /* ── Render ──────────────────────────────────────────────────────────────── */
 
-let arKey = 'feelflux';
-
 function linesOf(key){ return key === 'feelflux' ? FEELFLUX_LINES : HANGZHOU_LINES; }
 
-function val(v){
-  return v === null || v === undefined || v === ''
-    ? '<span class="fv none">— not printed</span>'
-    : `<span class="fv">${esc(v)}</span>`;
+/* ── Editable, because a field a reviewer can see and cannot fix is half a feature ──
+   Every read field is editable except the three that are not content:
+     ordinal            the event log targets a line BY its ordinal — an identity, not a value
+     page_number        which page a line came from is a reading about the page
+     transcribed_count  the figure the line census compares against the second reading
+   A correction is an append-only event (header_corrected / line_corrected) and the backend
+   re-runs the whole reconcile, so this records the event and says so rather than pretending
+   to recompute anything in the browser. */
+
+const NOT_EDITABLE = {
+  n:'The event log targets a line by its ordinal — an identity, not a value.',
+  page:'Which page a line came from is a reading about the page, repaired in the census.',
+};
+
+const edits = {};
+
+function editValue(path, f, editable){
+  const v = edits[path] !== undefined ? edits[path] : f.v;
+  const empty = v === null || v === undefined || v === '';
+  const corrected = edits[path] !== undefined;
+  if (!editable) {
+    return `<span class="v locked ${empty ? 'none' : ''}" title="${esc(f.noEdit || 'Not editable')}">${
+      empty ? '— not printed' : esc(v)}<span class="lock">not editable</span></span>`;
+  }
+  return `<span class="v edit ${empty ? 'none' : ''}" data-path="${path}" onclick="startEdit(event,'${path}')" title="Click to correct">${
+    empty ? '— not printed' : esc(v)}${corrected ? '<span class="mark">corrected</span>' : ''}</span>`;
 }
-function colCell(f){
-  if (f.col) return `<span class="fc"><span class="col">${esc(f.col)}</span></span>`;
-  return `<span class="fc"><span class="nocol ${f.why}">${f.why === 'held' ? 'no column' : f.why}</span></span>`;
+
+function startEdit(ev, path){
+  ev.stopPropagation();
+  const span = ev.currentTarget;
+  if (span.querySelector('input')) return;
+  const current = edits[path] !== undefined ? edits[path]
+    : span.textContent.replace('corrected', '').replace('— not printed', '').trim();
+  span.innerHTML = `<input class="fedit" value="${esc(current)}">`;
+  const input = span.querySelector('input');
+  input.focus();
+  let done = false;
+  const commit = () => {
+    if (done) return;
+    done = true;
+    edits[path] = input.value.trim();
+    logCorrection(path, edits[path]);
+    rerenderFields();
+  };
+  input.onkeydown = e => {
+    if (e.key === 'Enter') { e.preventDefault(); commit(); }
+    if (e.key === 'Escape') { e.preventDefault(); done = true; rerenderFields(); }
+  };
+  input.onblur = commit;
 }
 
-function renderAsRead(){
-  const inv = READ_FIELDS[arKey];
-  const lines = linesOf(arKey);
+function logCorrection(path, value){
+  ACTIVITY.push({
+    kind: path.includes('.line.') ? 'line_corrected' : 'header_corrected',
+    when: 'now',
+    body: `<span class="mono">${esc(path)}</span> corrected to <span class="mono">${esc(value) || '(cleared)'}</span>. ` +
+          'Recorded as an event; the backend re-runs the arithmetic and re-sends the payload — ' +
+          '<i>mockup note:</i> the figures above are left as last sent rather than recomputed here.',
+  });
+  renderLog();
+}
 
-  document.getElementById('ar-run').textContent = `parse_invoice · ${inv.run}`;
-  document.getElementById('ar-picker').innerHTML = esc(inv.label) +
-    ' <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>';
+function rerenderFields(){
+  ['feelflux','hangzhou'].forEach(k => { renderDrawer(k); if (gridMode[k] === 'all') renderWideGrid(k); });
+  renderTotals();
+}
 
-  /* Counted from the data, so the assertion cannot drift from what is rendered. */
-  const header = inv.groups.flatMap(g => g.fields);
-  const all = [...header, ...inv.lineFields, inv.transcribed];
-  const reach = all.filter(f => f.col).length;
-  const by = w => all.filter(f => f.why === w).length;
-  const columns = header.filter(f => f.col).reduce((n, f) => n + f.col.split(' + ').length, 0);
+/* ── The invoice-level surface: the drawer ──────────────────────────── */
 
-  document.getElementById('ar-census').innerHTML = `
-    <span class="chip ok"><i></i>${all.length} fields read · ${all.length} shown</span>
-    <span class="note" style="font-size:11.5px;color:var(--muted)">The invoice-level ${header.length} are on this page; the ${inv.lineFields.length} per-line fields are in the Lines grid. Read and shown are the same number — the assertion the page census makes about pages.</span>
-    <div class="grow"></div>
-    <span class="chip neutral"><i></i>${reach} reach an export column</span>
-    <span class="chip warn"><i></i>${by('held')} held · no column exists</span>
-    <span class="chip indigo"><i></i>${by('reconcile')} feed the arithmetic</span>
-    ${by('unused') ? `<span class="chip bad"><i></i>${by('unused')} read and unused</span>` : ''}`;
-
-  const groups = inv.groups.map(g => `
-    <div class="fgroup">
-      <div class="ghd">
-        <h3>${esc(g.name)}</h3>
-        <span class="n">${g.fields.length} fields · ${esc(g.ask)}</span>
-        <div class="grow"></div>
-        <span class="n">${g.fields.filter(f => f.v).length} printed on this invoice</span>
-      </div>
-      ${g.fields.map(f => `
-        <div class="frow ${f.flag ? 'flagged' : ''}">
-          <span class="fn">${esc(f.f)}</span>
-          ${val(f.v)}
-          <span class="fp">${f.pg ? 'p' + f.pg : ''}</span>
-          ${colCell(f)}
-        </div>
-        ${f.note ? `<div class="frow" style="padding-top:0"><span class="fn"></span><span class="fv" style="font-family:inherit;font-size:11.5px;line-height:1.55;color:var(--muted)">${esc(f.note)}</span></div>` : ''}
-      `).join('')}
-    </div>`).join('');
-
-  /* The line fields live in the Lines grid — this page names them and counts them,
-     and sends the reviewer where the values actually are. Two matrices of the same
-     15 fields was the duplication this replaces. */
-  const matrix = `
-    <div class="fgroup">
-      <div class="ghd">
-        <h3>Line items</h3>
-        <span class="n">${inv.lineFields.length} fields · LinesAsk · read for each of ${lines.length} ${lines.length === 1 ? 'line' : 'lines'}</span>
-        <div class="grow"></div>
-        <span class="n">${inv.lineFields.length} × ${lines.length} = ${inv.lineFields.length * lines.length} values</span>
-      </div>
-      <div style="padding:14px 16px;display:flex;flex-direction:column;gap:11px">
-        <p style="font-size:12px;line-height:1.6;color:var(--slate)">
-          These are read once <b style="font-weight:600">per line</b>, so they are shown in the Lines grid rather than
-          copied here — switch it to <b style="font-weight:600">All read fields</b> and every one of the
-          ${inv.lineFields.length} becomes a column, each headed by the export column it reaches. A row opens for a
-          vertical read of one line.
-        </p>
-        <div style="display:flex;flex-wrap:wrap;gap:6px">
-          ${inv.lineFields.map(lf => `<span class="pill" style="${lf.col ? '' : 'background:var(--warn-bg);box-shadow:inset 0 0 0 1px var(--warn-line);color:var(--warn-fg)'}">${esc(lf.f)}</span>`).join('')}
-        </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <button class="mini indigo" onclick="show('lines-${arKey}');setGrid('${arKey}','all')">Open them in the Lines grid</button>
-          <span class="note" style="font-size:11.5px;color:var(--muted)">
-            ${inv.lineFields.filter(f => f.col).length} reach a column ·
-            ${inv.lineFields.filter(f => f.why === 'structural').length} structural ·
-            ${inv.lineFields.filter(f => f.why === 'held').length} held, no column
-          </span>
-        </div>
-      </div>
-      ${inv.transcribed.note ? `<div class="frow"><span class="fn">${esc(inv.transcribed.f)}</span><span class="fv">${esc(inv.transcribed.v)}</span><span class="fp"></span><span class="fc"><span class="nocol structural">structural</span></span></div>
-      <div class="frow" style="padding-top:0"><span class="fn"></span><span class="fv" style="font-family:inherit;font-size:11.5px;line-height:1.55;color:var(--muted)">${esc(inv.transcribed.note)}</span></div>` : ''}
-    </div>`;
-
-  const closing = `
-    <div class="note plain">
-      <span class="dot"></span>
-      <p><b style="font-weight:600">Why this page exists.</b> The asks read ${all.length} fields and the export format has a column for
-      ${reach} of them. Without this page a reviewer approves ${by('held')} values they never saw — an IRN, a vendor's bank account,
-      the buyer's registration — and "approved" would mean "approved the part we happened to render". The census line at the
-      top is the claim: read and shown are the same number.</p>
+function fieldRow(key, gi, fi, f){
+  /* The note is why the field is worth looking at — the Customer Name trap, a PAN read into
+     a GSTIN field, a conversion rate hiding inside a total. Dropping it once already cost the
+     page its whole point, so it renders as a full-width row under the cell it belongs to. */
+  return `
+    <div class="dcell ${f.col ? '' : 'held'} ${f.flag ? 'flagged' : ''}">
+      <span class="k">${esc(f.f)}</span>
+      ${editValue(`${key}.${gi}.${fi}`, f, true)}
+      ${f.col ? '' : `<span class="nocol ${f.why}" style="flex-shrink:0">${f.why === 'held' ? 'no column' : f.why}</span>`}
     </div>
-    <div class="note warn">
-      <span class="dot"></span>
-      <div style="min-width:0">
-        <h3>${by('held')} fields are read and held, with nowhere to go</h3>
-        <p>They reach the JSON and stop. The 98-column format carries none of them, so anything downstream that needs a
-        vendor's bank account or a buyer's GSTIN cannot have it from here. Worth deciding deliberately: read and hold,
-        stop reading them, or add the columns.</p>
-      </div>
-    </div>
-    ${by('unused') ? `<div class="note bad">
-      <span class="dot"></span>
-      <div style="min-width:0">
-        <h3>1 field is read and used by nothing</h3>
-        <p><span class="mono" style="font-size:11px">printed_line_count</span> is asked for, normalised into
-        <span class="mono" style="font-size:11px">types.py</span>, and consumed nowhere. The line-count check compares
-        <span class="mono" style="font-size:11px">transcribed_count</span> against the verify ask's own count. It costs no
-        extra page-send, but it is a third count sitting beside the two that matter — which is how the wrong pair gets
-        compared later.</p>
-      </div>
-    </div>` : ''}
-    <div class="note plain">
-      <span class="dot"></span>
-      <p><i>Mockup note:</i> every value on this page is the real one from the reference extraction runs in
-      <span class="mono" style="font-size:11px">maven-backend</span> — including the Hungarian exemption note and the
-      three bank accounts in one string. Nothing here is illustrative.</p>
-    </div>`;
-
-  document.getElementById('ar-body').innerHTML = groups + matrix + closing;
+    ${f.note ? `<div class="fnote ${f.flag ? 'flagged' : ''}">${esc(f.note)}</div>` : ''}`;
 }
-
-function flipAsRead(){ arKey = READ_FIELDS[arKey].other; renderAsRead(); }
-
-/* ── The same data, inline: the identity drawer ──────────────────────────── */
 
 function renderDrawer(key){
   const inv = READ_FIELDS[key];
-  const shown = key === 'feelflux'
-    ? ['Invoice number','Invoice date','Currency code','Order reference','Vendor tax id','Vendor name']
-    : ['Invoice number','Invoice date','Currency code','Vendor name'];
-  const rest = inv.groups
-    .filter(g => g.ask === 'IdentityAsk' || g.ask === 'PartyAsk')
-    .flatMap(g => g.fields)
-    .filter(f => !shown.includes(f.f));
+  const groups = inv.groups.filter(g => g.ask === 'IdentityAsk' || g.ask === 'PartyAsk');
+  const fields = groups.flatMap(g => g.fields);
+  const totals = inv.groups.filter(g => g.ask === 'TotalsAsk' || g.ask === 'TaxAsk').flatMap(g => g.fields);
 
   document.getElementById(`${key}-more`).innerHTML =
-    `+${rest.length} more read <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>`;
+    `Invoice fields · ${fields.length} read <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>`;
 
   document.getElementById(`${key}-drawer`).innerHTML = `
     <div class="dhd">
-      <span class="cap">Also read on this invoice</span>
-      <span class="chip warn" style="font-size:10px;padding:3px 7px"><i style="width:5px;height:5px"></i>${rest.filter(f => !f.col).length} have no export column</span>
+      <span class="cap">Read off this invoice — every field, editable</span>
+      <span class="chip ok" style="font-size:10px;padding:3px 7px"><i style="width:5px;height:5px"></i>${fields.length} read · ${fields.length} shown</span>
+      <span class="chip warn" style="font-size:10px;padding:3px 7px"><i style="width:5px;height:5px"></i>${fields.filter(f => !f.col).length} have no export column</span>
       <div class="grow"></div>
-      <button class="mini" onclick="show('asread')">See all ${inv.groups.flatMap(g => g.fields).length + inv.lineFields.length + 1} in As read</button>
+      <span class="note" style="font-size:11px;color:var(--faint)">${totals.length} more in Totals · ${inv.lineFields.length + 1} per line in the grid</span>
     </div>
-    <div class="dgrid">
-      ${rest.map(f => `
-        <div class="dcell ${f.col ? '' : 'held'}">
-          <span class="k">${esc(f.f)}</span>
-          ${f.v ? `<span class="v">${esc(String(f.v).length > 52 ? String(f.v).slice(0, 50) + '…' : f.v)}</span>`
-                : '<span class="v none">— not printed</span>'}
-        </div>`).join('')}
-    </div>`;
+    ${groups.map(g => `
+      <div>
+        <div class="gcap" style="margin-bottom:6px">${esc(g.name)} · ${esc(g.ask)}</div>
+        <div class="dgrid">${g.fields.map((f, fi) => fieldRow(key, inv.groups.indexOf(g), fi, f)).join('')}</div>
+      </div>`).join('')}
+    <p style="font-size:11px;line-height:1.55;color:var(--muted)">
+      A correction here is recorded as <span class="mono" style="font-size:10.5px">header_corrected</span> and the whole
+      invoice is re-reconciled — free, because the arithmetic needs no model. The fields marked
+      <b style="font-weight:600">no column</b> reach the JSON only; correcting one changes nothing in the CSV.
+    </p>`;
 }
 
 function toggleDrawer(key){
@@ -1882,7 +1889,6 @@ function toggleLineRow(key, i){
   head.classList.toggle('open', !open);
 }
 
-renderAsRead();
 renderDrawer('feelflux');
 renderDrawer('hangzhou');
 
@@ -1937,9 +1943,8 @@ function renderWideGrid(key){
         const v = l[lf.k];
         const empty = v === undefined || v === null || v === '' || v === '—';
         const long = lf.k === 'desc' || lf.k === 'name';
-        return empty
-          ? `<td class="v none r ${lf.why === 'held' ? 'heldcol' : ''}">— not printed</td>`
-          : `<td class="v r ${long ? 'long' : ''} ${lf.why === 'held' ? 'heldcol' : ''}"${long ? ` title="${esc(v)}"` : ''}>${esc(v)}</td>`;
+        return `<td class="r ${lf.why === 'held' ? 'heldcol' : ''} ${long ? 'long' : ''}"${long && !empty ? ` title="${esc(v)}"` : ''}>${
+          editValue(`${key}.line.${l.n}.${lf.k}`, {v: empty ? '' : v, noEdit: NOT_EDITABLE[lf.k]}, lf.why !== 'structural')}</td>`;
       }).join('')}
     </tr>`).join('');
 
@@ -1982,15 +1987,58 @@ function setGrid(key, mode){
 
 ['feelflux','hangzhou'].forEach(k => { renderGridBar(k); renderWideGrid(k); });
 
+/* ── Totals: the same two modes, over TotalsAsk + TaxAsk ─────────────────── */
+
+let totalsMode = 'key';
+
+function renderTotals(){
+  const inv = READ_FIELDS.kaapi;
+  const groups = inv.groups.filter(g => g.ask === 'TotalsAsk' || g.ask === 'TaxAsk');
+  const fields = groups.flatMap(g => g.fields);
+
+  document.getElementById('totals-gridbar').innerHTML = `
+    <span class="cap">Invoice figures</span>
+    <span class="chip ok" style="font-size:10.5px;padding:3px 8px"><i style="width:5px;height:5px"></i>${fields.length} fields read · ${fields.length} shown</span>
+    <span class="note" style="font-size:11.5px;color:var(--muted)">${fields.filter(f => f.col).length} reach an export column · ${fields.filter(f => f.why === 'reconcile').length} feed the arithmetic · ${fields.filter(f => f.why === 'unused').length} read and unused</span>
+    <div class="grow"></div>
+    <div class="seg">
+      <button class="${totalsMode === 'key' ? 'on' : ''}" onclick="setTotals('key')">As printed</button>
+      <button class="${totalsMode === 'all' ? 'on' : ''}" onclick="setTotals('all')">All read fields</button>
+    </div>`;
+
+  document.getElementById('totals-all').innerHTML = `
+    <div style="padding:16px 20px;display:flex;flex-direction:column;gap:14px">
+      ${groups.map(g => `
+        <div>
+          <div class="gcap" style="margin-bottom:6px">${esc(g.name)} · ${esc(g.ask)}</div>
+          <div class="dgrid">${g.fields.map((f, fi) => fieldRow('kaapi', inv.groups.indexOf(g), fi, f)).join('')}</div>
+        </div>`).join('')}
+      <p style="font-size:11px;line-height:1.55;color:var(--muted)">
+        Every figure as printed on the page, and every one of them editable. The five marked
+        <b style="font-weight:600">reconcile</b> feed the arithmetic without reaching a column; the one marked
+        <b style="font-weight:600">unused</b> is read and consumed by nothing.
+      </p>
+    </div>`;
+}
+
+function setTotals(mode){
+  totalsMode = mode;
+  document.getElementById('totals-key').style.display = mode === 'key' ? '' : 'none';
+  document.getElementById('totals-all').style.display = mode === 'all' ? 'block' : 'none';
+  renderTotals();
+}
+
+renderTotals();
+
 /* ── Navigation ──────────────────────────────────────────────────────────── */
 
 const BARS = {
   'lines-feelflux':'feelflux', 'lines-hangzhou':'hangzhou', 'census':'feelflux',
-  'totals':'totals', 'derived':'derived', 'activity':'activity', 'asread':'asread',
+  'totals':'totals', 'derived':'derived', 'activity':'activity',
 };
 const RAIL = {
   'lines-feelflux':'lines', 'lines-hangzhou':'lines', 'census':'lines',
-  'totals':'totals', 'derived':'derived', 'activity':'activity', 'asread':'asread',
+  'totals':'totals', 'derived':'derived', 'activity':'activity',
 };
 
 function show(view){
