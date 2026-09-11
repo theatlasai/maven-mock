@@ -264,6 +264,26 @@
   .dialog .ft{display:flex; align-items:center; gap:10px; padding:14px 22px; border-top:1px solid var(--line); background:var(--bg)}
   .dialog .ft .cost{font-size:11.5px; color:var(--muted)}
 
+  /* ── Lines: the all-read-fields mode ─────────────────────────────────────── */
+  .gridbar{display:flex; align-items:center; gap:10px; padding:9px 20px; background:var(--bg); border-bottom:1px solid var(--line); flex-wrap:wrap}
+  .gridbar .cap{font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted)}
+  .seg{display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#fff}
+  .seg button{border:0; background:#fff; padding:5px 11px; font-family:inherit; font-size:11.5px; font-weight:600; color:var(--muted); cursor:pointer}
+  .seg button.on{background:var(--indigo-bg); color:var(--indigo-fg)}
+  .seg button + button{border-left:1px solid var(--line)}
+  .wide{overflow-x:auto}
+  .wide table{min-width:1180px}
+  .wide th{vertical-align:top; padding:9px 10px}
+  .wide th .gh{display:block; white-space:nowrap}
+  .wide th .gh2{display:block; margin-top:3px; font-family:'Spline Sans Mono',Menlo,monospace; font-size:9px; font-weight:400; text-transform:none; letter-spacing:0; color:var(--faint); white-space:nowrap}
+  .wide th .gh2.none{color:var(--warn-fg)}
+  .wide th .gh2.structural{color:var(--ghost)}
+  .wide td{padding:8px 10px; font-size:11.5px; white-space:nowrap}
+  .wide td.v{font-family:'Spline Sans Mono',Menlo,monospace; font-size:11px; color:var(--ink); font-variant-numeric:tabular-nums}
+  .wide td.v.none{color:var(--faint); font-family:"Hanken Grotesk",sans-serif; font-style:italic}
+  .wide td.long{max-width:260px; overflow:hidden; text-overflow:ellipsis}
+  .wide th.held,.wide td.heldcol{background:rgba(254,252,232,.5)}
+
   /* ── As read: the field census ───────────────────────────────────────────── */
   .census-band{display:flex; align-items:center; gap:10px; padding:11px 20px; background:#fff; border-bottom:1px solid var(--line); flex-wrap:wrap}
   .asread{padding:18px 20px; display:flex; flex-direction:column; gap:16px}
@@ -547,6 +567,10 @@
 
       <div class="split">
         <div class="sheet">
+          <!-- The line-item field census, in place: the grid IS the per-line "as read". -->
+          <div class="gridbar" id="feelflux-gridbar"></div>
+          <div id="feelflux-grid-all" class="wide" style="display:none"></div>
+          <div id="feelflux-grid-key">
           <table>
             <thead>
               <tr>
@@ -563,6 +587,7 @@
             </thead>
             <tbody id="feelflux-lines"></tbody>
           </table>
+          </div>
           <div class="foot"><span>Every figure comes from the backend — nothing on this screen is summed in the browser.</span></div>
         </div>
 
@@ -646,6 +671,9 @@
       </div>
 
       <div class="sheet">
+        <div class="gridbar" id="hangzhou-gridbar"></div>
+        <div id="hangzhou-grid-all" class="wide" style="display:none"></div>
+        <div id="hangzhou-grid-key">
         <table>
           <thead>
             <tr>
@@ -662,6 +690,7 @@
           <tbody id="hangzhou-lines"></tbody>
         </table>
 
+        </div>
         <div class="note ok" style="margin:14px 20px">
           <span class="dot"></span>
           <p><b style="font-weight:600">Nothing to fix.</b> The six lines close the printed total to the cent, the independent reading agrees on both the total and the line count, and every page is accounted for. Approving commits four product lines and two charge lines.</p>
@@ -1686,7 +1715,7 @@ function renderAsRead(){
 
   document.getElementById('ar-census').innerHTML = `
     <span class="chip ok"><i></i>${all.length} fields read · ${all.length} shown</span>
-    <span class="note" style="font-size:11.5px;color:var(--muted)">Every field the five asks read is on this page — the same assertion the page census makes about pages.</span>
+    <span class="note" style="font-size:11.5px;color:var(--muted)">The invoice-level ${header.length} are on this page; the ${inv.lineFields.length} per-line fields are in the Lines grid. Read and shown are the same number — the assertion the page census makes about pages.</span>
     <div class="grow"></div>
     <span class="chip neutral"><i></i>${reach} reach an export column</span>
     <span class="chip warn"><i></i>${by('held')} held · no column exists</span>
@@ -1712,7 +1741,9 @@ function renderAsRead(){
       `).join('')}
     </div>`).join('');
 
-  /* The line fields are read once per line, so they are a matrix, not a list. */
+  /* The line fields live in the Lines grid — this page names them and counts them,
+     and sends the reviewer where the values actually are. Two matrices of the same
+     15 fields was the duplication this replaces. */
   const matrix = `
     <div class="fgroup">
       <div class="ghd">
@@ -1721,36 +1752,27 @@ function renderAsRead(){
         <div class="grow"></div>
         <span class="n">${inv.lineFields.length} × ${lines.length} = ${inv.lineFields.length * lines.length} values</span>
       </div>
-      <div style="overflow-x:auto">
-        <table class="fmatrix">
-          <thead>
-            <tr>
-              <th class="fn">Field</th>
-              ${lines.map(l => `<th class="r">Line ${l.n}</th>`).join('')}
-              <th class="r" style="width:196px">Column</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${inv.lineFields.map(lf => `
-              <tr>
-                <td class="fn">${esc(lf.f)}</td>
-                ${lines.map(l => {
-                  const v = l[lf.k];
-                  return (v === undefined || v === null || v === '' || v === '—')
-                    ? '<td class="lv none r">—</td>'
-                    : `<td class="lv r">${esc(String(v).length > 38 ? String(v).slice(0, 36) + '…' : v)}</td>`;
-                }).join('')}
-                <td class="r">${lf.col ? `<span class="fc"><span class="col">${esc(lf.col)}</span></span>` : `<span class="nocol ${lf.why}">${lf.why === 'held' ? 'no column' : lf.why}</span>`}</td>
-              </tr>`).join('')}
-            <tr>
-              <td class="fn">${esc(inv.transcribed.f)}</td>
-              <td class="lv r" colspan="${lines.length}">${esc(inv.transcribed.v)} — one value for the invoice, not per line</td>
-              <td class="r"><span class="nocol structural">structural</span></td>
-            </tr>
-          </tbody>
-        </table>
+      <div style="padding:14px 16px;display:flex;flex-direction:column;gap:11px">
+        <p style="font-size:12px;line-height:1.6;color:var(--slate)">
+          These are read once <b style="font-weight:600">per line</b>, so they are shown in the Lines grid rather than
+          copied here — switch it to <b style="font-weight:600">All read fields</b> and every one of the
+          ${inv.lineFields.length} becomes a column, each headed by the export column it reaches. A row opens for a
+          vertical read of one line.
+        </p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${inv.lineFields.map(lf => `<span class="pill" style="${lf.col ? '' : 'background:var(--warn-bg);box-shadow:inset 0 0 0 1px var(--warn-line);color:var(--warn-fg)'}">${esc(lf.f)}</span>`).join('')}
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="mini indigo" onclick="show('lines-${arKey}');setGrid('${arKey}','all')">Open them in the Lines grid</button>
+          <span class="note" style="font-size:11.5px;color:var(--muted)">
+            ${inv.lineFields.filter(f => f.col).length} reach a column ·
+            ${inv.lineFields.filter(f => f.why === 'structural').length} structural ·
+            ${inv.lineFields.filter(f => f.why === 'held').length} held, no column
+          </span>
+        </div>
       </div>
-      ${inv.transcribed.note ? `<div class="frow"><span class="fn"></span><span class="fv" style="font-family:inherit;font-size:11.5px;line-height:1.55;color:var(--muted)">${esc(inv.transcribed.note)}</span></div>` : ''}
+      ${inv.transcribed.note ? `<div class="frow"><span class="fn">${esc(inv.transcribed.f)}</span><span class="fv">${esc(inv.transcribed.v)}</span><span class="fp"></span><span class="fc"><span class="nocol structural">structural</span></span></div>
+      <div class="frow" style="padding-top:0"><span class="fn"></span><span class="fv" style="font-family:inherit;font-size:11.5px;line-height:1.55;color:var(--muted)">${esc(inv.transcribed.note)}</span></div>` : ''}
     </div>`;
 
   const closing = `
@@ -1863,6 +1885,102 @@ function toggleLineRow(key, i){
 renderAsRead();
 renderDrawer('feelflux');
 renderDrawer('hangzhou');
+
+
+/* ── The line-item field census, rendered into the Lines grid itself ─────────
+   The line fields were a second matrix on the As read page. Two tables of the
+   same 15 fields is duplication, and the reviewer works in Lines — so the grid
+   carries them, each column headed by the export column it reaches. */
+
+const gridMode = {feelflux:'key', hangzhou:'key'};
+
+function lineCensus(key){
+  const lf = READ_FIELDS[key].lineFields;
+  const lines = linesOf(key);
+  return {
+    fields: lf.length,
+    lines: lines.length,
+    reach: lf.filter(f => f.col).length,
+    held: lf.filter(f => f.why === 'held').length,
+    structural: lf.filter(f => f.why === 'structural').length,
+  };
+}
+
+function renderGridBar(key){
+  const c = lineCensus(key);
+  const mode = gridMode[key];
+  document.getElementById(`${key}-gridbar`).innerHTML = `
+    <span class="cap">Per line</span>
+    <span class="chip ok" style="font-size:10.5px;padding:3px 8px"><i style="width:5px;height:5px"></i>${c.fields} fields read · ${c.fields} shown</span>
+    <span class="note" style="font-size:11.5px;color:var(--muted)">${c.reach} reach an export column · ${c.structural} structural · ${c.held} held, no column</span>
+    <div class="grow"></div>
+    <span class="note" style="font-size:11px;color:var(--faint)">${c.fields} × ${c.lines} = ${c.fields * c.lines} values</span>
+    <div class="seg">
+      <button class="${mode === 'key' ? 'on' : ''}" onclick="setGrid('${key}','key')">Key columns</button>
+      <button class="${mode === 'all' ? 'on' : ''}" onclick="setGrid('${key}','all')">All read fields</button>
+    </div>`;
+}
+
+function renderWideGrid(key){
+  const inv = READ_FIELDS[key];
+  const lines = linesOf(key);
+  const head = inv.lineFields.map(lf => `
+    <th class="r ${lf.why === 'held' ? 'held' : ''}">
+      <span class="gh">${esc(lf.f)}</span>
+      ${lf.col ? `<span class="gh2">${esc(lf.col)}</span>`
+               : `<span class="gh2 ${lf.why}">${lf.why === 'held' ? 'no column' : lf.why}</span>`}
+    </th>`).join('');
+
+  const body = lines.map(l => `
+    <tr>
+      ${inv.lineFields.map(lf => {
+        const v = l[lf.k];
+        const empty = v === undefined || v === null || v === '' || v === '—';
+        const long = lf.k === 'desc' || lf.k === 'name';
+        return empty
+          ? `<td class="v none r ${lf.why === 'held' ? 'heldcol' : ''}">— not printed</td>`
+          : `<td class="v r ${long ? 'long' : ''} ${lf.why === 'held' ? 'heldcol' : ''}"${long ? ` title="${esc(v)}"` : ''}>${esc(v)}</td>`;
+      }).join('')}
+    </tr>`).join('');
+
+  /* The detector's gap survives the mode switch — it is the one row that is not a read line. */
+  const missing = key === 'feelflux' ? `
+    <tr>
+      <td class="v none r">—</td>
+      <td class="r"><span class="lab discount">not read</span></td>
+      <td class="v r">1</td>
+      <td colspan="${inv.lineFields.length - 4}" style="white-space:normal">
+        <span class="missing">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Printed on the page, not read — <span class="mono">COUPON 2TJF-AMMK-BBQ1</span>
+        </span>
+      </td>
+      <td class="v r" style="color:var(--bad-fg)">&minus;21.90</td>
+    </tr>` : '';
+
+  document.getElementById(`${key}-grid-all`).innerHTML = `
+    <table>
+      <thead><tr>${head}</tr></thead>
+      <tbody>${body}${missing}
+        <tr>
+          <td colspan="${inv.lineFields.length}" style="white-space:normal;padding:10px 12px;font-size:11.5px;color:var(--muted);border-bottom:0">
+            <b style="font-weight:600">${esc(inv.transcribed.f)}: ${esc(inv.transcribed.v)}</b> — one value for the invoice, not per line.
+            Every figure above is as the backend emitted it; nothing is summed here.
+          </td>
+        </tr>
+      </tbody>
+    </table>`;
+}
+
+function setGrid(key, mode){
+  gridMode[key] = mode;
+  document.getElementById(`${key}-grid-key`).style.display = mode === 'key' ? '' : 'none';
+  document.getElementById(`${key}-grid-all`).style.display = mode === 'all' ? 'block' : 'none';
+  renderGridBar(key);
+  if (mode === 'all') renderWideGrid(key);
+}
+
+['feelflux','hangzhou'].forEach(k => { renderGridBar(k); renderWideGrid(k); });
 
 /* ── Navigation ──────────────────────────────────────────────────────────── */
 
