@@ -68,6 +68,11 @@
   .rail button:hover:not(.on):not([disabled]){background:var(--bg)}
   .rail button.on{background:#eff6ff; color:#1d4ed8}
   .rail button[disabled]{color:var(--ghost); cursor:not-allowed}
+  .rail button.planned{color:var(--ghost); position:relative}
+  .rail button.planned:hover{background:var(--indigo-bg); color:var(--indigo-fg)}
+  .rail button.planned.on{background:var(--indigo-bg); color:var(--indigo-fg)}
+  .rail .pdot{position:absolute; top:9px; right:22px; width:5px; height:5px; border-radius:999px; background:var(--indigo-line)}
+  .rail button.planned.on .pdot,.rail button.planned:hover .pdot{background:var(--primary)}
 
   .main{flex-grow:1; min-width:0; display:flex; flex-direction:column}
 
@@ -334,9 +339,13 @@
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5m0 14h16M8 15l4-5 3 3 4-6"/></svg>
         Totals
       </button>
-      <button data-rail="derived" disabled title="Derived — not built yet">
+      <!-- Planned, not shipped: the artboards drew this item greyed out, and it stays
+           visually subordinate. But a mock whose only way in is a button two panels
+           deep is a mock nobody finds, so it opens. -->
+      <button data-rail="derived" class="planned" title="Derived — planned, not in v1" onclick="show('derived')">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l3-7 3 14 3-7h4"/></svg>
         Derived
+        <span class="pdot" aria-label="planned"></span>
       </button>
       <button data-rail="activity" onclick="show('activity')">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>
