@@ -258,6 +258,62 @@
   .evidence .row{display:flex; align-items:baseline; gap:8px; font-size:11.5px; color:var(--slate)}
   .dialog .ft{display:flex; align-items:center; gap:10px; padding:14px 22px; border-top:1px solid var(--line); background:var(--bg)}
   .dialog .ft .cost{font-size:11.5px; color:var(--muted)}
+
+  /* ── Derived: the level split ────────────────────────────────────────────── */
+  .lvl{background:#fff; border-bottom:1px solid var(--line)}
+  .lvl-hd{display:flex; align-items:center; gap:10px; padding:11px 20px}
+  .lvl-hd .cap{font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted)}
+  .lvl-hd .sub{font-size:11px; color:var(--faint)}
+  .sum{display:flex; flex-wrap:wrap; gap:14px; justify-content:flex-end}
+  .kv{font-size:11.5px; color:var(--slate); white-space:nowrap}
+  .kv b{font-weight:500; color:var(--muted)}
+  .kv .mono{color:var(--ink)}
+  .kv.flag b,.kv.flag .mono{color:var(--warn-fg)}
+  .lvl-grid{border-top:1px solid var(--hair); padding:14px 20px 16px; display:flex; flex-direction:column; gap:14px; background:var(--bg)}
+  .lvl-group .gcap{font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--faint); margin-bottom:7px}
+  .lvl-group .gfields{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px}
+  .ifield{background:#fff; border:1px solid var(--line); border-radius:8px; padding:8px 10px; display:flex; flex-direction:column; gap:3px}
+  .ifield .f{font-size:11px; color:var(--muted)}
+  .ifield .v{font-family:'Spline Sans Mono',Menlo,monospace; font-size:11.5px; font-weight:500; color:var(--ink)}
+  .ifield .from{font-size:10.5px; color:var(--faint)}
+  .ifield.over{border-color:var(--warn-line); background:var(--warn-bg)}
+  .ifield.over .v{color:var(--warn-fg)}
+  .ifield.na .v{color:var(--faint); font-weight:400}
+
+  .dvrow{cursor:pointer}
+  .dvrow:hover{background:var(--bg)}
+  .dvrow.open{background:var(--bg)}
+  .dvrow td{vertical-align:top}
+  .chev{display:inline-block; width:14px; color:var(--ghost); transition:transform .12s}
+  .dvrow.open .chev{transform:rotate(90deg); color:var(--muted)}
+  .lname{font-size:12.5px; color:var(--ink)}
+  .lmeta{margin-top:2px; font-family:'Spline Sans Mono',Menlo,monospace; font-size:10.5px; color:var(--faint)}
+  .count{margin-left:6px; border-radius:6px; background:var(--indigo-bg); padding:2px 6px; font-size:9.5px; font-weight:600; color:var(--indigo-fg); letter-spacing:.03em}
+  .dval{font-size:12px; color:var(--ink)}
+  .dval .sub{display:block; margin-top:2px; font-size:10.5px; color:var(--faint)}
+  .dval.na{color:var(--faint)}
+  .conf{display:inline-flex; align-items:center; gap:5px; border-radius:6px; padding:2px 7px; font-family:'Spline Sans Mono',Menlo,monospace; font-size:10.5px; font-weight:500}
+  .conf i{width:5px; height:5px; border-radius:999px; display:block}
+  .conf.ok{background:var(--ok-bg); color:var(--ok-fg)} .conf.ok i{background:var(--ok-dot)}
+  .conf.warn{background:var(--warn-bg); color:var(--warn-fg)} .conf.warn i{background:var(--warn-dot)}
+
+  .ifield.amb{border-style:dashed; border-color:var(--warn-line)}
+  .ifield.amb .v{color:var(--warn-fg)}
+  .amb-tag{margin-left:6px; border-radius:5px; background:var(--warn-bg); padding:1px 5px; font-size:9px; font-weight:600; color:var(--warn-fg); letter-spacing:.03em; text-transform:none}
+  .cf.flag{border-color:var(--warn-line); background:var(--warn-bg)}
+  .casc td{background:var(--bg); border-bottom:1px solid var(--line); padding:0}
+  .casc-wrap{padding:14px 20px 16px 46px; display:flex; flex-direction:column; gap:12px}
+  .casc-anchor{display:flex; align-items:baseline; gap:9px; flex-wrap:wrap}
+  .casc-anchor .cap{font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--faint)}
+  .casc-anchor .mono{font-size:11.5px; color:var(--ink2)}
+  .casc-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px}
+  .cf{display:flex; align-items:baseline; gap:10px; background:#fff; border:1px solid var(--line); border-radius:8px; padding:9px 12px}
+  .cf .f{width:132px; flex-shrink:0; font-size:11.5px; color:var(--muted)}
+  .cf .v{font-family:'Spline Sans Mono',Menlo,monospace; font-size:11.5px; font-weight:500; color:var(--ink); min-width:96px}
+  .cf .v.na{color:var(--faint); font-weight:400}
+  .cf .from{flex-grow:1; font-size:10.5px; line-height:1.5; color:var(--faint)}
+  .casc-foot{display:flex; align-items:center; gap:10px; border-top:1px solid var(--line); padding-top:11px}
+  .casc-foot .note{font-size:11.5px; color:var(--muted)}
 </style>
 </head>
 <body>
@@ -607,7 +663,7 @@
       </div>
     </section>
 
-    <!-- ══ Derived — planned (Derived.dc.html) ════════════════════════════ -->
+    <!-- ══ Derived — planned (Derived.dc.html, redrawn per line item) ═════ -->
     <section class="view" data-view="derived">
       <!-- Planned banner: this screen does not exist in v1 -->
       <div class="planned">
@@ -622,40 +678,94 @@
         <span class="chip neutral"><i></i>Masters pinned at 2026-09-08 14:22</span>
         <span class="note">Approving commits <b style="font-weight:600">these</b> values — not whatever the masters say later.</span>
         <div class="grow"></div>
+        <button class="picker" id="dv-picker" onclick="flipDerived()"></button>
         <button class="btn" style="padding:6px 11px;font-size:11.5px">Refresh masters</button>
       </div>
 
-      <div style="padding:18px 20px;display:flex;flex-direction:column;gap:14px">
-        <div class="card" style="overflow:hidden">
-          <table>
-            <thead>
-              <tr>
-                <th style="width:190px;padding-left:16px">Field</th>
-                <th style="width:148px">Value</th>
-                <th>Derived from</th>
-                <th style="width:230px">Rule &amp; source</th>
-                <th class="r" style="width:168px;padding-right:16px"></th>
-              </tr>
-            </thead>
-            <tbody id="kaapi-derived"></tbody>
-          </table>
+      <!-- ── Invoice-level: the minority of derived fields, kept subordinate ── -->
+      <div class="lvl">
+        <div class="lvl-hd">
+          <span class="cap">Invoice-level</span>
+          <span class="sub" id="dv-inv-count"></span>
+          <div class="grow"></div>
+          <div class="sum" id="dv-inv-sum"></div>
+          <button class="mini" id="dv-inv-btn" onclick="toggleInvoiceFields()">Show all</button>
         </div>
+        <div class="lvl-grid" id="dv-inv-grid" style="display:none"></div>
+      </div>
 
+      <!-- ── Per line item: where most of the derivation actually happens ───── -->
+      <div class="sheet">
+        <div class="band plain" style="padding:10px 20px">
+          <span class="cap" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">Per line item</span>
+          <span class="note" id="dv-line-note"></span>
+          <div class="grow"></div>
+          <span class="note" style="font-size:11px;color:var(--faint)">Open a row for the fields it cascades into</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:34px;padding-left:20px"></th>
+              <th>Line</th>
+              <th style="width:186px">Account</th>
+              <th style="width:104px">Item type</th>
+              <th style="width:112px">ITC</th>
+              <th style="width:132px">Item TDS</th>
+              <th style="width:124px">Reverse charge</th>
+              <th class="r" style="width:96px;padding-right:20px">Confidence</th>
+            </tr>
+          </thead>
+          <tbody id="dv-lines"></tbody>
+        </table>
+      </div>
+
+      <div style="padding:16px 20px;display:flex;flex-direction:column;gap:14px">
         <!-- The two actions are not the same action -->
         <div class="two">
           <div class="card"><div class="bd" style="padding:15px 17px">
             <h3 style="font-size:13.5px;margin-bottom:7px">Override — a one-off</h3>
-            <p style="font-size:11.5px">Stamped with who and why, and shown as an override on this bill forever. The rule keeps producing its own answer on every other invoice.</p>
+            <p style="font-size:11.5px">Stamped with who and why, and shown as an override on this line forever. The rule keeps producing its own answer on every other line and every other invoice.</p>
           </div></div>
           <div style="background:var(--indigo-bg);border:1px solid var(--indigo-line);border-radius:12px;padding:15px 17px">
             <h3 style="font-size:13.5px;margin-bottom:7px;color:#312e81">Fix the source — the usual right answer</h3>
-            <p style="font-size:11.5px;line-height:1.6;color:var(--indigo-fg)">A wrong derived value almost always means the master or the rule is wrong. Fixing it there re-derives this bill and every later one — instead of the same correction being made by hand a hundred times.</p>
+            <p style="font-size:11.5px;line-height:1.6;color:var(--indigo-fg)">A wrong derived value almost always means the master or the rule is wrong. Fixing it there re-derives every line that shares it, this bill and every later one — instead of the same correction being made by hand a hundred times.</p>
           </div>
         </div>
 
         <div class="note plain">
           <span class="dot"></span>
           <p><b style="font-weight:600">Nothing here is a reading.</b> Every value on this screen is a function of the extracted fields plus the pinned snapshot — so fixing an extracted value on the Lines screen re-derives this one at zero cost, and a value whose inputs are wrong is fixed <i>there</i>, not here.</p>
+        </div>
+
+        <div class="note plain">
+          <span class="dot"></span>
+          <p><b style="font-weight:600">The 45 computed columns live at two levels, and most of the <i>values</i> are per line.</b>
+          By the inputs the field map records, <b style="font-weight:600">19 are derived for a line item</b> and 26 for the
+          invoice. The invoice has more fields — but it holds one value each, while the 19 are derived again for every
+          line: on this six-line invoice that is 26 invoice values against 114 line values. And the 19 are not
+          independent — <span class="mono" style="font-size:11px">Account</span> is the anchor, and the other 18 follow
+          from it or from <span class="mono" style="font-size:11px">HSN/SAC</span>. That is why a line opens into its
+          cascade rather than listing 19 fields flat, why one correction can stand for four, and why lines whose
+          derivation is identical are one row: on a twenty-line invoice the signal is the line that came out
+          <i>different</i>.</p>
+        </div>
+
+        <div class="note warn">
+          <span class="dot"></span>
+          <div style="min-width:0">
+            <h3>Four columns whose level is not settled</h3>
+            <p><span class="mono" style="font-size:11px">CGST</span>, <span class="mono" style="font-size:11px">SGST</span>,
+            <span class="mono" style="font-size:11px">IGST</span> and <span class="mono" style="font-size:11px">CESS</span> — the
+            base-currency restatements — sit in the <i>line</i> block of the target CSV, but no reference invoice has both a tax
+            split and more than one line: the only invoice with CGST/SGST has a single line. So they are carried at invoice level
+            here and flagged, rather than guessed. This is one of the four storage decisions the spec says must not be
+            foreclosed, and it wants a multi-line GST invoice to settle it.</p>
+          </div>
+        </div>
+
+        <div class="note plain">
+          <span class="dot"></span>
+          <p><i>Mockup note:</i> the rules named here are illustrative of the <i>shape</i> — which inputs, which master, which level, and what a wrong answer costs to fix. The rule set itself is not settled in the spec, and v1 writes all 45 of these columns empty.</p>
         </div>
       </div>
     </section>
@@ -819,20 +929,250 @@ const KAAPI_TOTALS = [
   {name:'Total after tax',  rate:'—',  amount:'100,300.00', bold:true,  ...MID},
 ];
 
-const RULE   = {source:'rule',                 sBg:'#f1f5f9', sFg:'#334155', sDot:'#94a3b8'};
-const MASTER = {source:'vendor master · v7',   sBg:'#eef2ff', sFg:'#3730a3', sDot:'#6366f1'};
-const FX     = {source:'FX table · 2025-07-31',sBg:'#ecfdf5', sFg:'#047857', sDot:'#059669'};
-const COA    = {source:'COA rule #142',        sBg:'#eef2ff', sFg:'#3730a3', sDot:'#6366f1'};
+/* ── Derived: two levels, because the fields live at two levels ───────────────
+   The 45 computed columns split 19 / 26 by the inputs _field_map.json records:
+   19 are derived for a line item, 26 for the invoice. By field count the invoice
+   has more — but it holds ONE value each, while the 19 are derived again for
+   every line. On a six-line invoice that is 26 invoice values against 114 line
+   values, which is why the line matrix is the screen and the invoice block is a
+   band above it.
 
-const KAAPI_DERIVED = [
-  {field:'Exchange Rate',         value:'1.0000',            inputs:'Currency Code INR + Bill Date 2025-07-31', rule:'invoice currency == book currency', ...FX,     over:false, fixable:false},
-  {field:'Payment Terms',         value:'0',                 inputs:'Payment Terms Label "Immediate"',          rule:'label to day count',                ...RULE,   over:false, fixable:false},
-  {field:'Supply Type',           value:'Intra-state',       inputs:'Source 29 · Destination 29',               rule:'source == destination',             ...RULE,   over:false, fixable:false},
-  {field:'Destination of Supply', value:'29 — Karnataka',    inputs:'own GSTIN 29ABDCA0102A1ZM',                rule:'registered state of the buying entity', ...MASTER, over:false, fixable:true},
-  {field:'Account',               value:'5210 · Equipment',  inputs:'Item Name "Budan M80…" + vendor history',  rule:'categorisation · 0.91 confidence',  ...COA,    over:false, fixable:true},
-  {field:'Item Type',             value:'Goods',             inputs:'HSN/SAC 84.19.8190',                       rule:'HSN chapter to goods, SAC to service', ...RULE, over:false, fixable:false},
-  {field:'TDS Section',           value:'194Q',              inputs:'vendor TDS profile + Account 5210',        rule:'purchase of goods over the threshold', ...MASTER, over:true, fixable:true},
+   The line-level 19 are not independent: Account is the anchor, and the other 18
+   follow from it (or from HSN/SAC). Correcting an Account re-derives all of them
+   for every line that shares it.
+
+   The level of CGST / SGST / IGST / CESS could not be settled from the reference
+   set — they sit in the line block of the target CSV, but no reference invoice has
+   both a tax split and more than one line, so they are carried at invoice level
+   here and flagged rather than guessed. */
+
+const RULE   = {source:'rule',                  sBg:'#f1f5f9', sFg:'#334155', sDot:'#94a3b8'};
+const MASTER = {source:'vendor master · v7',    sBg:'#eef2ff', sFg:'#3730a3', sDot:'#6366f1'};
+const FX     = {source:'FX table · 2026-01-26', sBg:'#ecfdf5', sFg:'#047857', sDot:'#059669'};
+const COA    = {source:'COA rule #142',         sBg:'#eef2ff', sFg:'#3730a3', sDot:'#6366f1'};
+const TAXM   = {source:'tax master',            sBg:'#f1f5f9', sFg:'#334155', sDot:'#94a3b8'};
+
+/* F(field, value, inputs, rule, source, extra) — `na` renders instead of a value,
+   because "does not apply" is an answer and a blank cell is not. */
+const F = (field, value, inputs, rule, src, extra) =>
+  ({field, value, inputs, rule, ...src, ...(extra || {})});
+
+const NO_TDS_LINE = [
+  F('Item TDS Name',         '', 'Account + vendor TDS profile',      'per-line section rules — no section applies to a non-resident', MASTER, {na:'does not apply'}),
+  F('Item TDS Percentage',   '', 'Item TDS Name',                     'tax master',                  TAXM,   {na:'does not apply'}),
+  F('Item TDS Amount',       '', 'Item Total x Item TDS Percentage',  'per-line withholding',        RULE,   {na:'does not apply'}),
+  F('Item TDS Section Code', '', 'Item TDS Name',                     'section rules',               RULE,   {na:'does not apply'}),
+  F('Item TDS Section',      '', 'Item TDS Section Code',             'section rules',               RULE,   {na:'does not apply'}),
 ];
+
+const NO_DISCOUNT_LINE = [
+  F('Item Discount Account',      '', 'vendor + COA defaults',   'master default', COA, {na:'none printed'}),
+  F('Item Discount Account Code', '', 'Item Discount Account',   'COA lookup',     COA, {na:'none printed'}),
+  F('Is Discount Before Tax', 'false', 'Discount vs Tax Amount ordering', 'from the printed arithmetic', RULE),
+];
+
+const DERIVED = {
+
+  /* Hangzhou — six lines, an overseas supplier, USD against INR books. The
+     multi-line case: four product lines derive identically and collapse to one
+     row; the two charge lines derive differently, and one needs a look. */
+  hangzhou: {
+    label:'Invoice 20 of 20 · GP1154',
+    who:'Hangzhou Yuanxintong Technology Co., Ltd. · GP1154 · USD',
+    other:'kaapi',
+    invoice:[
+      {name:'Currency & terms', fields:[
+        F('Exchange Rate','83.2150','Currency Code USD + Bill Date 2026-01-26','FX lookup to book currency — not the rate printed on the page', FX, {key:1}),
+        F('Payment Terms','30','Payment Terms Label "Net 30"','label to day count', RULE, {key:1}),
+        F('Is Inclusive Tax','false','Item Total vs Tax Amount vs Total','whether line amounts already carry tax', RULE),
+        F('Reference Invoice Type','invoice','Total sign + Bill Number pattern','invoice / debit note / credit note', RULE),
+      ]},
+      {name:'Place of supply', fields:[
+        F('GST Treatment','overseas','vendor GSTIN absent + foreign address','registered / unregistered / overseas / SEZ', RULE, {key:1}),
+        F('Destination of Supply','29 — Karnataka','own GSTIN 29ABDCA0102A1ZM','registered state of the buying entity', MASTER, {key:1}),
+        F('Supply Type','inter-state','Source overseas vs Destination 29','source != destination, so IGST rather than CGST+SGST', RULE, {key:1}),
+      ]},
+      {name:'Discount posting', fields:[
+        F('Discount Account','', 'vendor + COA defaults','master default', COA, {na:'none printed'}),
+        F('Discount Account Code','', 'Discount Account','COA lookup', COA, {na:'none printed'}),
+      ]},
+      {name:'Withholding — TDS', fields:[
+        F('TDS Calculation Type','', 'vendor TDS profile','master', MASTER, {na:'does not apply'}),
+        F('TDS TaxID','', 'TDS Name','tax master', TAXM, {na:'does not apply'}),
+        F('TDS Name','', 'vendor TDS profile + Account','no section applies to a non-resident vendor', MASTER, {na:'does not apply', key:1}),
+        F('TDS Percentage','', 'TDS Name','tax master', TAXM, {na:'does not apply'}),
+        F('TDS Section Code','', 'TDS Name','section rules', RULE, {na:'does not apply'}),
+        F('TDS Section','', 'TDS Section Code','section rules', RULE, {na:'does not apply'}),
+        F('TDS Amount','', 'SubTotal x TDS Percentage','withholding computation', RULE, {na:'does not apply'}),
+      ]},
+      {name:'Withholding — TCS', fields:[
+        F('TCS Tax Name','', 'vendor TCS profile','master', MASTER, {na:'does not apply'}),
+        F('TCS Percentage','', 'TCS Tax Name','tax master', TAXM, {na:'does not apply'}),
+        F('TCS Amount','', 'SubTotal x TCS Percentage','collection computation', RULE, {na:'does not apply'}),
+        F('Nature Of Collection','', 'TCS Tax Name','section rules', RULE, {na:'does not apply'}),
+      ]},
+      {name:'Retention', fields:[
+        F('TotalRetentionAmountFCY','0.00','contract retention rules','vendor / PO retention terms — none on this PO', MASTER),
+        F('TotalRetentionAmountBCY','0.00','TotalRetentionAmountFCY x Exchange Rate','base-currency restatement', RULE),
+      ]},
+      {name:'Base-currency restatement · level not settled', fields:[
+        F('CGST','0.00','CGST(FCY) x Exchange Rate','base-currency restatement', RULE, {amb:1}),
+        F('SGST','0.00','SGST(FCY) x Exchange Rate','base-currency restatement', RULE, {amb:1}),
+        F('IGST','8,242.67','IGST(FCY) x Exchange Rate','base-currency restatement — reverse charge, borne by us', RULE, {amb:1}),
+        F('CESS','0.00','CESS(FCY) x Exchange Rate','base-currency restatement', RULE, {amb:1}),
+      ]},
+    ],
+    lines:[
+      {
+        ids:[1,2,3,4],
+        name:'Printed Circuit Board: Flexible Board, 2 layers',
+        members:['1 · H2B-C9F-AI00036A · 116.97','2 · H2B-C8F-AI00036A · 116.97','3 · H2B-C7F-AI00036A · 116.97','4 · H2B-C6F-AI00036A · 146.96'],
+        anchor:'Item Name "Printed Circuit Board…" · HSN/SAC 8534 · vendor history (14 prior bills)',
+        account:'1310 · Components', accountSub:'raw material',
+        type:'Goods', itc:'Eligible', tds:'does not apply', rcm:'IGST 18%',
+        conf:'0.93', confCls:'ok',
+        cascade:[
+          F('Account Code','1310','Account','COA lookup', COA),
+          F('Item Type','Goods','HSN/SAC 8534','HSN chapter to goods, SAC to service', RULE),
+          F('Tax Type','single tax','Tax Name + Tax Percentage','single tax vs tax group', TAXM),
+          F('ITC Eligibility','Eligible','Account + GST Treatment','input-credit rules', RULE),
+          F('Reverse Charge Tax Name','IGST — import of goods','GST Treatment overseas + Account','RCM rules', RULE),
+          F('Reverse Charge Tax Rate','18%','Reverse Charge Tax Name','tax master', TAXM),
+          F('Reverse Charge Tax Type','single tax','Reverse Charge Tax Name','tax master', TAXM),
+          ...NO_TDS_LINE,
+          F('Item Exemption Code','', 'Account + GST Treatment','exemption rules', RULE, {na:'none'}),
+          ...NO_DISCOUNT_LINE,
+          F('Is Landed Cost','false','Account','landed-cost account mapping', RULE),
+          F('Is Billable','false','Project Name','billable when assigned to a billable project — none assigned', RULE),
+        ],
+      },
+      {
+        ids:[5],
+        name:'Shipping fee',
+        anchor:'Item Name "Shipping fee" · no HSN/SAC printed · vendor history',
+        account:'5410 · Freight inward', accountSub:'',
+        type:'Service', itc:'Eligible', tds:'does not apply', rcm:'IGST 18%',
+        conf:'0.88', confCls:'ok',
+        cascade:[
+          F('Account Code','5410','Account','COA lookup', COA),
+          F('Item Type','Service','HSN/SAC absent — SAC 9965 assumed','HSN chapter to goods, SAC to service', RULE),
+          F('Tax Type','single tax','Tax Name + Tax Percentage','single tax vs tax group', TAXM),
+          F('ITC Eligibility','Eligible','Account + GST Treatment','input-credit rules', RULE),
+          F('Reverse Charge Tax Name','IGST — import of service','GST Treatment overseas + Account','RCM rules', RULE),
+          F('Reverse Charge Tax Rate','18%','Reverse Charge Tax Name','tax master', TAXM),
+          F('Reverse Charge Tax Type','single tax','Reverse Charge Tax Name','tax master', TAXM),
+          ...NO_TDS_LINE,
+          F('Item Exemption Code','', 'Account + GST Treatment','exemption rules', RULE, {na:'none'}),
+          ...NO_DISCOUNT_LINE,
+          F('Is Landed Cost','true','Account','freight on imported goods maps to landed cost — the one field this line derives differently from the four product lines', RULE, {flag:1}),
+          F('Is Billable','false','Project Name','billable when assigned to a billable project', RULE),
+        ],
+      },
+      {
+        ids:[6],
+        name:'Payment fee',
+        anchor:'Item Name "Payment fee" · no HSN/SAC printed · no vendor history for this description',
+        account:'5620 · Bank charges', accountSub:'low confidence',
+        type:'Service', itc:'Eligible', tds:'does not apply', rcm:'IGST 18%',
+        conf:'0.61', confCls:'warn',
+        why:'The categorisation funnel had no prior bill from this vendor carrying "Payment fee", so the account came from the description alone. Every field below inherits that uncertainty — which is the case for fixing the source rather than this one line.',
+        cascade:[
+          F('Account Code','5620','Account','COA lookup', COA, {flag:1}),
+          F('Item Type','Service','HSN/SAC absent — SAC 9971 assumed','HSN chapter to goods, SAC to service', RULE),
+          F('Tax Type','single tax','Tax Name + Tax Percentage','single tax vs tax group', TAXM),
+          F('ITC Eligibility','Eligible','Account + GST Treatment','input-credit rules — but only if the account is right', RULE, {flag:1}),
+          F('Reverse Charge Tax Name','IGST — import of service','GST Treatment overseas + Account','RCM rules', RULE),
+          F('Reverse Charge Tax Rate','18%','Reverse Charge Tax Name','tax master', TAXM),
+          F('Reverse Charge Tax Type','single tax','Reverse Charge Tax Name','tax master', TAXM),
+          ...NO_TDS_LINE,
+          F('Item Exemption Code','', 'Account + GST Treatment','exemption rules', RULE, {na:'none'}),
+          ...NO_DISCOUNT_LINE,
+          F('Is Landed Cost','false','Account','landed-cost account mapping', RULE),
+          F('Is Billable','false','Project Name','billable when assigned to a billable project', RULE),
+        ],
+      },
+    ],
+  },
+
+  /* Kaapi — one line, a registered domestic vendor. The artboard's own invoice,
+     and the single-line case: the matrix is one row, the withholding is real, and
+     the TDS override still belongs at invoice level. */
+  kaapi: {
+    label:'Invoice 3 of 20 · 252910650',
+    who:'Kaapi Machines (India) Pvt. Ltd. · 252910650 · INR',
+    other:'hangzhou',
+    invoice:[
+      {name:'Currency & terms', fields:[
+        F('Exchange Rate','1.0000','Currency Code INR + Bill Date 2025-07-31','invoice currency == book currency', FX, {key:1}),
+        F('Payment Terms','0','Payment Terms Label "Immediate"','label to day count', RULE, {key:1}),
+        F('Is Inclusive Tax','false','Item Total vs Tax Amount vs Total','whether line amounts already carry tax', RULE),
+        F('Reference Invoice Type','invoice','Total sign + Bill Number pattern','invoice / debit note / credit note', RULE),
+      ]},
+      {name:'Place of supply', fields:[
+        F('GST Treatment','registered','vendor GSTIN 29AACCK9538Q1ZK + state','registered / unregistered / overseas / SEZ', RULE, {key:1}),
+        F('Destination of Supply','29 — Karnataka','own GSTIN 29ABDCA0102A1ZM','registered state of the buying entity', MASTER, {key:1}),
+        F('Supply Type','Intra-state','Source 29 · Destination 29','source == destination, so CGST+SGST', RULE, {key:1}),
+      ]},
+      {name:'Discount posting', fields:[
+        F('Discount Account','', 'vendor + COA defaults','master default', COA, {na:'none printed'}),
+        F('Discount Account Code','', 'Discount Account','COA lookup', COA, {na:'none printed'}),
+      ]},
+      {name:'Withholding — TDS', fields:[
+        F('TDS Calculation Type','on net','vendor TDS profile','master', MASTER),
+        F('TDS TaxID','TDS-194Q-01','TDS Name','tax master', TAXM),
+        F('TDS Name','194Q — purchase of goods','vendor TDS profile + Account 5210','section rules', MASTER),
+        F('TDS Percentage','0.1%','TDS Name','tax master', TAXM),
+        F('TDS Section Code','194Q','TDS Name','section rules', RULE),
+        F('TDS Section','194Q','TDS Section Code','section rules — overridden by the reviewer', MASTER, {over:1, key:1}),
+        F('TDS Amount','85.00','SubTotal x TDS Percentage','withholding computation', RULE),
+      ]},
+      {name:'Withholding — TCS', fields:[
+        F('TCS Tax Name','', 'vendor TCS profile','master', MASTER, {na:'does not apply'}),
+        F('TCS Percentage','', 'TCS Tax Name','tax master', TAXM, {na:'does not apply'}),
+        F('TCS Amount','', 'SubTotal x TCS Percentage','collection computation', RULE, {na:'does not apply'}),
+        F('Nature Of Collection','', 'TCS Tax Name','section rules', RULE, {na:'does not apply'}),
+      ]},
+      {name:'Retention', fields:[
+        F('TotalRetentionAmountFCY','0.00','contract retention rules','vendor / PO retention terms', MASTER),
+        F('TotalRetentionAmountBCY','0.00','TotalRetentionAmountFCY x Exchange Rate','base-currency restatement — rate is 1.0000', RULE),
+      ]},
+      {name:'Base-currency restatement · level not settled', fields:[
+        F('CGST','7,650.00','CGST(FCY) x Exchange Rate','base-currency restatement', RULE, {amb:1}),
+        F('SGST','7,650.00','SGST(FCY) x Exchange Rate','base-currency restatement', RULE, {amb:1}),
+        F('IGST','0.00','IGST(FCY) x Exchange Rate','base-currency restatement', RULE, {amb:1}),
+        F('CESS','0.00','CESS(FCY) x Exchange Rate','base-currency restatement', RULE, {amb:1}),
+      ]},
+    ],
+    lines:[
+      {
+        ids:[1],
+        name:'Budan M80 Fully Automatic / 1 Grinder / Steam wand',
+        anchor:'Item Name "Budan M80…" · Product ID BUDM80L · HSN/SAC 84.19.8190 · vendor history',
+        account:'5210 · Equipment', accountSub:'',
+        type:'Goods', itc:'Eligible', tds:'194Q · 0.1%', rcm:'does not apply',
+        conf:'0.91', confCls:'ok',
+        cascade:[
+          F('Account Code','5210','Account','COA lookup', COA),
+          F('Item Type','Goods','HSN/SAC 84.19.8190','HSN chapter to goods, SAC to service', RULE),
+          F('Tax Type','tax group · CGST+SGST','Tax Name + Tax Percentage','single tax vs tax group', TAXM),
+          F('ITC Eligibility','Eligible','Account + GST Treatment','input-credit rules', RULE),
+          F('Reverse Charge Tax Name','', 'GST Treatment registered + Account','RCM rules — the vendor charges the tax', RULE, {na:'does not apply'}),
+          F('Reverse Charge Tax Rate','', 'Reverse Charge Tax Name','tax master', TAXM, {na:'does not apply'}),
+          F('Reverse Charge Tax Type','', 'Reverse Charge Tax Name','tax master', TAXM, {na:'does not apply'}),
+          F('Item TDS Name','194Q','Account + vendor TDS profile','per-line section rules', MASTER),
+          F('Item TDS Percentage','0.1%','Item TDS Name','tax master', TAXM),
+          F('Item TDS Amount','85.00','Item Total x Item TDS Percentage','per-line withholding', RULE),
+          F('Item TDS Section Code','194Q','Item TDS Name','section rules', RULE),
+          F('Item TDS Section','194Q','Item TDS Section Code','section rules', RULE),
+          F('Item Exemption Code','', 'Account + GST Treatment','exemption rules', RULE, {na:'none'}),
+          ...NO_DISCOUNT_LINE,
+          F('Is Landed Cost','false','Account','landed-cost account mapping', RULE),
+          F('Is Billable','false','Project Name','billable when assigned to a billable project', RULE),
+        ],
+      },
+    ],
+  },
+};
 
 const CENSUS = [
   {n:1, note:'FLX-2025-235 — the invoice',   kind:'invoice'},
@@ -920,29 +1260,126 @@ document.getElementById('kaapi-totals').innerHTML = KAAPI_TOTALS.map(r => `
     </td>
   </tr>`).join('');
 
-document.getElementById('kaapi-derived').innerHTML = KAAPI_DERIVED.map(r => `
-  <tr>
-    <td style="padding:12px 16px">${esc(r.field)}</td>
-    <td>
-      <div style="display:flex;align-items:center;gap:7px">
-        <span class="mono" style="font-size:12px;font-weight:500;color:${r.over?'var(--warn-fg)':'var(--ink)'}">${esc(r.value)}</span>
-        ${r.over?'<span style="border-radius:6px;padding:2px 6px;font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;background:var(--warn-bg);color:var(--warn-fg)">override</span>':''}
+/* ── Derived: render ─────────────────────────────────────────────────────── */
+
+let dvKey = 'hangzhou';
+let dvOpen = null;
+
+function srcChip(r){
+  return `<span class="src" style="background:${r.sBg};color:${r.sFg}"><i style="background:${r.sDot}"></i>${esc(r.source)}</span>`;
+}
+
+function renderDerived(){
+  const inv = DERIVED[dvKey];
+
+  document.getElementById('dv-picker').innerHTML = esc(inv.label) +
+    ' <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>';
+  document.querySelector('[data-bar="derived"] .who').textContent = inv.who;
+
+  const invCount  = inv.invoice.reduce((n, g) => n + g.fields.length, 0);
+  const perLine   = inv.lines[0].cascade.length + 1;          // + Account, the anchor
+  const nLines    = inv.lines.reduce((n, l) => n + l.ids.length, 0);
+  const nRows     = inv.lines.length;
+
+  /* The count is not the argument — the multiplication is. The invoice block has
+     more fields; the line block has more values, because its 19 are derived again
+     for every line. */
+  document.getElementById('dv-inv-count').innerHTML =
+    `${invCount} fields, <b style="font-weight:600">one value each</b>. Below, ${perLine} fields are derived ` +
+    `again for every line — <b style="font-weight:600">${perLine * nLines} values</b> on this invoice.`;
+
+  const keys = inv.invoice.flatMap(g => g.fields).filter(f => f.key);
+  document.getElementById('dv-inv-sum').innerHTML = keys.map(f => `
+    <span class="kv ${f.over ? 'flag' : ''}">
+      <b>${esc(f.field)}</b>
+      <span class="mono">${esc(f.na || f.value)}</span>${f.over ? ' ⚠' : ''}
+    </span>`).join('');
+
+  document.getElementById('dv-inv-grid').innerHTML = inv.invoice.map(g => `
+    <div class="lvl-group">
+      <div class="gcap">${esc(g.name)}${/not settled/.test(g.name) ? ' <span class="amb-tag">level not settled</span>' : ''}</div>
+      <div class="gfields">
+        ${g.fields.map(f => `
+          <div class="ifield ${f.over ? 'over' : ''} ${f.na ? 'na' : ''} ${f.amb ? 'amb' : ''}">
+            <span class="f">${esc(f.field)}${f.over ? ' · <b style="font-weight:600">override</b>' : ''}</span>
+            <span class="v">${esc(f.na || f.value)}</span>
+            <span class="from">← ${esc(f.inputs)}</span>
+            ${srcChip(f)}
+          </div>`).join('')}
       </div>
-    </td>
-    <td style="font-size:11.5px;color:var(--slate)">${esc(r.inputs)}</td>
-    <td>
-      <div style="display:flex;flex-direction:column;gap:4px">
-        <span style="font-size:11.5px;color:var(--slate)">${esc(r.rule)}</span>
-        <span class="src" style="background:${r.sBg};color:${r.sFg}"><i style="background:${r.sDot}"></i>${esc(r.source)}</span>
+    </div>`).join('');
+
+  document.getElementById('dv-line-note').innerHTML = nRows < nLines
+    ? `${perLine} fields × ${nLines} lines — <b style="font-weight:600">${nRows} distinct derivations</b>, because lines that derive identically are one row.`
+    : `${perLine} fields × ${nLines} line${nLines > 1 ? 's' : ''} — ${nRows} derivation${nRows > 1 ? 's' : ''}.`;
+
+  document.getElementById('dv-lines').innerHTML = inv.lines.map((l, i) => {
+    const grouped = l.ids.length > 1;
+    const label = grouped ? `Lines ${l.ids[0]}–${l.ids[l.ids.length - 1]}` : `Line ${l.ids[0]}`;
+    const open = dvOpen === i;
+    return `
+      <tr class="dvrow ${open ? 'open' : ''}" onclick="toggleLine(${i})">
+        <td style="padding-left:20px"><span class="chev">${CHEV}</span></td>
+        <td>
+          <div class="lname">${esc(l.name)}</div>
+          <div class="lmeta">${label}${grouped ? `<span class="count">${l.ids.length} lines</span>` : ''}</div>
+        </td>
+        <td><div class="dval">${esc(l.account)}${l.accountSub ? `<span class="sub">${esc(l.accountSub)}</span>` : ''}</div></td>
+        <td><div class="dval">${esc(l.type)}</div></td>
+        <td><div class="dval">${esc(l.itc)}</div></td>
+        <td><div class="dval ${/does not apply/.test(l.tds) ? 'na' : ''}">${esc(l.tds)}</div></td>
+        <td><div class="dval ${/does not apply/.test(l.rcm) ? 'na' : ''}">${esc(l.rcm)}</div></td>
+        <td class="r" style="padding-right:20px"><span class="conf ${l.confCls}"><i></i>${l.conf}</span></td>
+      </tr>
+      ${open ? cascadeRow(l) : ''}`;
+  }).join('');
+}
+
+function cascadeRow(l){
+  const grouped = l.ids.length > 1;
+  return `
+    <tr class="casc"><td colspan="8">
+      <div class="casc-wrap">
+        <div class="casc-anchor">
+          <span class="cap">Account is the anchor — derived from this line's</span>
+          <span class="mono">${esc(l.anchor)}</span>
+        </div>
+        ${l.why ? `<div class="note warn" style="padding:11px 14px"><span class="dot"></span><p style="font-size:11.5px">${esc(l.why)}</p></div>` : ''}
+        ${grouped ? `<div class="casc-anchor"><span class="cap">Covering</span>${l.members.map(m => `<span class="pill mono" style="font-size:10.5px">${esc(m)}</span>`).join('')}</div>` : ''}
+        <div class="casc-anchor"><span class="cap">${l.cascade.length} fields follow from it</span></div>
+        <div class="casc-grid">
+          ${l.cascade.map(f => `
+            <div class="cf ${f.flag ? 'flag' : ''}">
+              <span class="f">${esc(f.field)}</span>
+              <span class="v ${f.na ? 'na' : ''}">${esc(f.na || f.value)}</span>
+              <span class="from">← ${esc(f.inputs)}<br>${esc(f.rule)}</span>
+              ${srcChip(f)}
+            </div>`).join('')}
+        </div>
+        <div class="casc-foot">
+          <span class="note">${grouped
+            ? `This derivation covers ${l.ids.length} lines — they agree on every field above, so a correction here is one correction, not ${l.ids.length}.`
+            : `This line derives on its own.`}</span>
+          <div class="grow"></div>
+          <button class="mini">Override ${grouped ? `all ${l.ids.length}` : 'this line'}</button>
+          <button class="mini indigo">Fix the source</button>
+        </div>
       </div>
-    </td>
-    <td class="r" style="padding-right:16px">
-      <div style="display:inline-flex;gap:6px">
-        <span class="mini">Override</span>
-        ${r.fixable?'<span class="mini indigo">Fix the source</span>':''}
-      </div>
-    </td>
-  </tr>`).join('');
+    </td></tr>`;
+}
+
+function toggleLine(i){ dvOpen = (dvOpen === i) ? null : i; renderDerived(); }
+function flipDerived(){ dvKey = DERIVED[dvKey].other; dvOpen = null; renderDerived(); }
+
+function toggleInvoiceFields(){
+  const grid = document.getElementById('dv-inv-grid');
+  const btn  = document.getElementById('dv-inv-btn');
+  const hidden = grid.style.display === 'none';
+  grid.style.display = hidden ? 'flex' : 'none';
+  btn.textContent = hidden ? 'Hide' : 'Show all';
+}
+
+renderDerived();
 
 document.getElementById('census-pages').innerHTML = CENSUS.map(p => {
   const k = KINDS[p.kind];
