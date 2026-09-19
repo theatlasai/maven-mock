@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Atlas — Book Close Q1 2025 · Bright &amp; Bloom · Maker / Checker review</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary: #6366f1; --primary-dark: #4f46e5; --primary-light: #eef2ff;
+  --slate-50:  #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1; --slate-400: #94a3b8; --slate-500: #64748b;
+  --slate-600: #475569; --slate-700: #334155; --slate-800: #1e293b; --slate-900: #0f172a;
+  --green-50: #f0fdf4; --green-100: #dcfce7; --green-200: #bbf7d0; --green-500: #22c55e; --green-600: #16a34a; --green-700: #15803d;
+  --amber-50: #fffbeb; --amber-100: #fef3c7; --amber-200: #fde68a; --amber-300: #fcd34d; --amber-400: #fbbf24; --amber-500: #f59e0b; --amber-600: #d97706; --amber-700: #b45309; --amber-800: #92400e;
+  --red-50: #fff1f2; --red-100: #fee2e2; --red-200: #fecaca; --red-400: #f87171; --red-500: #ef4444; --red-600: #dc2626; --red-700: #b91c1c;
+  --indigo-50: #eef2ff; --indigo-100: #e0e7ff; --indigo-200: #c7d2fe; --indigo-400: #818cf8; --indigo-500: #6366f1; --indigo-600: #4f46e5;
+  --blue-50: #eff6ff; --blue-100: #dbeafe; --blue-200: #bfdbfe; --blue-500: #3b82f6; --blue-600: #2563eb; --blue-700: #1d4ed8;
+  --violet-50: #f5f3ff; --violet-100: #ede9fe; --violet-200: #ddd6fe; --violet-500: #8b5cf6; --violet-600: #7c3aed; --violet-700: #6d28d9;
+  --teal-50: #f0fdfa; --teal-500: #14b8a6; --teal-600: #0d9488; --teal-700: #0f766e;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px; background: var(--slate-50); color: var(--slate-900);
+  display: flex; height: 100vh; overflow: hidden;
+}
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+/* ── Topbar ── */
+.topbar { height: 52px; background: white; border-bottom: 1px solid var(--slate-200); display: flex; align-items: center; gap: 12px; padding: 0 18px; flex-shrink: 0; }
+.breadcrumb { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--slate-500); }
+.breadcrumb a { color: var(--slate-500); text-decoration: none; }
+.bc-sep { color: var(--slate-300); }
+.bc-cur { color: var(--slate-800); font-weight: 600; }
+.tb-spacer { flex: 1; }
+
+/* Role toggle — the spine of this mock */
+.roles { display: flex; gap: 3px; background: var(--slate-100); border-radius: 9px; padding: 3px; }
+.role { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; padding: 6px 13px; border-radius: 7px; border: none; background: none; color: var(--slate-500); cursor: pointer; }
+.role.active { background: white; color: var(--slate-900); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+.role-dot { width: 7px; height: 7px; border-radius: 50%; }
+.role[data-role="maker"] .role-dot { background: var(--blue-500); }
+.role[data-role="checker"] .role-dot { background: var(--teal-500); }
+
+.tb-btn { font-size: 12px; font-weight: 600; padding: 7px 13px; border-radius: 8px; border: 1px solid var(--slate-200); background: white; color: var(--slate-700); cursor: pointer; }
+.tb-btn:hover { background: var(--slate-50); }
+.tb-btn.primary { background: var(--primary); border-color: var(--primary); color: white; }
+.tb-btn.primary:disabled { opacity: .4; cursor: not-allowed; }
+
+.body { flex: 1; display: flex; min-height: 0; }
+
+/* ── Rail ── */
+.rail { width: 250px; flex-shrink: 0; background: white; border-right: 1px solid var(--slate-200); display: flex; flex-direction: column; }
+.rail-scroll { flex: 1; overflow-y: auto; }
+.rail-proj { padding: 14px 16px 11px; border-bottom: 1px solid var(--slate-100); }
+.rail-proj-name { font-size: 14px; font-weight: 700; }
+.rail-proj-sub { font-size: 11px; color: var(--slate-400); margin-top: 2px; }
+
+.rail-mode { margin: 12px 14px; padding: 10px 12px; border-radius: 9px; font-size: 11px; line-height: 1.5; }
+.rail-mode.maker { background: var(--blue-50); border: 1px solid var(--blue-200); color: var(--blue-700); }
+.rail-mode.checker { background: var(--teal-50); border: 1px solid #99f6e4; color: var(--teal-700); }
+.rm-t { font-weight: 700; display: block; margin-bottom: 2px; }
+
+.rail-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--slate-400); padding: 12px 18px 5px; }
+
+/* Maker bucket — carries its treatment */
+.bkt { display: block; width: calc(100% - 20px); margin: 2px 10px; padding: 9px 12px; border-radius: 9px; border: 1px solid transparent; background: none; text-align: left; cursor: pointer; }
+.bkt:hover { background: var(--slate-50); }
+.bkt.active { background: var(--indigo-50); border-color: var(--indigo-200); }
+.bkt.soon { opacity: .5; cursor: not-allowed; }
+.bkt-top { display: flex; align-items: center; gap: 8px; }
+.bkt-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.bkt-name { flex: 1; font-size: 12.5px; font-weight: 600; color: var(--slate-700); }
+.bkt.active .bkt-name { color: var(--primary-dark); }
+.bkt-n { font-size: 11px; font-weight: 700; color: var(--slate-500); background: var(--slate-100); border-radius: 999px; padding: 1px 7px; }
+.bkt.active .bkt-n { background: var(--indigo-100); color: var(--primary-dark); }
+.bkt-treat { font-size: 10px; color: var(--slate-400); margin-top: 4px; padding-left: 15px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.tstep { background: var(--slate-100); border-radius: 4px; padding: 1px 5px; font-weight: 600; color: var(--slate-500); }
+.tarrow { color: var(--slate-300); }
+
+.rail-foot { padding: 12px 14px; border-top: 1px solid var(--slate-100); }
+.rail-close { width: 100%; font-size: 12px; font-weight: 600; padding: 8px; border-radius: 8px; border: 1px solid var(--slate-200); background: white; color: var(--slate-400); cursor: not-allowed; }
+.rail-note { font-size: 10px; color: var(--slate-400); text-align: center; margin-top: 7px; line-height: 1.45; }
+
+/* Checker rail: statement switch + attestation */
+.stmt-switch { display: flex; gap: 3px; margin: 12px 14px; background: var(--slate-100); border-radius: 8px; padding: 3px; }
+.stmt-tab { flex: 1; font-size: 11px; font-weight: 600; padding: 6px 8px; border-radius: 6px; border: none; background: none; color: var(--slate-500); cursor: pointer; }
+.stmt-tab.active { background: white; color: var(--slate-800); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+
+.attest { margin: 10px 14px; padding: 11px 12px; border: 1px solid var(--amber-300); background: var(--amber-50); border-radius: 10px; }
+.att-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--amber-800); padding: 2px 0; }
+.att-row b { font-weight: 700; }
+.att-warn { display: flex; gap: 6px; font-size: 10.5px; color: var(--amber-800); margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--amber-200); line-height: 1.45; }
+
+/* ── Content ── */
+.content { flex: 1; overflow-y: auto; padding: 18px 22px 60px; min-width: 0; }
+.view { display: none; } .view.active { display: block; }
+
+.head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 15px; }
+.head-ic { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.head-t { flex: 1; min-width: 0; }
+.head-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 9px; }
+.head-sub { font-size: 12px; color: var(--slate-500); margin-top: 3px; line-height: 1.5; }
+.tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; border-radius: 5px; padding: 2px 7px; }
+.tag.pnl { background: var(--indigo-50); color: var(--primary-dark); border: 1px solid var(--indigo-200); }
+.tag.bs  { background: var(--amber-50); color: var(--amber-800); border: 1px solid var(--amber-300); }
+
+/* Treatment pipeline banner (maker) */
+.pipe { display: flex; align-items: center; gap: 9px; background: white; border: 1px solid var(--slate-200); border-radius: 11px; padding: 11px 15px; margin-bottom: 14px; }
+.pipe-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--slate-400); }
+.pstep { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; padding: 5px 11px; border-radius: 999px; }
+.pstep.done { background: var(--green-50); color: var(--green-700); border: 1px solid var(--green-200); }
+.pstep.now  { background: var(--indigo-50); color: var(--primary-dark); border: 1px solid var(--indigo-200); }
+.pstep.na   { background: var(--slate-50); color: var(--slate-400); border: 1px dashed var(--slate-300); }
+.pstep-n { width: 16px; height: 16px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: white; }
+.pstep.done .pstep-n { background: var(--green-600); }
+.pstep.now  .pstep-n { background: var(--primary); }
+.pipe-arrow { color: var(--slate-300); }
+
+/* Cluster */
+.cl { background: white; border: 1px solid var(--slate-200); border-radius: 12px; margin-bottom: 11px; overflow: hidden; }
+.cl.open { border-color: var(--indigo-200); box-shadow: 0 2px 10px rgba(99,102,241,.08); }
+.cl-head { display: flex; align-items: center; gap: 11px; padding: 12px 15px; cursor: pointer; }
+.cl-head:hover { background: var(--slate-50); }
+.cl-chev { color: var(--slate-400); transition: transform .18s; flex-shrink: 0; }
+.cl.open .cl-chev { transform: rotate(90deg); }
+.cl-badge { font-size: 10px; font-weight: 700; border-radius: 999px; padding: 2px 8px; flex-shrink: 0; }
+.cl-badge.ai { color: var(--primary-dark); background: var(--indigo-50); border: 1px solid var(--indigo-200); }
+.cl-badge.rule { color: var(--green-700); background: var(--green-50); border: 1px solid var(--green-200); }
+.cl-badge.det { color: var(--amber-800); background: var(--amber-50); border: 1px solid var(--amber-300); }
+.cl-title { flex: 1; font-size: 13px; font-weight: 600; color: var(--slate-800); min-width: 0; }
+.cl-coa { font-size: 11.5px; font-weight: 600; color: var(--slate-600); background: var(--slate-100); border-radius: 6px; padding: 3px 9px; }
+.cl-amt { font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums; width: 96px; text-align: right; }
+.cl-amt.neg { color: var(--red-600); } .cl-amt.pos { color: var(--green-600); }
+.cl-state { font-size: 10px; font-weight: 700; border-radius: 5px; padding: 2px 7px; flex-shrink: 0; }
+.cl-state.ok { background: var(--green-100); color: var(--green-700); }
+.cl-state.wait { background: var(--slate-100); color: var(--slate-500); }
+.cl-state.ret { background: var(--red-100); color: var(--red-700); }
+
+.cl-body { border-top: 1px solid var(--slate-100); display: none; }
+.cl.open .cl-body { display: block; }
+
+/* Select-all gate */
+.gate { display: flex; align-items: center; gap: 10px; padding: 9px 15px; background: var(--slate-50); border-bottom: 1px solid var(--slate-100); }
+.gate-cb { width: 15px; height: 15px; accent-color: var(--primary); cursor: pointer; }
+.gate-lbl { font-size: 11.5px; font-weight: 600; color: var(--slate-600); cursor: pointer; }
+.gate-sp { flex: 1; }
+.gate-cnt { font-size: 11px; font-weight: 700; color: var(--slate-500); }
+.gate-cnt.full { color: var(--green-700); }
+
+/* Transaction rows in the maker's clusters */
+.rowhd { display: flex; align-items: center; gap: 11px; padding: 7px 15px; background: var(--slate-50); border-bottom: 1px solid var(--slate-200); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--slate-400); }
+.rh-date { width: 62px; flex-shrink: 0; } .rh-desc { flex: 1; } .rh-acct { width: 112px; flex-shrink: 0; } .rh-amt { width: 88px; text-align: right; flex-shrink: 0; }
+.more { padding: 8px 15px; font-size: 11px; color: var(--slate-400); font-style: italic; border-bottom: 1px solid var(--slate-100); }
+.row-desc .arrow { color: var(--slate-300); margin: 0 3px; }
+.row-desc b { font-weight: 700; color: var(--slate-800); }
+.misroute { display: flex; gap: 9px; padding: 11px 15px; background: var(--amber-50); border-bottom: 1px solid var(--amber-200); font-size: 11.5px; color: var(--amber-800); line-height: 1.55; }
+.misroute b { font-weight: 700; }
+.btn.primary-mv { background: var(--amber-600); border-color: var(--amber-600); color: white; }
+.btn.primary-mv:hover { background: var(--amber-700); }
+
+/* Move modal */
+.mv-cur { display: flex; align-items: center; gap: 9px; padding: 10px 12px; background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 9px; margin-bottom: 13px; font-size: 12px; }
+.mv-cur b { font-weight: 700; }
+.mv-opt { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid var(--slate-200); border-radius: 9px; margin-bottom: 7px; cursor: pointer; }
+.mv-opt:hover { background: var(--slate-50); }
+.mv-opt.sel { border-color: var(--primary); background: var(--indigo-50); }
+.mv-opt input { margin-top: 3px; accent-color: var(--primary); flex-shrink: 0; }
+.mv-body { flex: 1; min-width: 0; }
+.mv-name { font-size: 12.5px; font-weight: 700; color: var(--slate-800); display: flex; align-items: center; gap: 7px; }
+.mv-treat { font-size: 10.5px; color: var(--slate-500); margin-top: 3px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.mv-conseq { font-size: 11px; margin-top: 6px; padding: 6px 9px; border-radius: 6px; line-height: 1.5; }
+.mv-conseq.warn { background: var(--amber-50); color: var(--amber-800); border: 1px solid var(--amber-200); }
+.mv-conseq.ok { background: var(--green-50); color: var(--green-700); border: 1px solid var(--green-200); }
+
+.row { display: flex; align-items: center; gap: 11px; padding: 9px 15px; border-bottom: 1px solid var(--slate-100); }
+.row:last-child { border-bottom: none; }
+.row-cb { width: 14px; height: 14px; accent-color: var(--primary); cursor: pointer; flex-shrink: 0; }
+.row-date { font-size: 11px; color: var(--slate-400); width: 62px; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.row-desc { flex: 1; font-size: 12px; color: var(--slate-700); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-acct { font-size: 10.5px; color: var(--slate-400); width: 112px; flex-shrink: 0; }
+.row-amt { font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; width: 88px; text-align: right; flex-shrink: 0; }
+.row-amt.neg { color: var(--red-600); } .row-amt.pos { color: var(--green-600); }
+
+.cl-foot { display: flex; align-items: center; gap: 8px; padding: 11px 15px; background: var(--slate-50); border-top: 1px solid var(--slate-200); }
+.cf-note { flex: 1; font-size: 11px; color: var(--slate-500); }
+.cf-note.block { color: var(--amber-700); font-weight: 600; }
+.btn { font-size: 11.5px; font-weight: 600; padding: 6px 12px; border-radius: 7px; border: 1px solid var(--slate-200); background: white; color: var(--slate-600); cursor: pointer; }
+.btn:hover { background: var(--slate-100); }
+.btn.go { background: var(--green-600); border-color: var(--green-600); color: white; }
+.btn.go:hover { background: var(--green-700); }
+.btn.go:disabled { background: var(--slate-200); border-color: var(--slate-200); color: var(--slate-400); cursor: not-allowed; }
+.btn.warn { color: var(--red-700); border-color: var(--red-200); background: var(--red-50); }
+.btn.warn:hover { background: var(--red-100); }
+
+/* ── Statement (checker) ── */
+.stmt { background: white; border: 1px solid var(--slate-200); border-radius: 12px; overflow: hidden; }
+.stmt-hd { display: flex; align-items: center; padding: 11px 16px; border-bottom: 1px solid var(--slate-200); background: var(--slate-50); }
+.sh-t { flex: 1; font-size: 12px; font-weight: 700; color: var(--slate-700); }
+.sh-c { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--slate-400); }
+.sh-amt { width: 104px; text-align: right; }
+.sh-n { width: 58px; text-align: right; }
+.sh-st { width: 132px; text-align: right; }
+
+.grp { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--slate-400); padding: 12px 16px 5px; }
+.line { display: flex; align-items: center; padding: 8px 16px; cursor: pointer; border-left: 3px solid transparent; }
+.line:hover { background: var(--slate-50); border-left-color: var(--indigo-200); }
+.line.sub { padding-left: 34px; }
+.line.total { border-top: 2px solid var(--slate-200); margin-top: 6px; background: var(--slate-50); cursor: default; font-weight: 700; }
+.line.total:hover { background: var(--slate-50); border-left-color: transparent; }
+.ln-name { flex: 1; font-size: 12.5px; color: var(--slate-700); font-weight: 500; }
+.line.total .ln-name { font-weight: 700; color: var(--slate-900); }
+.ln-amt { width: 104px; text-align: right; font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ln-n { width: 58px; text-align: right; font-size: 11px; color: var(--slate-400); font-variant-numeric: tabular-nums; }
+.ln-st { width: 132px; text-align: right; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: flex-end; gap: 5px; }
+.ln-st.ok { color: var(--green-700); }
+.ln-st.warn { color: var(--amber-700); }
+.ln-st.bad { color: var(--red-600); }
+.ln-chev { color: var(--slate-300); margin-left: 8px; }
+
+.cov { display: inline-flex; width: 34px; height: 5px; border-radius: 999px; background: var(--slate-200); overflow: hidden; margin-right: 2px; }
+.cov i { display: block; height: 100%; background: var(--green-500); }
+
+/* Drill breadcrumb */
+.drill-bc { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--slate-500); margin-bottom: 13px; }
+.drill-back { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--primary-dark); background: none; border: none; cursor: pointer; padding: 0; }
+
+.warnbar { display: flex; align-items: flex-start; gap: 10px; border-radius: 10px; padding: 11px 14px; margin-bottom: 14px; }
+.warnbar.teal { background: var(--teal-50); border: 1px solid #99f6e4; border-left: 3px solid var(--teal-500); }
+.warnbar.amber { background: var(--amber-50); border: 1px solid var(--amber-200); border-left: 3px solid var(--amber-500); }
+.wb-t { font-size: 11.5px; line-height: 1.55; }
+.warnbar.teal .wb-t { color: var(--teal-700); }
+.warnbar.amber .wb-t { color: var(--amber-800); }
+.wb-t b { font-weight: 700; }
+
+.note { display: flex; align-items: flex-start; gap: 9px; background: white; border: 1px dashed var(--slate-300); border-radius: 10px; padding: 11px 14px; margin: 14px 0; }
+.note-t { font-size: 11.5px; color: var(--slate-500); line-height: 1.55; }
+.note-t b { color: var(--slate-700); font-weight: 700; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; background: var(--slate-100); border-radius: 4px; padding: 1px 5px; color: var(--slate-700); }
+
+/* Toast */
+.toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(90px); background: var(--slate-900); color: white; border-radius: 10px; padding: 11px 16px; display: flex; align-items: center; gap: 14px; box-shadow: 0 8px 26px rgba(15,23,42,.3); transition: transform .24s cubic-bezier(.2,.8,.3,1); z-index: 60; max-width: 560px; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast-t { font-size: 12.5px; line-height: 1.45; }
+.toast-t b { font-weight: 700; }
+.toast-x { font-size: 12px; font-weight: 700; color: var(--indigo-400); background: none; border: none; cursor: pointer; }
+
+/* Return modal */
+.scrim { position: fixed; inset: 0; background: rgba(15,23,42,.45); display: none; align-items: center; justify-content: center; z-index: 70; }
+.scrim.show { display: flex; }
+.modal { background: white; border-radius: 14px; width: 440px; max-width: calc(100vw - 40px); box-shadow: 0 18px 50px rgba(15,23,42,.3); overflow: hidden; }
+.md-hd { padding: 15px 18px; border-bottom: 1px solid var(--slate-200); }
+.md-t { font-size: 14px; font-weight: 700; }
+.md-s { font-size: 11.5px; color: var(--slate-500); margin-top: 3px; }
+.md-bd { padding: 15px 18px; }
+.md-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--slate-400); display: block; margin-bottom: 7px; }
+.md-opt { display: flex; align-items: flex-start; gap: 9px; padding: 9px 11px; border: 1px solid var(--slate-200); border-radius: 9px; margin-bottom: 7px; cursor: pointer; }
+.md-opt:hover { background: var(--slate-50); }
+.md-opt input { margin-top: 2px; accent-color: var(--primary); }
+.md-opt-t { font-size: 12px; font-weight: 600; color: var(--slate-700); }
+.md-opt-s { font-size: 11px; color: var(--slate-400); margin-top: 1px; }
+.md-ft { padding: 13px 18px; background: var(--slate-50); border-top: 1px solid var(--slate-200); display: flex; gap: 8px; justify-content: flex-end; }
+</style>
+</head>
+<body>
+
+<div data-atlas-nav data-active="bookkeeping/projects" data-client="bright-bloom"></div>
+
+<div class="main">
+
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a href="projects-list.html">Projects</a><span class="bc-sep">/</span>
+      <a href="clients-list.html">Bright &amp; Bloom LLC</a><span class="bc-sep">/</span>
+      <span class="bc-cur">Book Close — Q1 2025</span>
+    </div>
+    <div class="tb-spacer"></div>
+    <div class="roles">
+      <button class="role active" data-role="maker"><span class="role-dot"></span>Maker</button>
+      <button class="role" data-role="checker"><span class="role-dot"></span>Checker</button>
+    </div>
+    <button class="tb-btn">Export IIF</button>
+  </div>
+
+  <div class="body">
+
+    <!-- ══════════ MAKER RAIL ══════════ -->
+    <div class="rail" id="railMaker">
+      <div class="rail-scroll">
+        <div class="rail-proj">
+          <div class="rail-proj-name">Book Close — Q1 2025</div>
+          <div class="rail-proj-sub">Jan 1 – Mar 31 · 4 accounts · 109 transactions</div>
+        </div>
+
+        <div class="rail-mode maker">
+          <span class="rm-t">Maker · bottom-up</span>
+          Work each bucket until it is empty. A bucket's treatment is fixed — it never changes per transaction.
+        </div>
+
+        <div class="rail-label">Buckets · by treatment</div>
+
+        <button class="bkt active" data-bkt="cat">
+          <div class="bkt-top"><span class="bkt-dot" style="background:var(--indigo-500)"></span><span class="bkt-name">General</span><span class="bkt-n">48</span></div>
+          <div class="bkt-treat"><span class="tstep">Categorise</span></div>
+        </button>
+
+        <button class="bkt" data-bkt="chk">
+          <div class="bkt-top"><span class="bkt-dot" style="background:var(--violet-500)"></span><span class="bkt-name">Checks</span><span class="bkt-n">31</span></div>
+          <div class="bkt-treat"><span class="tstep">Match image</span><span class="tarrow">→</span><span class="tstep">Categorise</span></div>
+        </button>
+
+        <button class="bkt" data-bkt="trf">
+          <div class="bkt-top"><span class="bkt-dot" style="background:var(--amber-500)"></span><span class="bkt-name">Transfers</span><span class="bkt-n">12</span></div>
+          <div class="bkt-treat"><span class="tstep">Match pair</span><span style="color:var(--slate-300)">· no categorise</span></div>
+        </button>
+
+        <button class="bkt" data-bkt="pay">
+          <div class="bkt-top"><span class="bkt-dot" style="background:var(--blue-500)"></span><span class="bkt-name">Payouts</span><span class="bkt-n">9</span></div>
+          <div class="bkt-treat"><span class="tstep">Gross up</span><span class="tarrow">→</span><span class="tstep">Split 3 ways</span></div>
+        </button>
+
+        <button class="bkt soon" disabled>
+          <div class="bkt-top"><span class="bkt-dot" style="background:var(--slate-300)"></span><span class="bkt-name">Invoices</span><span class="bkt-n">—</span></div>
+          <div class="bkt-treat"><span class="tstep">Match invoice</span><span class="tarrow">→</span><span class="tstep">Categorise</span></div>
+        </button>
+
+        <div class="rail-label">Needs attention</div>
+        <button class="bkt" data-bkt="ret">
+          <div class="bkt-top"><span class="bkt-dot" style="background:var(--red-500)"></span><span class="bkt-name">Returned to me</span><span class="bkt-n" id="retCount">2</span></div>
+          <div class="bkt-treat"><span class="tstep">Rework</span><span style="color:var(--slate-300)">· sent back by checker</span></div>
+        </button>
+        <button class="bkt" data-bkt="uns">
+          <div class="bkt-top"><span class="bkt-dot" style="background:var(--slate-400)"></span><span class="bkt-name">Unsorted</span><span class="bkt-n">4</span></div>
+          <div class="bkt-treat"><span class="tstep">Assign a COA</span></div>
+        </button>
+
+        <div class="note" style="margin:14px 12px 4px;padding:10px 12px">
+          <div class="note-t" style="font-size:11px"><b>Buckets are a registry.</b> A new <code>RoutingModule</code> value plus a declared treatment adds a bucket — no screen rewrite.</div>
+        </div>
+      </div>
+      <div class="rail-foot">
+        <button class="rail-close">Hand to checker</button>
+        <div class="rail-note">106 of 109 made · 3 left</div>
+      </div>
+    </div>
+
+    <!-- ══════════ CHECKER RAIL ══════════ -->
+    <div class="rail" id="railChecker" style="display:none">
+      <div class="rail-scroll">
+        <div class="rail-proj">
+          <div class="rail-proj-name">Book Close — Q1 2025</div>
+          <div class="rail-proj-sub">Jan 1 – Mar 31 · 4 accounts · 109 transactions</div>
+        </div>
+
+        <div class="rail-mode checker">
+          <span class="rm-t">Checker · top-down</span>
+          Start from the number, not the transaction. Drill only where coverage is short.
+        </div>
+
+        <div class="stmt-switch">
+          <button class="stmt-tab active" data-stmt="pnl">Profit &amp; loss</button>
+          <button class="stmt-tab" data-stmt="bs">Balance sheet</button>
+        </div>
+
+        <div class="attest">
+          <div class="att-row"><span>Made by</span><b>N. Paliwal · 106</b></div>
+          <div class="att-row"><span>Checked by</span><b>N. Paliwal · 61</b></div>
+          <div class="att-row"><span>Returned</span><b>2</b></div>
+          <div class="att-warn">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5 19h14a2 2 0 001.84-2.75L13.74 4a2 2 0 00-3.48 0l-7.1 12.25A2 2 0 004.99 19z"/></svg>
+            <span><b>Self-checked.</b> Same person made and checked these books. Allowed, but recorded on the close.</span>
+          </div>
+        </div>
+
+        <div class="note" style="margin:12px;padding:10px 12px">
+          <div class="note-t" style="font-size:11px"><b>The statement is not filtered.</b> It shows every transaction, checked or not — a P&amp;L built only from approved rows would be the wrong number.</div>
+        </div>
+      </div>
+      <div class="rail-foot">
+        <button class="rail-close">Close the books</button>
+        <div class="rail-note">45 unchecked · 2 returned</div>
+      </div>
+    </div>
+
+    <!-- ══════════ CONTENT ══════════ -->
+    <div class="content">
+
+      <!-- ─────── MAKER ─────── -->
+      <div class="view active" id="vMaker">
+
+        <!-- General -->
+        <div class="mb" data-mb="cat">
+          <div class="head">
+            <div class="head-ic" style="background:var(--indigo-50);color:var(--primary-dark)">
+              <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+            </div>
+            <div class="head-t">
+              <div class="head-title">General <span class="tag pnl">P&amp;L</span></div>
+              <div class="head-sub">48 transactions in 6 clusters. Nothing to match — assign a COA and move on.</div>
+            </div>
+          </div>
+
+          <div class="pipe">
+            <span class="pipe-lbl">Treatment</span>
+            <span class="pstep now"><span class="pstep-n">1</span>Categorise</span>
+            <span style="flex:1"></span>
+            <span style="font-size:11px;color:var(--slate-400)">Single step · clusters come from the embedding funnel</span>
+          </div>
+
+          <!-- Cluster with real rows -->
+          <div class="cl" data-cluster="shell" data-bucket="cat">
+            <div class="cl-head">
+              <span class="cl-chev"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></span>
+              <span class="cl-badge rule">Rule</span>
+              <span class="cl-title">SHELL OIL / FUEL</span>
+              <span class="cl-coa">Automobile Expense : Fuel</span>
+              <span class="cl-amt neg">−9,140.00</span>
+              <span class="cl-state wait">31</span>
+            </div>
+            <div class="cl-body">
+              <div class="rowhd"><span class="rh-date">Date</span><span class="rh-desc">Bank description</span><span class="rh-acct">Account</span><span class="rh-amt">Amount</span></div>
+              <div class="row"><span class="row-date">01/04</span><span class="row-desc">SHELL OIL 57444193403 MODESTO CA</span><span class="row-acct">Chase ****4951</span><span class="row-amt neg">−284.19</span></div>
+              <div class="row"><span class="row-date">01/11</span><span class="row-desc">SHELL OIL 57444193403 MODESTO CA</span><span class="row-acct">Chase ****4951</span><span class="row-amt neg">−311.40</span></div>
+              <div class="row"><span class="row-date">01/19</span><span class="row-desc">SHELL SERVICE STATION 1042 TURLOCK CA</span><span class="row-acct">AMEX 3-81009</span><span class="row-amt neg">−298.02</span></div>
+              <div class="row"><span class="row-date">01/27</span><span class="row-desc">SHELL OIL 57444193403 MODESTO CA</span><span class="row-acct">Chase ****4951</span><span class="row-amt neg">−302.88</span></div>
+              <div class="row"><span class="row-date">02/03</span><span class="row-desc">SHELL OIL 57444193403 MODESTO CA</span><span class="row-acct">Chase ****4951</span><span class="row-amt neg">−279.55</span></div>
+              <div class="more">+ 26 more in this cluster</div>
+              <div class="cl-foot">
+                <span class="cf-note">Matched by rule <code>SHELL*</code> · all 31 agree</span>
+                <button class="btn mv">Move…</button>
+                <button class="btn">Change COA</button>
+                <button class="btn go">Mark 31 made</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="cl" data-cluster="carwash" data-bucket="cat">
+            <div class="cl-head">
+              <span class="cl-chev"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></span>
+              <span class="cl-badge ai">AI · 94%</span>
+              <span class="cl-title">VINTAGE CAR WASH MODESTO CA</span>
+              <span class="cl-coa">Automobile Expense : Car Wash</span>
+              <span class="cl-amt neg">−1,255.00</span>
+              <span class="cl-state wait">7</span>
+            </div>
+            <div class="cl-body">
+              <div class="rowhd"><span class="rh-date">Date</span><span class="rh-desc">Bank description</span><span class="rh-acct">Account</span><span class="rh-amt">Amount</span></div>
+              <div class="row"><span class="row-date">01/09</span><span class="row-desc">VINTAGE CAR WASH MODESTO CA 209-523-8100</span><span class="row-acct">Chase ****4951</span><span class="row-amt neg">−36.50</span></div>
+              <div class="row"><span class="row-date">01/23</span><span class="row-desc">VINTAGE CAR WASH MODESTO CA 209-523-8100</span><span class="row-acct">Chase ****4951</span><span class="row-amt neg">−36.50</span></div>
+              <div class="row"><span class="row-date">02/06</span><span class="row-desc">VINTAGE CAR WASH MODESTO CA 209-523-8100</span><span class="row-acct">Chase ****4951</span><span class="row-amt neg">−250.00</span></div>
+              <div class="row"><span class="row-date">02/18</span><span class="row-desc">VINTAGE CAR WASH MODESTO CA 209-523-8100</span><span class="row-acct">AMEX 3-81009</span><span class="row-amt neg">−36.50</span></div>
+              <div class="row"><span class="row-date">03/02</span><span class="row-desc">VINTAGE CAR WASH MODESTO CA 209-523-8100</span><span class="row-acct">Chase ****4951</span><span class="row-amt neg">−445.00</span></div>
+              <div class="row"><span class="row-date">03/14</span><span class="row-desc">VINTAGE CAR WASH MODESTO CA 209-523-8100</span><span class="row-acct">Chase ****4951</span><span class="row-amt neg">−36.50</span></div>
+              <div class="row"><span class="row-date">03/28</span><span class="row-desc">VINTAGE CAR WASH MODESTO CA 209-523-8100</span><span class="row-acct">Chase ****4951</span><span class="row-amt neg">−414.00</span></div>
+              <div class="cl-foot">
+                <span class="cf-note">Two rows are far larger than the rest — worth opening before you sign.</span>
+                <button class="btn mv">Move…</button>
+                <button class="btn">Change COA</button>
+                <button class="btn go">Mark 7 made</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- The misrouted one — this is what Move is for -->
+          <div class="cl" id="clLoan" data-cluster="loan" data-bucket="cat">
+            <div class="cl-head">
+              <span class="cl-chev"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></span>
+              <span class="cl-badge ai" style="color:var(--amber-700);background:var(--amber-50);border-color:var(--amber-300)">AI · 54%</span>
+              <span class="cl-title">TRUIST LOAN PMT 8891</span>
+              <span class="cl-coa">Bank Service Charges</span>
+              <span class="cl-amt neg">−17,400.00</span>
+              <span class="cl-state wait">12</span>
+            </div>
+            <div class="cl-body">
+              <div class="misroute">
+                <svg width="14" height="14" fill="none" stroke="var(--amber-600)" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5 19h14a2 2 0 001.84-2.75L13.74 4a2 2 0 00-3.48 0l-7.1 12.25A2 2 0 004.99 19z"/></svg>
+                <span>Low confidence and a recurring identical amount — this looks like debt service the router put in the wrong bucket. <b>Move it</b> rather than just re-coding it: the treatment is wrong, not only the COA.</span>
+              </div>
+              <div class="rowhd"><span class="rh-date">Date</span><span class="rh-desc">Bank description</span><span class="rh-acct">Account</span><span class="rh-amt">Amount</span></div>
+              <div class="row"><span class="row-date">01/15</span><span class="row-desc">TRUIST LOAN PMT 8891 ACH DEBIT</span><span class="row-acct">Truist ****2204</span><span class="row-amt neg">−1,450.00</span></div>
+              <div class="row"><span class="row-date">02/15</span><span class="row-desc">TRUIST LOAN PMT 8891 ACH DEBIT</span><span class="row-acct">Truist ****2204</span><span class="row-amt neg">−1,450.00</span></div>
+              <div class="row"><span class="row-date">03/15</span><span class="row-desc">TRUIST LOAN PMT 8891 ACH DEBIT</span><span class="row-acct">Truist ****2204</span><span class="row-amt neg">−1,450.00</span></div>
+              <div class="more">+ 9 more · identical amount, monthly</div>
+              <div class="cl-foot">
+                <span class="cf-note block">Wrong treatment — a loan payment needs a principal / interest split.</span>
+                <button class="btn mv primary-mv">Move…</button>
+                <button class="btn">Change COA</button>
+                <button class="btn go" disabled>Mark 12 made</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Checks -->
+        <div class="mb" data-mb="chk" style="display:none">
+          <div class="head">
+            <div class="head-ic" style="background:var(--violet-50);color:var(--violet-700)">
+              <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </div>
+            <div class="head-t">
+              <div class="head-title">Checks <span class="tag pnl">P&amp;L</span></div>
+              <div class="head-sub">A check's bank line reads only "CHECK 1234". The payee comes from the matched image — and the payee is the whole categorisation signal.</div>
+            </div>
+          </div>
+
+          <div class="pipe">
+            <span class="pipe-lbl">Treatment</span>
+            <span class="pstep done"><span class="pstep-n">✓</span>Match image</span>
+            <span class="pipe-arrow"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7-7 7"/></svg></span>
+            <span class="pstep now"><span class="pstep-n">2</span>Categorise</span>
+            <span style="flex:1"></span>
+            <span style="font-size:11px;color:var(--slate-400)">29 of 31 matched · clusters form per payee</span>
+          </div>
+
+          <div class="warnbar amber">
+            <svg width="15" height="15" fill="none" stroke="var(--amber-600)" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5 19h14a2 2 0 001.84-2.75L13.74 4a2 2 0 00-3.48 0l-7.1 12.25A2 2 0 004.99 19z"/></svg>
+            <div class="wb-t"><b>Step 2 is blocked for 2 checks.</b> No image matched, so there is no payee and no cluster forms. Match them first.</div>
+          </div>
+
+          <div class="cl" data-cluster="sysco" data-bucket="chk">
+            <div class="cl-head">
+              <span class="cl-chev"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></span>
+              <span class="cl-badge ai">Payee</span>
+              <span class="cl-title">SYSCO FOOD SERVICES</span>
+              <span class="cl-coa">Cost of Goods Sold : Food</span>
+              <span class="cl-amt neg">−18,420.00</span>
+              <span class="cl-state wait">14</span>
+            </div>
+            <div class="cl-body">
+              <div class="rowhd"><span class="rh-date">Date</span><span class="rh-desc">Bank description → payee from image</span><span class="rh-acct">Check #</span><span class="rh-amt">Amount</span></div>
+              <div class="row"><span class="row-date">01/08</span><span class="row-desc">CHECK 7401 <span class="arrow">→</span> <b>SYSCO FOOD SERVICES</b></span><span class="row-acct">7401</span><span class="row-amt neg">−1,284.00</span></div>
+              <div class="row"><span class="row-date">01/22</span><span class="row-desc">CHECK 7418 <span class="arrow">→</span> <b>SYSCO FOOD SERVICES</b></span><span class="row-acct">7418</span><span class="row-amt neg">−1,640.50</span></div>
+              <div class="row"><span class="row-date">02/05</span><span class="row-desc">CHECK 7433 <span class="arrow">→</span> <b>SYSCO FOOD SERVICES</b></span><span class="row-acct">7433</span><span class="row-amt neg">−1,109.25</span></div>
+              <div class="more">+ 11 more · all matched to an image</div>
+              <div class="cl-foot">
+                <span class="cf-note">The bank line says only "CHECK nnnn" — the payee comes from the matched image, and that is what clustered these.</span>
+                <button class="btn mv">Move…</button>
+                <button class="btn">Change COA</button>
+                <button class="btn go">Mark 14 made</button>
+              </div>
+            </div>
+          </div>
+          <div class="cl" data-cluster="utilities" data-bucket="chk">
+            <div class="cl-head">
+              <span class="cl-chev"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></span>
+              <span class="cl-badge ai">Payee</span>
+              <span class="cl-title">MODESTO CITY UTILITIES</span>
+              <span class="cl-coa">Utilities</span>
+              <span class="cl-amt neg">−4,310.00</span>
+              <span class="cl-state wait">9</span>
+            </div>
+            <div class="cl-body">
+              <div class="rowhd"><span class="rh-date">Date</span><span class="rh-desc">Bank description → payee from image</span><span class="rh-acct">Check #</span><span class="rh-amt">Amount</span></div>
+              <div class="row"><span class="row-date">01/12</span><span class="row-desc">CHECK 7409 <span class="arrow">→</span> <b>MODESTO CITY UTILITIES</b></span><span class="row-acct">7409</span><span class="row-amt neg">−482.11</span></div>
+              <div class="row"><span class="row-date">02/12</span><span class="row-desc">CHECK 7429 <span class="arrow">→</span> <b>MODESTO CITY UTILITIES</b></span><span class="row-acct">7429</span><span class="row-amt neg">−737.25</span></div>
+              <div class="more">+ 7 more</div>
+              <div class="cl-foot">
+                <span class="cf-note">Grouped by payee, not by description.</span>
+                <button class="btn mv">Move…</button>
+                <button class="btn">Change COA</button>
+                <button class="btn go">Mark 9 made</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="cl" style="border-color:var(--amber-200)">
+            <div class="cl-head">
+              <span class="cl-chev" style="opacity:.3"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></span>
+              <span class="cl-badge" style="color:var(--amber-800);background:var(--amber-50);border:1px solid var(--amber-300)">No image</span>
+              <span class="cl-title">CHECK 8042 · CHECK 7800 <span style="font-weight:400;color:var(--slate-500)">— no payee, so no cluster</span></span>
+              <span class="cl-amt neg">−951.00</span>
+              <span class="cl-state ret">2</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transfers -->
+        <div class="mb" data-mb="trf" style="display:none">
+          <div class="head">
+            <div class="head-ic" style="background:var(--amber-50);color:var(--amber-700)">
+              <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"/></svg>
+            </div>
+            <div class="head-t">
+              <div class="head-title">Transfers <span class="tag bs">Not P&amp;L</span></div>
+              <div class="head-sub">Match-only. The matcher already supplies the accounting answer — the COA is the counter-account, so there is nothing left to categorise.</div>
+            </div>
+          </div>
+
+          <div class="pipe">
+            <span class="pipe-lbl">Treatment</span>
+            <span class="pstep now"><span class="pstep-n">1</span>Match pair</span>
+            <span class="pipe-arrow"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7-7 7"/></svg></span>
+            <span class="pstep na">Categorise · not applicable</span>
+            <span style="flex:1"></span>
+            <span style="font-size:11px;color:var(--slate-400)">Grouped by counter-account · zero LLM</span>
+          </div>
+
+          <div class="cl" data-cluster="amex" data-bucket="trf">
+            <div class="cl-head">
+              <span class="cl-chev"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></span>
+              <span class="cl-badge det">Deterministic</span>
+              <span class="cl-title">Chase ****4951 ⇄ AMEX 3-81009</span>
+              <span class="cl-coa">counter-account</span>
+              <span class="cl-amt neg">−6,000.00</span>
+              <span class="cl-state wait">6</span>
+            </div>
+            <div class="cl-body">
+              <div class="rowhd"><span class="rh-date">Date</span><span class="rh-desc">Out leg</span><span class="rh-acct">In leg</span><span class="rh-amt">Amount</span></div>
+              <div class="row"><span class="row-date">01/07</span><span class="row-desc">ONLINE PAYMENT TO AMEX · Chase ****4951</span><span class="row-acct">AMEX 3-81009</span><span class="row-amt neg">−2,000.00</span></div>
+              <div class="row"><span class="row-date">02/07</span><span class="row-desc">ONLINE PAYMENT TO AMEX · Chase ****4951</span><span class="row-acct">AMEX 3-81009</span><span class="row-amt neg">−2,000.00</span></div>
+              <div class="row"><span class="row-date">03/07</span><span class="row-desc">ONLINE PAYMENT TO AMEX · Chase ****4951</span><span class="row-acct">AMEX 3-81009</span><span class="row-amt neg">−2,000.00</span></div>
+              <div class="more">3 pairs · 6 legs · every pair nets to zero</div>
+              <div class="cl-foot">
+                <span class="cf-note">Nothing to categorise — the COA is the counter-account.</span>
+                <button class="btn mv">Move…</button>
+                <button class="btn">Unmatch</button>
+                <button class="btn go">Mark 6 made</button>
+              </div>
+            </div>
+          </div>
+          <div class="cl" data-cluster="savings" data-bucket="trf">
+            <div class="cl-head">
+              <span class="cl-chev"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></span>
+              <span class="cl-badge det">Deterministic</span>
+              <span class="cl-title">Chase ****4951 ⇄ Savings ****8812</span>
+              <span class="cl-coa">counter-account</span>
+              <span class="cl-amt neg">−15,000.00</span>
+              <span class="cl-state wait">5</span>
+            </div>
+            <div class="cl-body">
+              <div class="rowhd"><span class="rh-date">Date</span><span class="rh-desc">Out leg</span><span class="rh-acct">In leg</span><span class="rh-amt">Amount</span></div>
+              <div class="row"><span class="row-date">02/14</span><span class="row-desc">TRANSFER TO SAVINGS · Chase ****4951</span><span class="row-acct">Savings ****8812</span><span class="row-amt neg">−5,000.00</span></div>
+              <div class="row"><span class="row-date">03/14</span><span class="row-desc">TRANSFER TO SAVINGS · Chase ****4951</span><span class="row-acct">Savings ****8812</span><span class="row-amt neg">−10,000.00</span></div>
+              <div class="more">+ 1 leg with a 1-day settlement gap</div>
+              <div class="cl-foot">
+                <span class="cf-note">Nothing to categorise — the COA is the counter-account.</span>
+                <button class="btn mv">Move…</button>
+                <button class="btn">Unmatch</button>
+                <button class="btn go">Mark 5 made</button>
+              </div>
+            </div>
+          </div>
+          <div class="cl" style="border-color:var(--red-200)">
+            <div class="cl-head">
+              <span class="cl-chev" style="opacity:.3"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></span>
+              <span class="cl-badge" style="color:var(--red-700);background:var(--red-50);border:1px solid var(--red-200)">Unmatched</span>
+              <span class="cl-title">WIRE OUT — INTERNAL · Truist ****2204</span>
+              <span class="cl-coa" style="background:var(--red-100);color:var(--red-700)">no counter-account</span>
+              <span class="cl-amt neg">−12,500.00</span>
+              <span class="cl-state ret">1</span>
+            </div>
+          </div>
+
+          <div class="note">
+            <svg width="14" height="14" fill="none" stroke="var(--slate-400)" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="note-t"><b>An unmatched leg has no group.</b> The review feed is built on <code>cluster_id</code>, and a leg with no confirmed pair never gets one — so it can never be reviewed in bulk. It has to be matched or rerouted out of the bucket.</div>
+          </div>
+        </div>
+
+        <!-- Payouts -->
+        <div class="mb" data-mb="pay" style="display:none">
+          <div class="head">
+            <div class="head-ic" style="background:var(--blue-50);color:var(--blue-700)">
+              <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div class="head-t">
+              <div class="head-title">Payouts <span class="tag pnl">P&amp;L</span></div>
+              <div class="head-sub">A net settlement is grossed up into revenue, processor fees and withheld tax.</div>
+            </div>
+          </div>
+          <div class="pipe">
+            <span class="pipe-lbl">Treatment</span>
+            <span class="pstep done"><span class="pstep-n">✓</span>Gross up</span>
+            <span class="pipe-arrow"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7-7 7"/></svg></span>
+            <span class="pstep now"><span class="pstep-n">2</span>Split 3 ways</span>
+            <span style="flex:1"></span>
+            <span style="font-size:11px;color:var(--slate-400)">No clustering yet — reviewed one by one</span>
+          </div>
+          <div class="warnbar amber">
+            <svg width="15" height="15" fill="none" stroke="var(--amber-600)" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5 19h14a2 2 0 001.84-2.75L13.74 4a2 2 0 00-3.48 0l-7.1 12.25A2 2 0 004.99 19z"/></svg>
+            <div class="wb-t"><b>This bucket has no clusters.</b> Income split never went through a grouping stage, so the checker has no unit to approve in bulk — 9 individual sign-offs. Same gap as Invoices.</div>
+          </div>
+        </div>
+
+        <!-- Returned -->
+        <div class="mb" data-mb="ret" style="display:none">
+          <div class="head">
+            <div class="head-ic" style="background:var(--red-50);color:var(--red-600)">
+              <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+            </div>
+            <div class="head-t">
+              <div class="head-title">Returned to me</div>
+              <div class="head-sub">The checker sent these back with a reason. Stored as <code>FLAGGED</code> + <code>return_reason</code> — no new state needed.</div>
+            </div>
+          </div>
+          <div id="returnedList">
+            <div class="cl" style="border-color:var(--red-200)">
+              <div class="cl-head">
+                <span class="cl-chev" style="opacity:.3"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></span>
+                <span class="cl-badge" style="color:var(--red-700);background:var(--red-50);border:1px solid var(--red-200)">Returned</span>
+                <span class="cl-title">TRUIST LOAN PMT 8891 <span style="font-weight:400;color:var(--slate-500)">— “this is a loan, not a bank fee; needs principal/interest split”</span></span>
+                <span class="cl-amt neg">−1,450.00</span>
+                <span class="cl-state ret">1</span>
+              </div>
+            </div>
+            <div class="cl" style="border-color:var(--red-200)">
+              <div class="cl-head">
+                <span class="cl-chev" style="opacity:.3"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></span>
+                <span class="cl-badge" style="color:var(--red-700);background:var(--red-50);border:1px solid var(--red-200)">Returned</span>
+                <span class="cl-title">WIRE OUT — INTERNAL <span style="font-weight:400;color:var(--slate-500)">— “transfer never matched — find the other leg”</span></span>
+                <span class="cl-amt neg">−12,500.00</span>
+                <span class="cl-state ret">1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Unsorted -->
+        <div class="mb" data-mb="uns" style="display:none">
+          <div class="head">
+            <div class="head-ic" style="background:var(--slate-100);color:var(--slate-500)">
+              <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div class="head-t">
+              <div class="head-title">Unsorted</div>
+              <div class="head-sub">No COA was produced, so there is no account type and no bucket. Assign one to file it.</div>
+            </div>
+          </div>
+          <div class="cl"><div class="cl-head">
+            <span class="cl-chev" style="opacity:.3"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></span>
+            <span class="cl-badge" style="color:var(--slate-500);background:var(--slate-100);border:1px solid var(--slate-200)">No COA</span>
+            <span class="cl-title">SQ *UNKNOWN MERCHANT 4471</span>
+            <span class="cl-amt neg">−432.00</span><span class="cl-state wait">1</span>
+          </div></div>
+        </div>
+      </div>
+
+      <!-- ─────── CHECKER ─────── -->
+      <div class="view" id="vChecker">
+
+        <!-- Statement -->
+        <div id="stmtView">
+          <div class="head">
+            <div class="head-ic" style="background:var(--teal-50);color:var(--teal-700)">
+              <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/></svg>
+            </div>
+            <div class="head-t">
+              <div class="head-title" id="stmtTitle">Profit &amp; loss <span class="tag pnl">Q1 2025</span></div>
+              <div class="head-sub">Every transaction is in these numbers. The coverage column says how much of each line a checker has actually signed off.</div>
+            </div>
+          </div>
+
+          <div class="warnbar teal">
+            <svg width="15" height="15" fill="none" stroke="var(--teal-600)" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="wb-t">Click any line to drill into the clusters behind it. A line is done when <b>every cluster touching it</b> is checked — a COA can span several clusters, and a cluster can span several COAs.</div>
+          </div>
+
+          <!-- P&L -->
+          <div class="stmt" id="pnlStmt">
+            <div class="stmt-hd"><span class="sh-t">Account</span><span class="sh-c sh-amt">Amount</span><span class="sh-c sh-n">Txns</span><span class="sh-c sh-st">Checked</span><span style="width:21px"></span></div>
+
+            <div class="grp">Revenue</div>
+            <div class="line"><span class="ln-name">Fee for Service Income</span><span class="ln-amt">412,900.00</span><span class="ln-n">188</span><span class="ln-st ok"><span class="cov"><i style="width:100%"></i></span>all</span><span class="ln-chev">›</span></div>
+            <div class="line"><span class="ln-name">Other Income</span><span class="ln-amt">8,200.00</span><span class="ln-n">12</span><span class="ln-st ok"><span class="cov"><i style="width:100%"></i></span>all</span><span class="ln-chev">›</span></div>
+
+            <div class="grp">Expenses</div>
+            <div class="line" id="autoLine"><span class="ln-name">Automobile Expense</span><span class="ln-amt">12,480.00</span><span class="ln-n">47</span><span class="ln-st warn"><span class="cov"><i style="width:66%"></i></span>31 of 47</span><span class="ln-chev">›</span></div>
+            <div class="line sub"><span class="ln-name">└ Fuel</span><span class="ln-amt">9,140.00</span><span class="ln-n">31</span><span class="ln-st ok"><span class="cov"><i style="width:100%"></i></span>all</span><span class="ln-chev">›</span></div>
+            <div class="line sub"><span class="ln-name">└ Car Wash</span><span class="ln-amt">1,255.00</span><span class="ln-n">7</span><span class="ln-st bad"><span class="cov"><i style="width:0%"></i></span>none</span><span class="ln-chev">›</span></div>
+            <div class="line"><span class="ln-name">Cost of Goods Sold : Food</span><span class="ln-amt">18,420.00</span><span class="ln-n">14</span><span class="ln-st bad"><span class="cov"><i style="width:0%"></i></span>none</span><span class="ln-chev">›</span></div>
+            <div class="line"><span class="ln-name">Utilities</span><span class="ln-amt">4,310.00</span><span class="ln-n">9</span><span class="ln-st ok"><span class="cov"><i style="width:100%"></i></span>all</span><span class="ln-chev">›</span></div>
+            <div class="line"><span class="ln-name">Interest Expense</span><span class="ln-amt">3,152.00</span><span class="ln-n">14</span><span class="ln-st bad"><span class="cov"><i style="width:14%"></i></span>1 returned</span><span class="ln-chev">›</span></div>
+            <div class="line"><span class="ln-name">Bank Service Charges</span><span class="ln-amt">1,890.00</span><span class="ln-n">21</span><span class="ln-st warn"><span class="cov"><i style="width:80%"></i></span>17 of 21</span><span class="ln-chev">›</span></div>
+
+            <div class="line total"><span class="ln-name">Net income</span><span class="ln-amt">184,220.00</span><span class="ln-n">—</span><span class="ln-st warn">45 unchecked</span><span style="width:21px"></span></div>
+          </div>
+
+          <!-- Balance sheet -->
+          <div class="stmt" id="bsStmt" style="display:none">
+            <div class="stmt-hd"><span class="sh-t">Account</span><span class="sh-c sh-amt">Movement</span><span class="sh-c sh-n">Txns</span><span class="sh-c sh-st">Checked</span><span style="width:21px"></span></div>
+
+            <div class="grp">Assets</div>
+            <div class="line"><span class="ln-name">Equipment <span style="font-size:10px;color:var(--amber-700)">(fixed asset)</span></span><span class="ln-amt">14,200.00</span><span class="ln-n">1</span><span class="ln-st bad"><span class="cov"><i style="width:0%"></i></span>none</span><span class="ln-chev">›</span></div>
+            <div class="line"><span class="ln-name">Accounts Receivable</span><span class="ln-amt">9,750.00</span><span class="ln-n">6</span><span class="ln-st ok"><span class="cov"><i style="width:100%"></i></span>all</span><span class="ln-chev">›</span></div>
+
+            <div class="grp">Internal movement · nets to zero</div>
+            <div class="line"><span class="ln-name">Chase ****4951 ⇄ AMEX 3-81009</span><span class="ln-amt">6,000.00</span><span class="ln-n">6</span><span class="ln-st ok"><span class="cov"><i style="width:100%"></i></span>all</span><span class="ln-chev">›</span></div>
+            <div class="line"><span class="ln-name">Chase ****4951 ⇄ Savings ****8812</span><span class="ln-amt">15,000.00</span><span class="ln-n">5</span><span class="ln-st warn"><span class="cov"><i style="width:60%"></i></span>3 of 5</span><span class="ln-chev">›</span></div>
+            <div class="line"><span class="ln-name" style="color:var(--red-600)">Unmatched internal wire</span><span class="ln-amt" style="color:var(--red-600)">12,500.00</span><span class="ln-n">1</span><span class="ln-st bad">⚠ no pair</span><span class="ln-chev">›</span></div>
+
+            <div class="grp">Liabilities &amp; equity</div>
+            <div class="line"><span class="ln-name">Truist Equipment Loan <span style="font-size:10px;color:var(--amber-700)">(long-term)</span></span><span class="ln-amt">14,247.84</span><span class="ln-n">12</span><span class="ln-st warn"><span class="cov"><i style="width:91%"></i></span>11 of 12</span><span class="ln-chev">›</span></div>
+            <div class="line"><span class="ln-name">Owner's Draw <span style="font-size:10px;color:var(--amber-700)">(equity)</span></span><span class="ln-amt">8,000.00</span><span class="ln-n">2</span><span class="ln-st bad"><span class="cov"><i style="width:0%"></i></span>none</span><span class="ln-chev">›</span></div>
+
+            <div class="line total"><span class="ln-name">Balance-sheet movement</span><span class="ln-amt">—</span><span class="ln-n">33</span><span class="ln-st warn">9 unchecked</span><span style="width:21px"></span></div>
+          </div>
+        </div>
+
+        <!-- Drill-down -->
+        <div id="drillView" style="display:none">
+          <div class="drill-bc">
+            <button class="drill-back" id="drillBack">
+              <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+              Profit &amp; loss
+            </button>
+            <span class="bc-sep">/</span>
+            <span class="bc-cur">Automobile Expense</span>
+          </div>
+
+          <div class="head">
+            <div class="head-t">
+              <div class="head-title">Automobile Expense <span class="tag pnl">P&amp;L</span></div>
+              <div class="head-sub">12,480.00 across 47 transactions in 2 clusters. Fuel is signed off; Car Wash is not.</div>
+            </div>
+          </div>
+
+          <div class="warnbar teal">
+            <svg width="15" height="15" fill="none" stroke="var(--teal-600)" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="wb-t"><b>Post requires every row selected.</b> Same gate as the live feed — you cannot sign off a cluster you have not opened and selected through.</div>
+          </div>
+
+          <!-- Checked cluster -->
+          <div class="cl">
+            <div class="cl-head">
+              <span class="cl-chev"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></span>
+              <span class="cl-badge rule">Rule</span>
+              <span class="cl-title">SHELL OIL / FUEL</span>
+              <span class="cl-coa">Automobile Expense : Fuel</span>
+              <span class="cl-amt neg">−9,140.00</span>
+              <span class="cl-state ok">✓ 31</span>
+            </div>
+          </div>
+
+          <!-- The live one -->
+          <div class="cl open" id="cwCluster">
+            <div class="cl-head">
+              <span class="cl-chev"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></span>
+              <span class="cl-badge ai">AI · 94%</span>
+              <span class="cl-title">VINTAGE CAR WASH MODESTO CA</span>
+              <span class="cl-coa">Automobile Expense : Car Wash</span>
+              <span class="cl-amt neg">−1,255.00</span>
+              <span class="cl-state wait" id="cwState">7</span>
+            </div>
+            <div class="cl-body">
+              <div class="gate">
+                <input type="checkbox" class="gate-cb" id="cwAll" />
+                <label class="gate-lbl" for="cwAll">Select all 7</label>
+                <span class="gate-sp"></span>
+                <span class="gate-cnt" id="cwCount">0 of 7 selected</span>
+              </div>
+              <div id="cwRows">
+                <div class="row"><input type="checkbox" class="row-cb cw" /><span class="row-date">01/09</span><span class="row-desc">VINTAGE CAR WASH MODESTO CA 209-523-8100</span><span class="row-acct">Chase ****4951</span><span class="row-amt neg">−36.50</span></div>
+                <div class="row"><input type="checkbox" class="row-cb cw" /><span class="row-date">01/23</span><span class="row-desc">VINTAGE CAR WASH MODESTO CA 209-523-8100</span><span class="row-acct">Chase ****4951</span><span class="row-amt neg">−36.50</span></div>
+                <div class="row"><input type="checkbox" class="row-cb cw" /><span class="row-date">02/06</span><span class="row-desc">VINTAGE CAR WASH MODESTO CA 209-523-8100</span><span class="row-acct">Chase ****4951</span><span class="row-amt neg">−250.00</span></div>
+                <div class="row"><input type="checkbox" class="row-cb cw" /><span class="row-date">02/18</span><span class="row-desc">VINTAGE CAR WASH MODESTO CA 209-523-8100</span><span class="row-acct">AMEX 3-81009</span><span class="row-amt neg">−36.50</span></div>
+                <div class="row"><input type="checkbox" class="row-cb cw" /><span class="row-date">03/02</span><span class="row-desc">VINTAGE CAR WASH MODESTO CA 209-523-8100</span><span class="row-acct">Chase ****4951</span><span class="row-amt neg">−445.00</span></div>
+                <div class="row"><input type="checkbox" class="row-cb cw" /><span class="row-date">03/14</span><span class="row-desc">VINTAGE CAR WASH MODESTO CA 209-523-8100</span><span class="row-acct">Chase ****4951</span><span class="row-amt neg">−36.50</span></div>
+                <div class="row"><input type="checkbox" class="row-cb cw" /><span class="row-date">03/28</span><span class="row-desc">VINTAGE CAR WASH MODESTO CA 209-523-8100</span><span class="row-acct">Chase ****4951</span><span class="row-amt neg">−414.00</span></div>
+              </div>
+              <div class="cl-foot">
+                <span class="cf-note block" id="cwNote">Select all 7 rows to enable Post.</span>
+                <button class="btn">Change COA</button>
+                <button class="btn warn" id="cwReturn">Return to maker</button>
+                <button class="btn go" id="cwPost" disabled>Post 7</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="note">
+            <svg width="14" height="14" fill="none" stroke="var(--slate-400)" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="note-t"><b>Fix small, return big.</b> <code>Change COA</code> corrects a wrong sub-account here and now. <code>Return to maker</code> is for structural problems — a missing split, an unmatched transfer, the wrong treatment entirely.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Return modal -->
+<div class="scrim" id="scrim">
+  <div class="modal">
+    <div class="md-hd">
+      <div class="md-t">Return to maker</div>
+      <div class="md-s">VINTAGE CAR WASH MODESTO CA · 7 transactions · −1,255.00</div>
+    </div>
+    <div class="md-bd">
+      <span class="md-lbl">Reason</span>
+      <label class="md-opt"><input type="radio" name="rr" checked /><span><span class="md-opt-t">Wrong treatment</span><span class="md-opt-s">Needs a different bucket — a split, a match, or a reroute.</span></span></label>
+      <label class="md-opt"><input type="radio" name="rr" /><span><span class="md-opt-t">Cluster is too broad</span><span class="md-opt-s">These are not all the same thing; split the cluster first.</span></span></label>
+      <label class="md-opt"><input type="radio" name="rr" /><span><span class="md-opt-t">Missing evidence</span><span class="md-opt-s">No receipt, image or invoice behind the larger amounts.</span></span></label>
+      <div class="note" style="margin:10px 0 0">
+        <div class="note-t" style="font-size:11px">Stored as <code>review_status = FLAGGED</code> + <code>return_reason</code>. No new state — <code>FLAGGED</code> already exists.</div>
+      </div>
+    </div>
+    <div class="md-ft">
+      <button class="btn" id="mdCancel">Cancel</button>
+      <button class="btn warn" id="mdConfirm">Return 7 to maker</button>
+    </div>
+  </div>
+</div>
+
+<!-- Move modal — reroute a whole cluster to a different bucket -->
+<div class="scrim" id="mvScrim">
+  <div class="modal" style="width:500px">
+    <div class="md-hd">
+      <div class="md-t">Move cluster to another bucket</div>
+      <div class="md-s" id="mvSub">TRUIST LOAN PMT 8891 · 12 transactions · −17,400.00</div>
+    </div>
+    <div class="md-bd">
+      <div class="mv-cur">
+        <span style="color:var(--slate-500)">Currently in</span>
+        <b id="mvFrom">General</b>
+        <span class="tstep">Categorise</span>
+        <span style="flex:1"></span>
+        <span style="font-size:11px;color:var(--slate-400)">router said 54%</span>
+      </div>
+
+      <span class="md-lbl">Move to</span>
+
+      <label class="mv-opt" data-to="General" data-key="cat">
+        <input type="radio" name="mvto" />
+        <span class="mv-body">
+          <span class="mv-name">General <span class="tag pnl">P&amp;L</span></span>
+          <span class="mv-treat"><span class="tstep">Categorise</span></span>
+          <span class="mv-conseq ok">No matching step. Rows re-enter the embedding funnel and are re-clustered by description.</span>
+        </span>
+      </label>
+
+      <label class="mv-opt" data-to="Loans &amp; Equity" data-key="loan">
+        <input type="radio" name="mvto" />
+        <span class="mv-body">
+          <span class="mv-name">Loans &amp; Equity <span class="tag bs">Not P&amp;L</span></span>
+          <span class="mv-treat"><span class="tstep">Split principal / interest</span></span>
+          <span class="mv-conseq ok">Only the interest reaches the P&amp;L. Approve stays blocked until each split balances to its bank amount.</span>
+        </span>
+      </label>
+
+      <label class="mv-opt" data-to="Transfers" data-key="trf">
+        <input type="radio" name="mvto" />
+        <span class="mv-body">
+          <span class="mv-name">Transfers <span class="tag bs">Not P&amp;L</span></span>
+          <span class="mv-treat"><span class="tstep">Match pair</span><span style="color:var(--slate-300)">· no categorise</span></span>
+          <span class="mv-conseq warn"><b>Match-required.</b> Any row without a counter-leg lands unmatched — no <code>cluster_id</code>, and unreviewable until paired.</span>
+        </span>
+      </label>
+
+      <label class="mv-opt" data-to="Checks" data-key="chk">
+        <input type="radio" name="mvto" />
+        <span class="mv-body">
+          <span class="mv-name">Checks <span class="tag pnl">P&amp;L</span></span>
+          <span class="mv-treat"><span class="tstep">Match image</span><span class="tarrow">→</span><span class="tstep">Categorise</span></span>
+          <span class="mv-conseq warn"><b>Match-required.</b> A row with no check image gets no payee, so it never clusters and must be reviewed one by one.</span>
+        </span>
+      </label>
+
+      <div class="note" style="margin:11px 0 0">
+        <div class="note-t" style="font-size:11px"><b>Not supported today.</b> <code>routing_intent</code> is read-only on the API — the PATCH serializer accepts only <code>transaction_type</code>, <code>coa_account</code>, <code>counterparty</code>, <code>reasoning</code>, <code>reference_number</code>, <code>memo</code>. A move needs a new endpoint plus re-clustering of the destination.</div>
+      </div>
+    </div>
+    <div class="md-ft">
+      <button class="btn" id="mvCancel">Cancel</button>
+      <button class="btn go" id="mvConfirm" disabled>Move 12 transactions</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="toast-t" id="toastT"></span><button class="toast-x" id="toastX">Dismiss</button></div>
+
+<script src="assets/atlas-nav.js"></script>
+<script>
+(function () {
+  "use strict";
+  var $  = function (s) { return document.querySelector(s); };
+  var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
+
+  // ── Role toggle: the two screens are different taxonomies of the same rows ──
+  $$(".role").forEach(function (r) {
+    r.addEventListener("click", function () {
+      var maker = r.dataset.role === "maker";
+      $$(".role").forEach(function (x) { x.classList.toggle("active", x === r); });
+      $("#railMaker").style.display   = maker ? "" : "none";
+      $("#railChecker").style.display = maker ? "none" : "";
+      $("#vMaker").classList.toggle("active", maker);
+      $("#vChecker").classList.toggle("active", !maker);
+      $(".content").scrollTop = 0;
+    });
+  });
+
+  // ── Maker: bucket navigation ──
+  $$(".bkt:not(.soon)").forEach(function (b) {
+    b.addEventListener("click", function () {
+      $$(".bkt").forEach(function (x) { x.classList.toggle("active", x === b); });
+      $$(".mb").forEach(function (p) { p.style.display = p.dataset.mb === b.dataset.bkt ? "" : "none"; });
+      $(".content").scrollTop = 0;
+    });
+  });
+
+  // ── Cluster expand/collapse ──
+  $$(".cl-head").forEach(function (h) {
+    h.addEventListener("click", function () {
+      if (h.parentElement.querySelector(".cl-body")) h.parentElement.classList.toggle("open");
+    });
+  });
+
+  // ── Checker: statement switch ──
+  $$(".stmt-tab").forEach(function (t) {
+    t.addEventListener("click", function () {
+      var pnl = t.dataset.stmt === "pnl";
+      $$(".stmt-tab").forEach(function (x) { x.classList.toggle("active", x === t); });
+      $("#pnlStmt").style.display = pnl ? "" : "none";
+      $("#bsStmt").style.display  = pnl ? "none" : "";
+      $("#stmtTitle").innerHTML = pnl
+        ? 'Profit &amp; loss <span class="tag pnl">Q1 2025</span>'
+        : 'Balance sheet <span class="tag bs">Q1 2025</span>';
+    });
+  });
+
+  // ── Checker: drill into a statement line ──
+  // A COA line holds several clusters, and a cluster can touch several lines —
+  // so "line checked" means every cluster touching it is checked.
+  $$("#pnlStmt .line:not(.total), #bsStmt .line:not(.total)").forEach(function (l) {
+    l.addEventListener("click", function () {
+      $("#stmtView").style.display = "none";
+      $("#drillView").style.display = "";
+      $(".content").scrollTop = 0;
+    });
+  });
+  $("#drillBack").addEventListener("click", function () {
+    $("#drillView").style.display = "none";
+    $("#stmtView").style.display = "";
+    $(".content").scrollTop = 0;
+  });
+
+  // ── Select-all gate: Post stays disabled until every row is selected ──
+  var rows  = $$(".row-cb.cw");
+  var all   = $("#cwAll");
+  var post  = $("#cwPost");
+  var count = $("#cwCount");
+  var note  = $("#cwNote");
+
+  function sync() {
+    var n = rows.filter(function (r) { return r.checked; }).length;
+    var full = n === rows.length;
+    count.textContent = n + " of " + rows.length + " selected";
+    count.classList.toggle("full", full);
+    all.checked = full;
+    all.indeterminate = n > 0 && !full;
+    post.disabled = !full;
+    note.textContent = full
+      ? "All rows selected — ready to post."
+      : "Select all " + rows.length + " rows to enable Post.";
+    note.classList.toggle("block", !full);
+  }
+  rows.forEach(function (r) { r.addEventListener("change", sync); });
+  all.addEventListener("change", function () {
+    rows.forEach(function (r) { r.checked = all.checked; });
+    sync();
+  });
+  sync();
+
+  // ── Move: reroute a whole cluster to another bucket ──
+  // The maker owns treatment, so a misrouted cluster is their fix, not the
+  // checker's. Changing the COA alone would leave the wrong treatment in place.
+  var mvScrim = $("#mvScrim"), mvSub = $("#mvSub"), mvFrom = $("#mvFrom");
+  var mvConfirm = $("#mvConfirm"), mvTarget = null, mvCluster = null;
+
+  var BUCKET_NAME = { cat: "General", chk: "Checks", trf: "Transfers", pay: "Payouts" };
+
+  $$(".btn.mv").forEach(function (b) {
+    b.addEventListener("click", function (e) {
+      e.stopPropagation();
+      mvCluster = b.closest(".cl");
+      var head  = mvCluster.querySelector(".cl-head");
+      var title = head.querySelector(".cl-title").textContent.trim();
+      var n     = head.querySelector(".cl-state").textContent.trim();
+      var amt   = head.querySelector(".cl-amt").textContent.trim();
+
+      mvSub.textContent = title + " · " + n + " transactions · " + amt;
+      mvFrom.textContent = BUCKET_NAME[mvCluster.dataset.bucket] || "General";
+      mvConfirm.textContent = "Move " + n + " transactions";
+
+      mvTarget = null;
+      mvConfirm.disabled = true;
+      // Hide the bucket it is already in — you cannot move a cluster to itself.
+      $$(".mv-opt").forEach(function (o) {
+        o.classList.remove("sel");
+        o.querySelector("input").checked = false;
+        o.style.display = o.dataset.key === mvCluster.dataset.bucket ? "none" : "";
+      });
+      mvScrim.classList.add("show");
+    });
+  });
+
+  $$(".mv-opt").forEach(function (o) {
+    o.addEventListener("click", function () {
+      $$(".mv-opt").forEach(function (x) { x.classList.toggle("sel", x === o); });
+      o.querySelector("input").checked = true;
+      mvTarget = o.dataset.to;
+      mvConfirm.disabled = false;
+    });
+  });
+
+  $("#mvCancel").addEventListener("click", function () { mvScrim.classList.remove("show"); });
+
+  mvConfirm.addEventListener("click", function () {
+    mvScrim.classList.remove("show");
+    var n = mvCluster.querySelector(".cl-state").textContent.trim();
+
+    // Leaves the source bucket: the cluster animates out and the rail count drops.
+    mvCluster.style.transition = "opacity .3s, transform .3s";
+    mvCluster.style.opacity = "0";
+    mvCluster.style.transform = "translateX(24px)";
+    setTimeout(function () { mvCluster.style.display = "none"; }, 300);
+
+    var src = $('.bkt[data-bkt="' + mvCluster.dataset.bucket + '"] .bkt-n');
+    if (src) src.textContent = Math.max(0, parseInt(src.textContent, 10) - parseInt(n, 10));
+
+    notify(
+      "Moved <b>" + n + "</b> transactions to <b>" + mvTarget +
+      "</b>. Treatment changes with the bucket — the destination re-clusters them."
+    );
+  });
+
+  // ── Toast ──
+  var toast = $("#toast"), toastT = $("#toastT"), timer = null;
+  function notify(html) {
+    toastT.innerHTML = html;
+    toast.classList.add("show");
+    clearTimeout(timer);
+    timer = setTimeout(function () { toast.classList.remove("show"); }, 6000);
+  }
+  $("#toastX").addEventListener("click", function () { toast.classList.remove("show"); clearTimeout(timer); });
+
+  // ── Post ──
+  post.addEventListener("click", function () {
+    var st = $("#cwState");
+    st.className = "cl-state ok"; st.textContent = "✓ 7";
+    $("#cwCluster").classList.remove("open");
+    notify('Posted <b>7</b> transactions · <b>checked_by</b> N. Paliwal. Automobile Expense is now fully checked.');
+  });
+
+  // ── Return to maker ──
+  $("#cwReturn").addEventListener("click", function () { $("#scrim").classList.add("show"); });
+  $("#mdCancel").addEventListener("click", function () { $("#scrim").classList.remove("show"); });
+  $("#mdConfirm").addEventListener("click", function () {
+    $("#scrim").classList.remove("show");
+    var st = $("#cwState");
+    st.className = "cl-state ret"; st.textContent = "returned";
+    $("#cwCluster").classList.remove("open");
+    $("#retCount").textContent = "3";
+    notify('Returned <b>7</b> transactions to the maker · <code style="background:#334155;color:#e2e8f0">FLAGGED</code> + reason. They appear under <b>Returned to me</b>.');
+  });
+})();
+</script>
+
+</body>
+</html>

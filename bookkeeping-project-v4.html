@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Atlas — Book Close Q1 2025 · Bright &amp; Bloom · Project review (P&amp;L / balance-sheet split)</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary: #6366f1; --primary-dark: #4f46e5; --primary-light: #eef2ff;
+  --slate-50:  #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1; --slate-400: #94a3b8; --slate-500: #64748b;
+  --slate-600: #475569; --slate-700: #334155; --slate-800: #1e293b; --slate-900: #0f172a;
+  --green-50: #f0fdf4; --green-100: #dcfce7; --green-200: #bbf7d0; --green-500: #22c55e; --green-600: #16a34a; --green-700: #15803d;
+  --amber-50: #fffbeb; --amber-100: #fef3c7; --amber-200: #fde68a; --amber-300: #fcd34d; --amber-400: #fbbf24; --amber-500: #f59e0b; --amber-600: #d97706; --amber-700: #b45309; --amber-800: #92400e;
+  --red-50: #fff1f2; --red-100: #fee2e2; --red-200: #fecaca; --red-500: #ef4444; --red-600: #dc2626; --red-700: #b91c1c;
+  --indigo-50: #eef2ff; --indigo-100: #e0e7ff; --indigo-200: #c7d2fe; --indigo-400: #818cf8; --indigo-500: #6366f1; --indigo-600: #4f46e5;
+  --blue-50: #eff6ff; --blue-100: #dbeafe; --blue-200: #bfdbfe; --blue-400: #60a5fa; --blue-500: #3b82f6; --blue-600: #2563eb; --blue-700: #1d4ed8;
+  --violet-50: #f5f3ff; --violet-100: #ede9fe; --violet-200: #ddd6fe; --violet-500: #8b5cf6; --violet-600: #7c3aed; --violet-700: #6d28d9;
+  --teal-50: #f0fdfa; --teal-100: #ccfbf1; --teal-200: #99f6e4; --teal-500: #14b8a6; --teal-600: #0d9488; --teal-700: #0f766e;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px; background: var(--slate-50); color: var(--slate-900);
+  display: flex; height: 100vh; overflow: hidden;
+}
+
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+/* ── Topbar ── */
+.topbar { height: 52px; background: white; border-bottom: 1px solid var(--slate-200); display: flex; align-items: center; gap: 12px; padding: 0 18px; flex-shrink: 0; }
+.breadcrumb { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--slate-500); }
+.breadcrumb a { color: var(--slate-500); text-decoration: none; }
+.breadcrumb a:hover { color: var(--primary-dark); }
+.bc-sep { color: var(--slate-300); }
+.bc-cur { color: var(--slate-800); font-weight: 600; }
+.tb-spacer { flex: 1; }
+.phase-pill { display: inline-flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; color: var(--violet-700); background: var(--violet-50); border: 1px solid var(--violet-200); border-radius: 999px; padding: 5px 11px 5px 6px; }
+.pp-step { width: 17px; height: 17px; border-radius: 50%; background: var(--violet-600); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+.tb-btn { font-size: 12px; font-weight: 600; padding: 7px 13px; border-radius: 8px; border: 1px solid var(--slate-200); background: white; color: var(--slate-700); cursor: pointer; }
+.tb-btn:hover { background: var(--slate-50); }
+.tb-btn.primary { background: var(--primary); border-color: var(--primary); color: white; }
+.tb-btn.primary:hover { background: var(--primary-dark); }
+
+.body { flex: 1; display: flex; min-height: 0; }
+
+/* ── Project rail (bucket navigator) ── */
+.rail { width: 236px; flex-shrink: 0; background: white; border-right: 1px solid var(--slate-200); display: flex; flex-direction: column; }
+.rail-scroll { flex: 1; overflow-y: auto; }
+.rail-proj { padding: 14px 16px 10px; border-bottom: 1px solid var(--slate-100); }
+.rail-proj-name { font-size: 14px; font-weight: 700; color: var(--slate-900); }
+.rail-proj-sub { font-size: 11px; color: var(--slate-400); margin-top: 2px; }
+
+.rail-progress { display: flex; align-items: center; gap: 11px; padding: 11px 16px 13px; border-bottom: 1px solid var(--slate-100); }
+.rp-bar { flex: 1; height: 6px; background: var(--slate-100); border-radius: 999px; overflow: hidden; }
+.rp-fill { height: 100%; background: linear-gradient(90deg, var(--green-500), var(--teal-500)); border-radius: 999px; }
+.rp-num { font-size: 11px; font-weight: 700; color: var(--slate-600); }
+
+/* Account filter — demoted from scope to a filter */
+.rail-filter { margin: 12px 14px 4px; }
+.rf-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--slate-400); margin-bottom: 6px; display: block; }
+.rf-select { width: 100%; font-size: 12px; font-weight: 600; color: var(--slate-700); padding: 7px 9px; border: 1px solid var(--slate-200); border-radius: 8px; background: white; cursor: pointer; }
+.rf-hint { font-size: 10px; color: var(--slate-400); margin-top: 5px; line-height: 1.45; }
+
+.rail-buckets-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--slate-400); padding: 14px 18px 5px; }
+.rail-buckets-label.nonpnl { color: var(--amber-700); display: flex; align-items: center; gap: 6px; }
+.rail-nonpnl-group { margin: 2px 10px 4px; padding: 4px 0 6px; background: var(--amber-50); border: 1px solid var(--amber-200); border-radius: 10px; }
+.rail-nonpnl-group .bucket { margin: 0 4px; }
+.rail-nonpnl-note { font-size: 10px; color: var(--amber-800); padding: 2px 12px 4px; line-height: 1.45; }
+
+.bucket { display: flex; align-items: center; gap: 9px; padding: 8px 14px; margin: 1px 10px; border-radius: 8px; cursor: pointer; border: none; background: none; width: calc(100% - 20px); text-align: left; }
+.bucket:hover { background: var(--slate-100); }
+.bucket.active { background: var(--indigo-50); }
+.rail-nonpnl-group .bucket:hover { background: var(--amber-100); }
+.rail-nonpnl-group .bucket.active { background: white; box-shadow: 0 1px 3px rgba(180,83,9,.16); }
+.bucket-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.bucket-name { flex: 1; font-size: 12.5px; font-weight: 600; color: var(--slate-700); }
+.bucket.active .bucket-name { color: var(--primary-dark); }
+.rail-nonpnl-group .bucket.active .bucket-name { color: var(--amber-800); }
+.bucket-count { font-size: 11px; font-weight: 700; color: var(--slate-500); background: var(--slate-100); border-radius: 999px; padding: 1px 7px; min-width: 22px; text-align: center; }
+.bucket.active .bucket-count { background: var(--indigo-100); color: var(--primary-dark); }
+.bucket.done .bucket-count { background: var(--green-100); color: var(--green-700); }
+
+.rail-foot { padding: 12px 14px; border-top: 1px solid var(--slate-100); }
+.rail-close { width: 100%; font-size: 12px; font-weight: 600; padding: 8px; border-radius: 8px; border: 1px solid var(--slate-200); background: white; color: var(--slate-400); cursor: not-allowed; }
+.rail-close-note { font-size: 10px; color: var(--slate-400); text-align: center; margin-top: 7px; line-height: 1.4; }
+
+/* ── Content ── */
+.content { flex: 1; overflow-y: auto; padding: 18px 22px 60px; min-width: 0; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+.bucket-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+.bh-icon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.bh-text { flex: 1; min-width: 0; }
+.bh-title { font-size: 16px; font-weight: 700; color: var(--slate-900); display: flex; align-items: center; gap: 9px; }
+.bh-sub { font-size: 12px; color: var(--slate-500); margin-top: 3px; line-height: 1.5; }
+.bh-actions { display: flex; gap: 7px; flex-shrink: 0; }
+
+.tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; border-radius: 5px; padding: 2px 7px; }
+.tag.pnl { background: var(--indigo-50); color: var(--primary-dark); border: 1px solid var(--indigo-200); }
+.tag.bs { background: var(--amber-50); color: var(--amber-800); border: 1px solid var(--amber-300); }
+
+/* Non-P&L banner */
+.bs-banner { display: flex; align-items: flex-start; gap: 10px; background: var(--amber-50); border: 1px solid var(--amber-200); border-left: 3px solid var(--amber-500); border-radius: 10px; padding: 11px 14px; margin-bottom: 14px; }
+.bs-banner-text { font-size: 11.5px; color: var(--amber-800); line-height: 1.55; }
+.bs-banner-text b { font-weight: 700; }
+
+/* ── Transfer pair (bracketed) ── */
+.pair { border: 1px solid var(--amber-200); background: white; border-radius: 12px; margin-bottom: 11px; overflow: hidden; }
+.pair-head { display: flex; align-items: center; gap: 9px; padding: 9px 14px; background: var(--amber-50); border-bottom: 1px solid var(--amber-200); }
+.pair-icon { color: var(--amber-700); display: flex; }
+.pair-title { font-size: 12px; font-weight: 700; color: var(--amber-800); }
+.pair-meta { font-size: 11px; color: var(--amber-700); opacity: .85; }
+.pair-spacer { flex: 1; }
+.chip { font-size: 10px; font-weight: 700; border-radius: 999px; padding: 2px 8px; }
+.chip.auto { background: var(--green-100); color: var(--green-700); }
+.chip.warn { background: var(--red-100); color: var(--red-700); }
+
+.pair-legs { display: flex; align-items: stretch; }
+.leg { flex: 1; padding: 13px 15px; min-width: 0; }
+.leg + .leg { border-left: 1px solid var(--slate-100); }
+.leg-acct { font-size: 11px; font-weight: 700; color: var(--slate-500); display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+.leg-acct-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--slate-300); }
+.leg-amt { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.leg-amt.out { color: var(--red-600); }
+.leg-amt.in { color: var(--green-600); }
+.leg-desc { font-size: 11.5px; color: var(--slate-500); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.leg-coa { font-size: 11px; color: var(--slate-600); margin-top: 7px; display: flex; align-items: center; gap: 5px; }
+.leg-coa-pill { background: var(--slate-100); border-radius: 5px; padding: 2px 7px; font-weight: 600; }
+.pair-arrow { display: flex; align-items: center; justify-content: center; width: 34px; color: var(--amber-500); flex-shrink: 0; }
+
+.pair-foot { display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-top: 1px solid var(--slate-100); background: var(--slate-50); }
+.pf-note { flex: 1; font-size: 11px; color: var(--slate-500); }
+.btn-sm { font-size: 11.5px; font-weight: 600; padding: 6px 11px; border-radius: 7px; border: 1px solid var(--slate-200); background: white; color: var(--slate-600); cursor: pointer; }
+.btn-sm:hover { background: var(--slate-100); }
+.btn-sm.go { background: var(--green-600); border-color: var(--green-600); color: white; }
+.btn-sm.go:hover { background: var(--green-700); }
+.btn-sm.ghost { border-color: transparent; background: none; color: var(--slate-500); }
+
+/* Single leg (account filter applied) */
+.card { background: white; border: 1px solid var(--slate-200); border-radius: 12px; padding: 13px 15px; margin-bottom: 10px; }
+.card.bs { border-color: var(--amber-200); border-left: 3px solid var(--amber-400); }
+.card-top { display: flex; align-items: flex-start; gap: 12px; }
+.card-main { flex: 1; min-width: 0; }
+.card-amt { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.card-amt.out { color: var(--red-600); }
+.card-amt.in { color: var(--green-600); }
+.card-desc { font-size: 12px; color: var(--slate-700); margin-top: 2px; font-weight: 500; }
+.card-sub { font-size: 11px; color: var(--slate-400); margin-top: 3px; }
+.card-link { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; color: var(--amber-700); background: var(--amber-50); border: 1px solid var(--amber-200); border-radius: 7px; padding: 5px 9px; margin-top: 8px; cursor: pointer; text-decoration: none; }
+.card-link:hover { background: var(--amber-100); }
+
+/* ── Split editor (loan) ── */
+.split { margin-top: 11px; border: 1px solid var(--slate-200); border-radius: 9px; overflow: hidden; }
+.split-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--slate-100); }
+.split-row:last-of-type { border-bottom: none; }
+.sr-label { width: 74px; font-size: 11px; font-weight: 700; color: var(--slate-500); text-transform: uppercase; letter-spacing: .04em; flex-shrink: 0; }
+.sr-coa { flex: 1; font-size: 12px; font-weight: 600; color: var(--slate-700); background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 6px; padding: 5px 9px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+.sr-coa .type { font-size: 10px; font-weight: 700; color: var(--slate-400); text-transform: uppercase; }
+.sr-amt { width: 104px; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; color: var(--slate-800); background: white; border: 1px solid var(--slate-200); border-radius: 6px; padding: 5px 9px; }
+.sr-amt:focus { outline: 2px solid var(--indigo-200); border-color: var(--indigo-400); }
+.split-total { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: var(--slate-50); border-top: 1px solid var(--slate-200); }
+.st-label { flex: 1; font-size: 11.5px; font-weight: 700; color: var(--slate-600); }
+.st-val { width: 104px; text-align: right; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; padding-right: 9px; }
+.st-ok { color: var(--green-700); }
+.st-bad { color: var(--red-600); }
+.st-flag { font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+.st-flag.ok { color: var(--green-700); }
+.st-flag.bad { color: var(--red-600); }
+
+.card-foot { display: flex; align-items: center; gap: 8px; margin-top: 11px; padding-top: 11px; border-top: 1px solid var(--slate-100); }
+.cf-note { flex: 1; font-size: 11px; color: var(--slate-400); }
+
+/* ── Cluster (general P&L) ── */
+.cluster { background: white; border: 1px solid var(--slate-200); border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
+.cl-head { display: flex; align-items: center; gap: 11px; padding: 12px 15px; }
+.cl-badge { font-size: 10px; font-weight: 700; color: var(--primary-dark); background: var(--indigo-50); border: 1px solid var(--indigo-200); border-radius: 999px; padding: 2px 8px; }
+.cl-title { flex: 1; font-size: 13px; font-weight: 600; color: var(--slate-800); }
+.cl-amt { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--red-600); }
+.cl-coa { display: flex; align-items: center; gap: 8px; padding: 0 15px 12px; }
+.cl-coa-pill { font-size: 11.5px; font-weight: 600; color: var(--slate-700); background: var(--slate-100); border-radius: 6px; padding: 4px 9px; }
+.cl-conf { font-size: 10.5px; font-weight: 700; color: var(--green-700); background: var(--green-50); border-radius: 5px; padding: 3px 7px; }
+
+/* Empty state */
+.empty { text-align: center; padding: 48px 20px; color: var(--slate-400); }
+.empty-mark { width: 44px; height: 44px; border-radius: 12px; background: var(--green-50); color: var(--green-600); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+.empty-t { font-size: 14px; font-weight: 700; color: var(--slate-700); }
+.empty-s { font-size: 12px; margin-top: 4px; }
+
+/* Toast */
+.toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(90px); background: var(--slate-900); color: white; border-radius: 10px; padding: 11px 15px; display: flex; align-items: center; gap: 13px; box-shadow: 0 8px 26px rgba(15,23,42,.3); transition: transform .24s cubic-bezier(.2,.8,.3,1); z-index: 50; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast-text { font-size: 12.5px; }
+.toast-text b { font-weight: 700; }
+.toast-undo { font-size: 12px; font-weight: 700; color: var(--indigo-400); background: none; border: none; cursor: pointer; padding: 0; }
+
+.note-strip { display: flex; align-items: flex-start; gap: 9px; background: white; border: 1px dashed var(--slate-300); border-radius: 10px; padding: 11px 14px; margin-bottom: 14px; }
+.ns-text { font-size: 11.5px; color: var(--slate-500); line-height: 1.55; }
+.ns-text b { color: var(--slate-700); font-weight: 700; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; background: var(--slate-100); border-radius: 4px; padding: 1px 5px; color: var(--slate-700); }
+</style>
+</head>
+<body>
+
+<!-- ── Global sidebar (reusable component, see assets/atlas-nav.js) ── -->
+<div data-atlas-nav
+     data-active="bookkeeping/projects"
+     data-client="bright-bloom"></div>
+
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a href="projects-list.html">Projects</a><span class="bc-sep">/</span>
+      <a href="clients-list.html">Bright &amp; Bloom LLC</a><span class="bc-sep">/</span>
+      <span class="bc-cur">Book Close — Q1 2025</span>
+    </div>
+    <div class="tb-spacer"></div>
+    <span class="phase-pill"><span class="pp-step">3</span>Review · 1 of 4 phases left</span>
+    <button class="tb-btn">Export IIF</button>
+    <button class="tb-btn primary">Approve all reviewed</button>
+  </div>
+
+  <div class="body">
+
+    <!-- ── Project rail ── -->
+    <div class="rail">
+      <div class="rail-scroll">
+
+        <div class="rail-proj">
+          <div class="rail-proj-name">Book Close — Q1 2025</div>
+          <div class="rail-proj-sub">Jan 1 – Mar 31 · due Apr 30 · 4 accounts</div>
+        </div>
+
+        <div class="rail-progress">
+          <div class="rp-bar"><div class="rp-fill" style="width:58%"></div></div>
+          <span class="rp-num">58%</span>
+        </div>
+
+        <!-- Capital account is a FILTER now, not the scope -->
+        <div class="rail-filter">
+          <label class="rf-label">Capital account</label>
+          <select class="rf-select" id="acctFilter">
+            <option value="all">All accounts (4)</option>
+            <option value="chase">Chase Checking ****4951</option>
+            <option value="amex">AMEX Platinum 3-81009</option>
+            <option value="savings">Savings ****8812</option>
+            <option value="truist">Truist Operating ****2204</option>
+          </select>
+          <div class="rf-hint">A transfer pair spans two accounts — filtering shows one leg with a link to the other.</div>
+        </div>
+
+        <div class="rail-buckets-label">Profit &amp; loss</div>
+        <button class="bucket active" data-panel="general">
+          <span class="bucket-dot" style="background:var(--indigo-500)"></span>
+          <span class="bucket-name">General</span>
+          <span class="bucket-count">48</span>
+        </button>
+        <button class="bucket" data-panel="checks">
+          <span class="bucket-dot" style="background:var(--violet-500)"></span>
+          <span class="bucket-name">Checks</span>
+          <span class="bucket-count">31</span>
+        </button>
+        <button class="bucket" data-panel="payouts">
+          <span class="bucket-dot" style="background:var(--blue-500)"></span>
+          <span class="bucket-name">Payouts</span>
+          <span class="bucket-count">9</span>
+        </button>
+
+        <div class="rail-buckets-label nonpnl">
+          <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01M5 19h14a2 2 0 001.84-2.75L13.74 4a2 2 0 00-3.48 0l-7.1 12.25A2 2 0 004.99 19z"/></svg>
+          Not profit &amp; loss
+        </div>
+        <div class="rail-nonpnl-group">
+          <button class="bucket" data-panel="transfers">
+            <span class="bucket-dot" style="background:var(--amber-500)"></span>
+            <span class="bucket-name">Transfers</span>
+            <span class="bucket-count">12</span>
+          </button>
+          <button class="bucket" data-panel="loans">
+            <span class="bucket-dot" style="background:var(--amber-600)"></span>
+            <span class="bucket-name">Loans &amp; Equity</span>
+            <span class="bucket-count">6</span>
+          </button>
+          <button class="bucket" data-panel="otherbs">
+            <span class="bucket-dot" style="background:var(--amber-700)"></span>
+            <span class="bucket-name">Other balance sheet</span>
+            <span class="bucket-count">3</span>
+          </button>
+          <div class="rail-nonpnl-note">Never hits the P&amp;L. Classified by the proposed COA's account type.</div>
+        </div>
+
+        <div class="rail-buckets-label">Needs attention</div>
+        <button class="bucket" data-panel="unsorted">
+          <span class="bucket-dot" style="background:var(--red-500)"></span>
+          <span class="bucket-name">Unsorted</span>
+          <span class="bucket-count">4</span>
+        </button>
+
+      </div>
+      <div class="rail-foot">
+        <button class="rail-close">Close the books</button>
+        <div class="rail-close-note">22 items still to review</div>
+      </div>
+    </div>
+
+    <!-- ── Content ── -->
+    <div class="content">
+
+      <!-- ══ GENERAL (P&L) ══ -->
+      <div class="panel active" id="p-general">
+        <div class="bucket-head">
+          <div class="bh-icon" style="background:var(--indigo-50);color:var(--primary-dark)">
+            <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+          </div>
+          <div class="bh-text">
+            <div class="bh-title">General <span class="tag pnl">P&amp;L</span></div>
+            <div class="bh-sub">Income and expense, grouped into clusters by the categoriser. 48 to review across 4 accounts.</div>
+          </div>
+        </div>
+
+        <div class="cluster">
+          <div class="cl-head">
+            <span class="cl-badge">Cluster · 7</span>
+            <span class="cl-title">VINTAGE CAR WASH MODESTO CA</span>
+            <span class="cl-amt">−255.50</span>
+          </div>
+          <div class="cl-coa">
+            <span class="cl-coa-pill">Automobile Expense : Car Wash</span>
+            <span class="cl-conf">94% confident</span>
+            <div style="flex:1"></div>
+            <button class="btn-sm">Expand &amp; edit</button>
+            <button class="btn-sm go">Approve all 7</button>
+          </div>
+        </div>
+
+        <div class="cluster">
+          <div class="cl-head">
+            <span class="cl-badge">Cluster · 12</span>
+            <span class="cl-title">SHELL OIL / FUEL</span>
+            <span class="cl-amt">−1,842.19</span>
+          </div>
+          <div class="cl-coa">
+            <span class="cl-coa-pill">Automobile Expense : Fuel</span>
+            <span class="cl-conf">91% confident</span>
+            <div style="flex:1"></div>
+            <button class="btn-sm">Expand &amp; edit</button>
+            <button class="btn-sm go">Approve all 12</button>
+          </div>
+        </div>
+
+        <!-- Live re-bucketing demo -->
+        <div class="cluster" id="rebucketDemo">
+          <div class="cl-head">
+            <span class="cl-badge">Single</span>
+            <span class="cl-title">TRUIST LOAN PMT 8891</span>
+            <span class="cl-amt">−1,450.00</span>
+          </div>
+          <div class="cl-coa">
+            <span class="cl-coa-pill">Bank Service Charges</span>
+            <span class="cl-conf" style="background:var(--amber-50);color:var(--amber-700)">54% confident</span>
+            <div style="flex:1"></div>
+            <button class="btn-sm" id="rebucketBtn">Recategorise → Truist Equipment Loan</button>
+          </div>
+        </div>
+
+        <div class="note-strip">
+          <svg width="14" height="14" fill="none" stroke="var(--slate-400)" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div class="ns-text"><b>Buckets are derived, so they move.</b> Recategorising the Truist row above to a liability COA moves it out of General and into Loans &amp; Equity — with an undo. Try the button.</div>
+        </div>
+      </div>
+
+      <!-- ══ TRANSFERS (non-P&L) ══ -->
+      <div class="panel" id="p-transfers">
+        <div class="bucket-head">
+          <div class="bh-icon" style="background:var(--amber-50);color:var(--amber-700)">
+            <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"/></svg>
+          </div>
+          <div class="bh-text">
+            <div class="bh-title">Transfers <span class="tag bs">Not P&amp;L</span></div>
+            <div class="bh-sub">Money moving between your own capital accounts. The COA is itself a capital account, so nothing reaches the income statement.</div>
+          </div>
+        </div>
+
+        <div class="bs-banner">
+          <svg width="15" height="15" fill="none" stroke="var(--amber-600)" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5 19h14a2 2 0 001.84-2.75L13.74 4a2 2 0 00-3.48 0l-7.1 12.25A2 2 0 004.99 19z"/></svg>
+          <div class="bs-banner-text"><b>Both legs are one decision.</b> Approving either leg clears the pair — the matcher already marks both reviewed at confirm time.</div>
+        </div>
+
+        <!-- Pair view (All accounts) -->
+        <div id="pairView">
+          <div class="pair">
+            <div class="pair-head">
+              <span class="pair-icon"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"/></svg></span>
+              <span class="pair-title">Internal transfer</span>
+              <span class="pair-meta">02/07/2025 · same day</span>
+              <div class="pair-spacer"></div>
+              <span class="chip auto">Auto-matched</span>
+            </div>
+            <div class="pair-legs">
+              <div class="leg">
+                <div class="leg-acct"><span class="leg-acct-dot"></span>Chase Checking ****4951</div>
+                <div class="leg-amt out">−2,000.00</div>
+                <div class="leg-desc">ONLINE PAYMENT TO AMEX</div>
+                <div class="leg-coa">COA <span class="leg-coa-pill">AMEX Platinum 3-81009</span></div>
+              </div>
+              <div class="pair-arrow">
+                <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </div>
+              <div class="leg">
+                <div class="leg-acct"><span class="leg-acct-dot"></span>AMEX Platinum 3-81009</div>
+                <div class="leg-amt in">+2,000.00</div>
+                <div class="leg-desc">PAYMENT THANK YOU</div>
+                <div class="leg-coa">COA <span class="leg-coa-pill">Chase Checking ****4951</span></div>
+              </div>
+            </div>
+            <div class="pair-foot">
+              <span class="pf-note">Bank → credit card payment · nets to zero</span>
+              <button class="btn-sm ghost">Unmatch</button>
+              <button class="btn-sm go">Approve pair</button>
+            </div>
+          </div>
+
+          <div class="pair">
+            <div class="pair-head">
+              <span class="pair-icon"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"/></svg></span>
+              <span class="pair-title">Internal transfer</span>
+              <span class="pair-meta">02/14/2025 · 1 day gap</span>
+              <div class="pair-spacer"></div>
+              <span class="chip auto">Auto-matched</span>
+            </div>
+            <div class="pair-legs">
+              <div class="leg">
+                <div class="leg-acct"><span class="leg-acct-dot"></span>Chase Checking ****4951</div>
+                <div class="leg-amt out">−5,000.00</div>
+                <div class="leg-desc">TRANSFER TO SAVINGS</div>
+                <div class="leg-coa">COA <span class="leg-coa-pill">Savings ****8812</span></div>
+              </div>
+              <div class="pair-arrow">
+                <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </div>
+              <div class="leg">
+                <div class="leg-acct"><span class="leg-acct-dot"></span>Savings ****8812</div>
+                <div class="leg-amt in">+5,000.00</div>
+                <div class="leg-desc">DEPOSIT FROM CHECKING</div>
+                <div class="leg-coa">COA <span class="leg-coa-pill">Chase Checking ****4951</span></div>
+              </div>
+            </div>
+            <div class="pair-foot">
+              <span class="pf-note">Bank → bank transfer · nets to zero</span>
+              <button class="btn-sm ghost">Unmatch</button>
+              <button class="btn-sm go">Approve pair</button>
+            </div>
+          </div>
+
+          <div class="pair" style="border-color:var(--red-200)">
+            <div class="pair-head" style="background:var(--red-50);border-bottom-color:var(--red-200)">
+              <span class="pair-icon" style="color:var(--red-600)"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5 19h14a2 2 0 001.84-2.75L13.74 4a2 2 0 00-3.48 0l-7.1 12.25A2 2 0 004.99 19z"/></svg></span>
+              <span class="pair-title" style="color:var(--red-700)">Unmatched leg</span>
+              <span class="pair-meta" style="color:var(--red-600)">03/02/2025 · no counterpart found</span>
+              <div class="pair-spacer"></div>
+              <span class="chip warn">Needs a pair</span>
+            </div>
+            <div class="pair-legs">
+              <div class="leg">
+                <div class="leg-acct"><span class="leg-acct-dot"></span>Truist Operating ****2204</div>
+                <div class="leg-amt out">−12,500.00</div>
+                <div class="leg-desc">WIRE OUT — INTERNAL</div>
+                <div class="leg-coa">COA <span class="leg-coa-pill" style="background:var(--red-100);color:var(--red-700)">Not set</span></div>
+              </div>
+              <div class="pair-arrow" style="color:var(--slate-300)">?</div>
+              <div class="leg" style="display:flex;align-items:center;justify-content:center;color:var(--slate-400);font-size:11.5px;text-align:center">
+                No incoming leg inside this project's date range
+              </div>
+            </div>
+            <div class="pair-foot">
+              <span class="pf-note" style="color:var(--red-600)">Blocked — cannot approve until matched or reclassified</span>
+              <button class="btn-sm">Find a match</button>
+              <button class="btn-sm">Not a transfer</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Single-leg view (account filter applied) -->
+        <div id="legView" style="display:none">
+          <div class="note-strip">
+            <svg width="14" height="14" fill="none" stroke="var(--slate-400)" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.46 12C3.73 7.94 7.52 5 12 5s8.27 2.94 9.54 7c-1.27 4.06-5.06 7-9.54 7s-8.27-2.94-9.54-7z"/></svg>
+            <div class="ns-text"><b>Filtered to one account.</b> Each pair collapses to the leg on this account, with a link across to its counterpart.</div>
+          </div>
+
+          <div class="card bs">
+            <div class="card-top">
+              <div class="card-main">
+                <div class="card-amt out">−2,000.00</div>
+                <div class="card-desc">ONLINE PAYMENT TO AMEX</div>
+                <div class="card-sub">02/07/2025 · Chase Checking ****4951 · COA: AMEX Platinum 3-81009</div>
+                <a class="card-link">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"/></svg>
+                  Paired with AMEX Platinum 3-81009 · +2,000.00
+                </a>
+              </div>
+              <span class="chip auto" style="flex-shrink:0">Auto-matched</span>
+            </div>
+            <div class="card-foot">
+              <span class="cf-note">Approving here also clears the AMEX leg.</span>
+              <button class="btn-sm">View pair</button>
+              <button class="btn-sm go">Approve</button>
+            </div>
+          </div>
+
+          <div class="card bs">
+            <div class="card-top">
+              <div class="card-main">
+                <div class="card-amt out">−5,000.00</div>
+                <div class="card-desc">TRANSFER TO SAVINGS</div>
+                <div class="card-sub">02/14/2025 · Chase Checking ****4951 · COA: Savings ****8812</div>
+                <a class="card-link">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"/></svg>
+                  Paired with Savings ****8812 · +5,000.00
+                </a>
+              </div>
+              <span class="chip auto" style="flex-shrink:0">Auto-matched</span>
+            </div>
+            <div class="card-foot">
+              <span class="cf-note">Approving here also clears the Savings leg.</span>
+              <button class="btn-sm">View pair</button>
+              <button class="btn-sm go">Approve</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ LOANS & EQUITY (non-P&L) ══ -->
+      <div class="panel" id="p-loans">
+        <div class="bucket-head">
+          <div class="bh-icon" style="background:var(--amber-50);color:var(--amber-700)">
+            <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5"/></svg>
+          </div>
+          <div class="bh-text">
+            <div class="bh-title">Loans &amp; Equity <span class="tag bs">Not P&amp;L</span></div>
+            <div class="bh-sub">Liability and equity movement. A loan payment is one bank row that must become two lines — only the interest portion is an expense.</div>
+          </div>
+        </div>
+
+        <div class="bs-banner">
+          <svg width="15" height="15" fill="none" stroke="var(--amber-600)" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5 19h14a2 2 0 001.84-2.75L13.74 4a2 2 0 00-3.48 0l-7.1 12.25A2 2 0 004.99 19z"/></svg>
+          <div class="bs-banner-text"><b>Approve is blocked until the split balances.</b> Principal reduces the liability; interest is the only part that touches the P&amp;L.</div>
+        </div>
+
+        <div class="card bs">
+          <div class="card-top">
+            <div class="card-main">
+              <div class="card-amt out">−1,450.00</div>
+              <div class="card-desc">LOAN PMT 8891 — TRUIST EQUIPMENT</div>
+              <div class="card-sub">02/15/2025 · Truist Operating ****2204</div>
+            </div>
+            <span class="chip" style="background:var(--green-100);color:var(--green-700);flex-shrink:0">Schedule on file</span>
+          </div>
+
+          <div class="split">
+            <div class="split-row">
+              <span class="sr-label">Principal</span>
+              <span class="sr-coa">Truist Equipment Loan <span class="type">Long-term liability</span></span>
+              <input class="sr-amt split-input" value="1,187.32" data-total="1450.00" />
+            </div>
+            <div class="split-row">
+              <span class="sr-label">Interest</span>
+              <span class="sr-coa">Interest Expense <span class="type">Expense · P&amp;L</span></span>
+              <input class="sr-amt split-input" value="262.68" data-total="1450.00" />
+            </div>
+            <div class="split-total">
+              <span class="st-label">Split total</span>
+              <span class="st-flag ok" id="loanFlag">
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                Balances
+              </span>
+              <span class="st-val st-ok" id="loanTotal">1,450.00</span>
+            </div>
+          </div>
+
+          <div class="card-foot">
+            <span class="cf-note">From the amortisation schedule · payment 14 of 60</span>
+            <button class="btn-sm">Edit schedule</button>
+            <button class="btn-sm go" id="loanApprove">Approve</button>
+          </div>
+        </div>
+
+        <div class="card bs">
+          <div class="card-top">
+            <div class="card-main">
+              <div class="card-amt out">−8,000.00</div>
+              <div class="card-desc">OWNER DRAW — M. DHILLON</div>
+              <div class="card-sub">03/01/2025 · Chase Checking ****4951</div>
+            </div>
+            <span class="chip" style="background:var(--amber-100);color:var(--amber-800);flex-shrink:0">Equity</span>
+          </div>
+          <div class="split">
+            <div class="split-row">
+              <span class="sr-label">Full</span>
+              <span class="sr-coa">Owner's Draw <span class="type">Equity</span></span>
+              <input class="sr-amt" value="8,000.00" readonly />
+            </div>
+            <div class="split-total">
+              <span class="st-label">Single line — no split needed</span>
+              <span class="st-flag ok">
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                Balances
+              </span>
+              <span class="st-val st-ok">8,000.00</span>
+            </div>
+          </div>
+          <div class="card-foot">
+            <span class="cf-note">Never appears on the income statement.</span>
+            <button class="btn-sm">Split</button>
+            <button class="btn-sm go">Approve</button>
+          </div>
+        </div>
+
+        <div class="card bs">
+          <div class="card-top">
+            <div class="card-main">
+              <div class="card-amt out">−2,310.00</div>
+              <div class="card-desc">SBA LOAN PAYMENT 4471</div>
+              <div class="card-sub">03/12/2025 · Truist Operating ****2204</div>
+            </div>
+            <span class="chip warn" style="flex-shrink:0">No schedule</span>
+          </div>
+          <div class="split">
+            <div class="split-row">
+              <span class="sr-label">Principal</span>
+              <span class="sr-coa">SBA Loan Payable <span class="type">Long-term liability</span></span>
+              <input class="sr-amt" value="2,310.00" />
+            </div>
+            <div class="split-row">
+              <span class="sr-label">Interest</span>
+              <span class="sr-coa" style="color:var(--slate-400)">Choose an account… <span class="type">—</span></span>
+              <input class="sr-amt" value="0.00" />
+            </div>
+            <div class="split-total">
+              <span class="st-label">Split total</span>
+              <span class="st-flag ok">
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                Balances
+              </span>
+              <span class="st-val st-ok">2,310.00</span>
+            </div>
+          </div>
+          <div class="card-foot">
+            <span class="cf-note" style="color:var(--amber-700)">All principal — no schedule on file, so interest was not estimated.</span>
+            <button class="btn-sm">Add schedule</button>
+            <button class="btn-sm go">Approve as-is</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ OTHER BALANCE SHEET ══ -->
+      <div class="panel" id="p-otherbs">
+        <div class="bucket-head">
+          <div class="bh-icon" style="background:var(--amber-50);color:var(--amber-700)">
+            <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          </div>
+          <div class="bh-text">
+            <div class="bh-title">Other balance sheet <span class="tag bs">Not P&amp;L</span></div>
+            <div class="bh-sub">Fixed assets, receivables and payables — capitalised or settled, never expensed.</div>
+          </div>
+        </div>
+
+        <div class="card bs">
+          <div class="card-top">
+            <div class="card-main">
+              <div class="card-amt out">−14,200.00</div>
+              <div class="card-desc">DELTA EQUIPMENT CO — WALK-IN COOLER</div>
+              <div class="card-sub">01/22/2025 · Truist Operating ****2204 · COA: Equipment <span style="color:var(--amber-700);font-weight:600">(Fixed asset)</span></div>
+            </div>
+            <span class="chip" style="background:var(--amber-100);color:var(--amber-800);flex-shrink:0">Capitalised</span>
+          </div>
+          <div class="card-foot">
+            <span class="cf-note">Categoriser first proposed <code>Repairs &amp; Maintenance</code> — overridden to a fixed asset.</span>
+            <button class="btn-sm">Change COA</button>
+            <button class="btn-sm go">Approve</button>
+          </div>
+        </div>
+
+        <div class="card bs">
+          <div class="card-top">
+            <div class="card-main">
+              <div class="card-amt in">+9,750.00</div>
+              <div class="card-desc">ABBOTT LABORATORY — REMOTE CAPTURE DEP</div>
+              <div class="card-sub">02/07/2025 · Chase Checking ****4951 · COA: Accounts Receivable</div>
+            </div>
+            <span class="chip" style="background:var(--blue-100);color:var(--blue-700);flex-shrink:0">A/R settlement</span>
+          </div>
+          <div class="card-foot">
+            <span class="cf-note">Settles an open invoice — revenue was recognised when the invoice was raised.</span>
+            <button class="btn-sm">Match invoice</button>
+            <button class="btn-sm go">Approve</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ UNSORTED ══ -->
+      <div class="panel" id="p-unsorted">
+        <div class="bucket-head">
+          <div class="bh-icon" style="background:var(--red-50);color:var(--red-600)">
+            <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div class="bh-text">
+            <div class="bh-title">Unsorted</div>
+            <div class="bh-sub">No COA was produced, so there is no account type to bucket on. These would be invisible on a purely COA-driven screen.</div>
+          </div>
+        </div>
+
+        <div class="card" style="border-left:3px solid var(--red-400)">
+          <div class="card-top">
+            <div class="card-main">
+              <div class="card-amt out">−432.00</div>
+              <div class="card-desc">SQ *UNKNOWN MERCHANT 4471</div>
+              <div class="card-sub">02/28/2025 · Chase Checking ****4951 · categorisation returned no match</div>
+            </div>
+          </div>
+          <div class="card-foot">
+            <span class="cf-note">Assign a COA to file it into a bucket.</span>
+            <button class="btn-sm">Assign COA</button>
+            <button class="btn-sm">Exclude</button>
+          </div>
+        </div>
+
+        <div class="card" style="border-left:3px solid var(--red-400)">
+          <div class="card-top">
+            <div class="card-main">
+              <div class="card-amt out">−75.00</div>
+              <div class="card-desc">CHECK 8042</div>
+              <div class="card-sub">03/19/2025 · Truist Operating ****2204 · no check image matched, payee unknown</div>
+            </div>
+          </div>
+          <div class="card-foot">
+            <span class="cf-note">The payee is the whole categorisation signal for a check — without it, no cluster forms.</span>
+            <button class="btn-sm">Find image</button>
+            <button class="btn-sm">Assign COA</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CHECKS / PAYOUTS (stubs) ══ -->
+      <div class="panel" id="p-checks">
+        <div class="bucket-head">
+          <div class="bh-icon" style="background:var(--violet-50);color:var(--violet-700)">
+            <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <div class="bh-text">
+            <div class="bh-title">Checks <span class="tag pnl">P&amp;L</span></div>
+            <div class="bh-sub">Matched to check images, then clustered by payee. Expense-coded checks stay here; a check written to a loan or owner lands in Loans &amp; Equity instead.</div>
+          </div>
+        </div>
+        <div class="empty">
+          <div class="empty-mark"><svg width="21" height="21" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></div>
+          <div class="empty-t">Not mocked in v4</div>
+          <div class="empty-s">Unchanged from v3 — this version is about the P&amp;L / balance-sheet split.</div>
+        </div>
+      </div>
+
+      <div class="panel" id="p-payouts">
+        <div class="bucket-head">
+          <div class="bh-icon" style="background:var(--blue-50);color:var(--blue-700)">
+            <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div class="bh-text">
+            <div class="bh-title">Payouts <span class="tag pnl">P&amp;L</span></div>
+            <div class="bh-sub">Net settlements grossed up into revenue, fees and tax.</div>
+          </div>
+        </div>
+        <div class="empty">
+          <div class="empty-mark"><svg width="21" height="21" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></div>
+          <div class="empty-t">Not mocked in v4</div>
+          <div class="empty-s">Unchanged from v3 — the income-split flow already exists.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span class="toast-text" id="toastText"></span>
+  <button class="toast-undo" id="toastUndo">Undo</button>
+</div>
+
+<script src="assets/atlas-nav.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  // ── Bucket navigation ──
+  var buckets = document.querySelectorAll(".bucket");
+  var panels  = document.querySelectorAll(".panel");
+
+  function show(name) {
+    buckets.forEach(function (b) { b.classList.toggle("active", b.dataset.panel === name); });
+    panels.forEach(function (p) { p.classList.toggle("active", p.id === "p-" + name); });
+    document.querySelector(".content").scrollTop = 0;
+  }
+  buckets.forEach(function (b) {
+    b.addEventListener("click", function () { show(b.dataset.panel); });
+  });
+
+  // ── Account filter: pair view ⇄ single-leg view ──
+  // The pair spans two accounts, so filtering to one account cannot show both
+  // legs. It collapses to this account's leg, with a link across to the other.
+  var acct     = document.getElementById("acctFilter");
+  var pairView = document.getElementById("pairView");
+  var legView  = document.getElementById("legView");
+
+  acct.addEventListener("change", function () {
+    var filtered = acct.value !== "all";
+    pairView.style.display = filtered ? "none" : "";
+    legView.style.display  = filtered ? "" : "none";
+    if (!document.getElementById("p-transfers").classList.contains("active")) {
+      show("transfers");
+    }
+  });
+
+  // ── Toast ──
+  var toast     = document.getElementById("toast");
+  var toastText = document.getElementById("toastText");
+  var toastUndo = document.getElementById("toastUndo");
+  var toastTimer = null;
+
+  function notify(html, onUndo) {
+    toastText.innerHTML = html;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove("show"); }, 6000);
+    toastUndo.onclick = function () {
+      toast.classList.remove("show");
+      clearTimeout(toastTimer);
+      if (onUndo) onUndo();
+    };
+  }
+
+  // ── Live re-bucketing ──
+  // Buckets are derived from the proposed COA's account type, so changing the
+  // COA moves the row to another bucket. It animates out rather than vanishing,
+  // and the undo puts it back.
+  var demo = document.getElementById("rebucketDemo");
+  var btn  = document.getElementById("rebucketBtn");
+  var generalCount = document.querySelector('[data-panel="general"] .bucket-count');
+  var loansCount   = document.querySelector('[data-panel="loans"] .bucket-count');
+
+  btn.addEventListener("click", function () {
+    demo.style.transition = "opacity .3s, transform .3s";
+    demo.style.opacity = "0";
+    demo.style.transform = "translateX(24px)";
+    setTimeout(function () { demo.style.display = "none"; }, 300);
+
+    generalCount.textContent = "47";
+    loansCount.textContent = "7";
+
+    notify(
+      'Moved to <b>Loans &amp; Equity</b> — <code style="background:#334155;color:#e2e8f0">Truist Equipment Loan</code> is a long-term liability, not P&amp;L.',
+      function () {
+        demo.style.display = "";
+        demo.style.opacity = "1";
+        demo.style.transform = "none";
+        generalCount.textContent = "48";
+        loansCount.textContent = "6";
+      }
+    );
+  });
+
+  // ── Loan split must balance before approve ──
+  var inputs  = document.querySelectorAll(".split-input");
+  var total   = document.getElementById("loanTotal");
+  var flag    = document.getElementById("loanFlag");
+  var approve = document.getElementById("loanApprove");
+
+  function num(v) { return parseFloat(String(v).replace(/,/g, "")) || 0; }
+
+  function recalc() {
+    var sum = 0;
+    inputs.forEach(function (i) { sum += num(i.value); });
+    var target = num(inputs[0].dataset.total);
+    var ok = Math.abs(sum - target) < 0.005;
+
+    total.textContent = sum.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    total.className = "st-val " + (ok ? "st-ok" : "st-bad");
+    flag.className = "st-flag " + (ok ? "ok" : "bad");
+    flag.innerHTML = ok
+      ? '<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg> Balances'
+      : "Off by " + (sum - target).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    approve.disabled = !ok;
+    approve.style.opacity = ok ? "1" : ".45";
+    approve.style.cursor = ok ? "pointer" : "not-allowed";
+  }
+
+  inputs.forEach(function (i) { i.addEventListener("input", recalc); });
+  recalc();
+})();
+</script>
+
+</body>
+</html>
