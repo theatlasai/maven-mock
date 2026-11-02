@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Move and Save Rule</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary:       #6366f1;
+    --primary-light: #eef2ff;
+    --primary-dark:  #4f46e5;
+    --slate-50:  #f8fafc;
+    --slate-100: #f1f5f9;
+    --slate-200: #e2e8f0;
+    --slate-300: #cbd5e1;
+    --slate-400: #94a3b8;
+    --slate-500: #64748b;
+    --slate-600: #475569;
+    --slate-700: #334155;
+    --slate-800: #1e293b;
+    --slate-900: #0f172a;
+    --success-bg:  #f0fdf4; --success-text: #15803d; --success-border: #bbf7d0;
+    --warning-bg:  #fffbeb; --warning-text: #b45309; --warning-border: #fde68a;
+    --radius: 12px; --radius-sm: 8px;
+    --shadow-lg: 0 20px 40px -12px rgb(15 23 42 / .25);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 13px;
+    background: var(--slate-100);
+    color: var(--slate-900);
+    min-height: 100vh;
+  }
+
+  /* ── Scenario bar (mock only) ── */
+  .scenarios {
+    position: sticky; top: 0; z-index: 30;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+    padding: 10px 16px; background: var(--slate-900); color: #fff;
+  }
+  .scenarios strong { font-size: 12px; margin-right: 6px; color: var(--slate-300); }
+  .scenarios button {
+    font: inherit; font-size: 12px; padding: 5px 10px; border-radius: 999px;
+    border: 1px solid var(--slate-600); background: transparent; color: var(--slate-200); cursor: pointer;
+  }
+  .scenarios button.on { background: #fff; color: var(--slate-900); border-color: #fff; }
+  .scenario-note { width: 100%; font-size: 12px; color: var(--slate-400); padding-top: 2px; }
+
+  /* ── Page behind the modal ── */
+  .page { padding: 24px; filter: blur(1px); opacity: .55; pointer-events: none; }
+  .fake-row { height: 38px; background: #fff; border-radius: var(--radius-sm); margin-bottom: 8px; }
+  .fake-head { height: 54px; background: #fff; border-radius: var(--radius); margin-bottom: 16px; }
+
+  /* ── Modal ── */
+  .overlay {
+    position: fixed; inset: 0; z-index: 20; top: 0;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 80px 16px 24px; background: rgb(15 23 42 / .35); overflow-y: auto;
+  }
+  .modal {
+    width: 100%; max-width: 640px; background: #fff;
+    border-radius: 16px; box-shadow: var(--shadow-lg);
+  }
+  .modal-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 18px 22px; border-bottom: 1px solid var(--slate-200);
+  }
+  .modal-head h2 { font-size: 16px; font-weight: 600; flex: 1; }
+  .close { border: 0; background: none; font-size: 20px; color: var(--slate-400); cursor: pointer; }
+  .modal-body { padding: 18px 22px; display: grid; gap: 14px; }
+  .modal-foot {
+    display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+    padding: 14px 22px; border-top: 1px solid var(--slate-200);
+  }
+  .foot-hint { flex: 1; font-size: 12px; color: var(--slate-500); }
+
+  .muted { color: var(--slate-500); }
+  .small { font-size: 12px; }
+
+  select, input[type=text], textarea {
+    font: inherit; border: 1px solid var(--slate-200); border-radius: var(--radius-sm);
+    padding: 7px 10px; background: #fff; color: var(--slate-900);
+  }
+  textarea { font-family: ui-monospace, Menlo, monospace; font-size: 12px; width: 100%; resize: vertical; }
+  input[type=text] { width: 100%; }
+
+  .picker { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .picker[hidden] { display: none; }
+
+  /* Rows */
+  .rows {
+    list-style: none; max-height: 190px; overflow-y: auto;
+    border: 1px solid var(--slate-200); border-radius: var(--radius-sm);
+  }
+  .rows li { display: flex; gap: 10px; padding: 8px 10px; border-top: 1px solid var(--slate-100); }
+  .rows li:first-child { border-top: 0; }
+  .rows li.blocked { opacity: .6; }
+  .rows .desc { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: var(--slate-700); }
+  .rows .meta { font-size: 11px; color: var(--slate-500); }
+  .rows .why { font-size: 11px; color: var(--warning-text); }
+  .rows input { margin-top: 2px; accent-color: var(--primary); }
+
+  /* Rule card */
+  .rule {
+    border: 1px solid var(--slate-200); border-radius: var(--radius);
+    background: var(--slate-50); overflow: hidden;
+  }
+  .rule.ready { border-color: #c7d2fe; background: #f7f8ff; }
+  .rule-head { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; }
+  .rule-head .icon { font-size: 16px; line-height: 20px; }
+  .rule-title { font-weight: 600; font-size: 13px; }
+  .rule-sentence { margin-top: 4px; font-size: 13px; color: var(--slate-700); line-height: 1.5; }
+  .chip-q { font-weight: 600; color: var(--primary-dark); }
+  .bucket-chip {
+    display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px;
+    background: var(--primary-light); color: var(--primary-dark); font-weight: 600;
+  }
+  .link { border: 0; background: none; color: var(--primary-dark); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; padding: 0; }
+  .rule-edit { border-top: 1px solid var(--slate-200); padding: 14px; display: grid; gap: 12px; background: #fff; }
+  .rule-edit > * { min-width: 0; }
+  .builder, .builder > * { min-width: 0; }
+  .builder select { flex: 1 1 0; min-width: 0; max-width: 100%; }
+  .label { font-size: 12px; color: var(--slate-600); margin-bottom: 4px; display: block; }
+  .builder { border: 1px solid var(--slate-200); border-radius: var(--radius-sm); padding: 10px; background: var(--slate-50); display: grid; gap: 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-family: ui-monospace, Menlo, monospace; font-size: 12px; padding: 3px 8px; border-radius: 6px; cursor: pointer; border: 1px solid; }
+  .chip.exact { background: var(--primary-light); color: var(--primary-dark); border-color: #c7d2fe; }
+  .chip.any { background: var(--warning-bg); color: var(--warning-text); border-color: var(--warning-border); font-style: italic; }
+  .chip.ignore { background: #fff; color: var(--slate-400); border-color: var(--slate-200); text-decoration: line-through; }
+  .radios { display: flex; gap: 16px; }
+  .radios label { display: flex; gap: 6px; align-items: center; }
+  .team-note { font-size: 12px; color: var(--slate-500); }
+  .empty-note { padding: 12px 14px; font-size: 13px; color: var(--slate-600); display: flex; gap: 10px; }
+
+  /* Buttons */
+  .btn { font: inherit; font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--slate-200); background: #fff; color: var(--slate-700); cursor: pointer; }
+  .btn:hover:not(:disabled) { background: var(--slate-50); }
+  .btn.ghost { border-color: transparent; color: var(--slate-600); }
+  .btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .btn.primary:hover:not(:disabled) { background: var(--primary-dark); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn[hidden], .rule[hidden] { display: none; }
+  .looking { padding: 12px 14px; font-size: 13px; color: var(--slate-500); display: flex; gap: 10px; align-items: center; }
+  .spinner { width: 14px; height: 14px; border: 2px solid var(--slate-200); border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .updated { font-size: 11px; color: var(--success-text); margin-left: 6px; }
+
+  /* Toast */
+  .toast {
+    position: fixed; right: 20px; bottom: 20px; z-index: 40; max-width: 380px;
+    background: var(--slate-900); color: #fff; border-radius: var(--radius-sm);
+    padding: 12px 14px; font-size: 13px; box-shadow: var(--shadow-lg); display: none; gap: 10px;
+  }
+  .toast.show { display: flex; }
+  .toast button { border: 0; background: none; color: #a5b4fc; font: inherit; font-weight: 600; cursor: pointer; }
+
+  /* Live match of the rule against the lines being moved */
+  .tag { display: inline-block; margin-top: 3px; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; }
+  .tag.hit { background: var(--success-bg); color: var(--success-text); }
+  .tag.miss { background: var(--warning-bg); color: var(--warning-text); }
+  .reach { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: 12px; }
+  .reach b { font-weight: 600; }
+  .reach .ok { color: var(--success-text); }
+  .reach .bad { color: var(--warning-text); }
+  .warn {
+    border: 1px solid var(--warning-border); background: var(--warning-bg); color: var(--warning-text);
+    border-radius: var(--radius-sm); padding: 8px 10px; font-size: 12px; line-height: 1.45;
+  }
+  .bad-pattern { font-size: 12px; color: var(--warning-text); }
+
+  /* Red flag: the rule also catches lines that sit in another bucket */
+  .flag {
+    margin-top: 10px; border: 1px solid #fecaca; background: #fef2f2; color: #b91c1c;
+    border-radius: var(--radius-sm); padding: 9px 11px; font-size: 12px; line-height: 1.45;
+  }
+  .flag strong { font-weight: 700; }
+  .flag .link { color: #b91c1c; }
+  .flag ul { list-style: none; margin-top: 8px; display: grid; gap: 6px; }
+  .flag li { background: #fff; border: 1px solid #fecaca; border-radius: 6px; padding: 6px 8px; color: var(--slate-700); }
+  .flag .desc { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+  .flag .from { display: inline-block; margin-top: 2px; font-size: 11px; font-weight: 600; color: #b91c1c; }
+  .same { margin-top: 6px; font-size: 12px; color: var(--slate-500); }
+
+  @media (max-width: 560px) {
+    .overlay { padding: 56px 12px 12px; }
+    .modal-foot { flex-wrap: wrap; }
+    .foot-hint { width: 100%; flex-basis: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scenarios" id="scenarios">
+  <strong>Scenario</strong>
+  <button data-s="open" class="on">1. Modal opens</button>
+  <button data-s="suggested">2. Rule found</button>
+  <button data-s="editing">3. Editing the rule</button>
+  <button data-s="none">4. No rule possible</button>
+  <button data-s="blocked">5. A row can't move</button>
+  <button data-s="missed">6. A line isn't caught</button>
+  <button data-s="reach">7. Rule reaches Checks</button>
+  <div class="scenario-note" id="scenarioNote"></div>
+</div>
+
+<div class="page" aria-hidden="true">
+  <div class="fake-head"></div>
+  <div class="fake-row"></div><div class="fake-row"></div><div class="fake-row"></div>
+  <div class="fake-row"></div><div class="fake-row"></div><div class="fake-row"></div>
+</div>
+
+<div class="overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head">
+      <h2 id="modalTitle">Move to Transfers</h2>
+      <button class="close" aria-label="Close">×</button>
+    </div>
+
+    <div class="modal-body">
+      <label class="picker" id="picker">
+        <span>Move to</span>
+        <select id="bucket">
+          <option value="">Choose a bucket</option>
+          <option value="transfer">Transfers</option>
+          <option value="check">Checks</option>
+          <option value="income_split">Payouts</option>
+        </select>
+      </label>
+
+      <p id="intro"></p>
+
+      <ul class="rows" id="rows" aria-label="Transactions to move"></ul>
+      <p class="small muted" id="count"></p>
+
+      <section class="rule" id="rule" aria-label="Rule for next time"></section>
+    </div>
+
+    <div class="modal-foot">
+      <span class="foot-hint" id="footHint"></span>
+      <button class="btn ghost" id="cancel">Cancel</button>
+      <button class="btn" id="move">Move</button>
+      <button class="btn primary" id="moveRule" hidden>Move and save rule</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"><span id="toastText"></span><button id="toastUndo">Undo</button></div>
+
+<script>
+  const LABELS = { transfer: "Transfers", check: "Checks", income_split: "Payouts", categorisation: "General" };
+  const NEXT = {
+    transfer: "They will be matched with the other side of each transfer.",
+    check: "They will wait for a scanned check image.",
+    income_split: "They will be split into gross sales, refunds and fees.",
+    categorisation: "They will be categorised with the rest.",
+  };
+
+  // [description, date, amount]; a negative amount is money out.
+  const TRANSFER_ROWS = [
+    ["02/27 Online Transfer To Chk ...2352 Transaction#: 23868227026", "Feb 27, 2025", -311.11],
+    ["02/26 Online Transfer To Chk ...2352 Transaction#: 23852533030", "Feb 26, 2025", -276.65],
+    ["02/23 Online Transfer To Chk ...2352 Transaction#: 23829560642", "Feb 24, 2025", -500.0],
+    ["02/22 Online Transfer To Chk ...2352 Transaction#: 23815121930", "Feb 24, 2025", -500.0],
+    ["02/12 Online Transfer To Chk ...0960 Transaction#: 23705653123", "Feb 12, 2025", -250.0],
+  ];
+  const MIXED_ROWS = [
+    ["UBER TRIP 8812 HELP.UBER.COM", "Mar 02, 2025", -23.4],
+    ["NETFLIX.COM 866-579-7172", "Mar 04, 2025", -15.49],
+    ["DEPOSIT CLIENT FEE", "Mar 06, 2025", 1200.0],
+  ];
+  // Other lines of this project, in every bucket: [description, date, amount, bucket].
+  const PROJECT_LINES = [
+    ["05/02 Online Transfer To Chk ...2352 Transaction#: 24011223344", "May 02, 2025", -400.0, "transfer"],
+    ["03/01 Online Transfer To Sav ...7781 Transaction#: 23911002233", "Mar 01, 2025", -1000.0, "categorisation"],
+    ["Transfer To Chk Check# 4518", "Mar 03, 2025", -1200.0, "check"],
+    ["Transfer To Chk Check# 4523", "Mar 10, 2025", -850.0, "check"],
+    ["02/28 Online Transfer To Chk ...2352 Reversal", "Feb 28, 2025", 311.11, "categorisation"],
+    ["Online Transfer From Stripe ...4410", "Mar 05, 2025", 2300.0, "income_split"],
+  ];
+  const TRANSFER_RULE = {
+    name: "Online transfer to chk -> Transfers",
+    pattern: String.raw`\bonline\W+transfer\W+to\W+chk\b`,
+    direction: "out",
+    chips: ["ignore", "exact", "exact", "exact", "exact", "ignore", "ignore", "ignore"],
+  };
+  // Every scenario opens one modal from "Move to" on General lines. `target` is the bucket already
+  // picked, to jump straight to that state; null means nothing is picked yet.
+  const SCENARIOS = {
+    open: {
+      note: "Clicking \"Move to\" opens this one modal: pick a bucket, then the rule appears in the same modal and a third button, Move and save rule, shows up. Try picking Transfers, then Checks.",
+      target: null, rows: TRANSFER_ROWS, blocked: [], rule: TRANSFER_RULE, editing: false,
+    },
+    suggested: {
+      note: "Transfers is picked and a rule was found. The card says how many of the lines being moved the rule catches, and each line is tagged.",
+      target: "transfer", rows: TRANSFER_ROWS, blocked: [], rule: TRANSFER_RULE, editing: false,
+    },
+    editing: {
+      note: "Click the chips, type in the pattern, or switch Money out / in. The tags on the lines and the count update as you edit. Try Money in: nothing is caught.",
+      target: "transfer", rows: TRANSFER_ROWS, blocked: [], rule: TRANSFER_RULE, editing: true,
+    },
+    none: {
+      note: "These lines share nothing, so no rule can be made. The modal says why, and only Cancel and Move are shown.",
+      target: "transfer", rows: MIXED_ROWS, blocked: [], rule: null, editing: false,
+    },
+    blocked: {
+      note: "A matched row can't leave its bucket. The rule is built only from the rows that will move.",
+      target: "transfer", rows: TRANSFER_ROWS, blocked: [1], rule: TRANSFER_RULE, editing: false,
+    },
+    missed: {
+      note: "The user kept \"...2352\" in the rule. The ...0960 line is not caught: it still moves now, but lines like it won't go to Transfers next time.",
+      target: "transfer", rows: TRANSFER_ROWS, blocked: [], editing: true,
+      rule: { ...TRANSFER_RULE, pattern: String.raw`\bonline\W+transfer\W+to\W+chk\W+\.\.\.2352\b`,
+              chips: ["ignore", "exact", "exact", "exact", "exact", "exact", "ignore", "ignore"] },
+    },
+    reach: {
+      note: "The user ignored \"Online\". Now the rule also catches 2 lines sitting in Checks. They stay in Checks now, but lines like them would go to Transfers next time. Click \"Online\" again and the red flag goes away.",
+      target: "transfer", rows: TRANSFER_ROWS, blocked: [], editing: true,
+      rule: { ...TRANSFER_RULE, pattern: String.raw`\btransfer\W+to\W+chk\b`,
+              chips: ["ignore", "ignore", "exact", "exact", "exact", "ignore", "ignore", "ignore"] },
+    },
+  };
+
+  let state;
+  const $ = (id) => document.getElementById(id);
+  const money = (n) => (n < 0 ? `($${Math.abs(n).toFixed(2)})` : `$${n.toFixed(2)}`);
+  const esc = (w) => w.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const isNumber = (w) => /^\d+$/.test(w);
+
+  function load(name) {
+    const s = SCENARIOS[name];
+    state = {
+      ...s, name, unticked: new Set(), justUpdated: false, showFlagged: false, looking: false,
+      rule: s.rule && { ...s.rule, chips: [...s.rule.chips], edited: false },
+    };
+    document.querySelectorAll("#scenarios button").forEach((b) => b.classList.toggle("on", b.dataset.s === name));
+    $("scenarioNote").textContent = s.note;
+    $("bucket").value = s.target || "";
+    $("toast").classList.remove("show");
+    render();
+  }
+
+  function ticked() {
+    return state.rows.filter((_, i) => !state.blocked.includes(i) && !state.unticked.has(i));
+  }
+
+  /** The rule as a RegExp, or null when the pattern is empty or not valid. */
+  function compiled() {
+    if (!state.rule || !state.rule.pattern.trim()) return null;
+    try { return new RegExp(state.rule.pattern, "i"); } catch { return null; }
+  }
+
+  function catches(re, description, amount) {
+    const wayOk = state.rule.direction === "out" ? amount < 0 : amount > 0;
+    return wayOk && re.test(description);
+  }
+
+  /** Rebuild the pattern from the chips (the readable form a learned rule uses). */
+  function fromChips() {
+    const words = state.rows[0][0].split(/\s+/);
+    const parts = [];
+    let gap = false;
+    words.forEach((w, i) => {
+      const st = state.rule.chips[i];
+      if (st === "ignore") { if (parts.length) gap = true; return; }
+      const piece = st === "any" ? String.raw`\d+` : esc(w);
+      if (parts.length) parts.push(gap ? ".*" : String.raw`\W+`);
+      parts.push(piece);
+      gap = false;
+    });
+    const anchored = state.rule.chips[0] !== "ignore";
+    const allKept = state.rule.chips[state.rule.chips.length - 1] !== "ignore";
+    return parts.length ? `${anchored ? String.raw`^\s*` : String.raw`\b`}${parts.join("")}${state.rule.whole && allKept ? String.raw`\s*$` : ""}` : "";
+  }
+
+  /** The pattern in words, roughly as the Routing Rules page says it. */
+  function sentenceFor(pattern) {
+    const start = /^\^\\s\*/.test(pattern);
+    const end = /\\s\*\$$/.test(pattern);
+    const body = pattern.replace(/^\^\\s\*/, "").replace(/\\s\*\$$/, "").replace(/\\b/g, "");
+    const words = body
+      .split(/\\W\+|\.\*/)
+      .map((w) => (w === "\\d+" ? "a number" : w.replace(/\\(.)/g, "$1").toUpperCase()))
+      .filter(Boolean);
+    if (!words.length) return "matches the pattern";
+    // Words next to each other read as one phrase; a number splits the phrase.
+    const runs = [];
+    words.forEach((w) => {
+      if (w === "a number") runs.push(w);
+      else if (runs.length && runs[runs.length - 1] !== "a number") runs[runs.length - 1] += ` ${w}`;
+      else runs.push(w);
+    });
+    const quoted = runs.map((r) => (r === "a number" ? r : `<span class="chip-q">“${r}”</span>`)).join(", ");
+    return `${start && end ? "says exactly" : start ? "starts with" : "says"} ${quoted}`;
+  }
+
+  function render() {
+    const target = state.target;
+    const label = target ? LABELS[target] : null;
+    $("modalTitle").textContent = label ? `Move to ${label}` : "Move transactions";
+    $("intro").textContent = target
+      ? `The ticked transactions move to ${label} and keep their account, counterparty and type. ${NEXT[target]} Approved rows go back to For Review.`
+      : "Pick the bucket to move the ticked transactions to. If they have enough in common, a rule for next time is suggested.";
+
+    const re = target && state.rule && !state.looking ? compiled() : null;
+    $("rows").innerHTML = state.rows.map(([desc, date, amount], i) => {
+      const blocked = state.blocked.includes(i);
+      const willMove = !blocked && !state.unticked.has(i);
+      const tag = re && willMove
+        ? (catches(re, desc, amount) ? '<span class="tag hit">Caught by the rule</span>' : '<span class="tag miss">Not caught by the rule</span>')
+        : "";
+      return `<li class="${blocked ? "blocked" : ""}">
+        <input type="checkbox" data-i="${i}" ${blocked ? "disabled" : ""} ${willMove ? "checked" : ""} aria-label="Move transaction ${i + 1}">
+        <div><div class="desc">${desc}</div><div class="meta">${date} · ${money(amount)}</div>
+        ${blocked ? '<div class="why">Matched with its other side. Unmatch it first to move it.</div>' : ""}${tag}</div>
+      </li>`;
+    }).join("");
+    $("rows").querySelectorAll("input").forEach((box) => box.addEventListener("change", () => {
+      const i = Number(box.dataset.i);
+      state.unticked.has(i) ? state.unticked.delete(i) : state.unticked.add(i);
+      state.justUpdated = true;
+      render();
+    }));
+
+    const n = ticked().length;
+    $("count").textContent = n === 0 ? "Tick at least one transaction to move." : `${n} of ${state.rows.length} will move.`;
+
+    const flagged = renderRule(n, re) || 0;
+
+    // The third button shows only once a bucket is picked and a rule was found for the ticked lines.
+    const ruleFound = Boolean(target && state.rule && !state.looking && n > 0);
+    const ruleOk = ruleFound && re;
+    $("move").disabled = n === 0 || !target;
+    $("moveRule").hidden = !ruleFound;
+    $("moveRule").disabled = !ruleOk;
+    $("footHint").textContent = !target ? "Pick a bucket first."
+      : state.looking ? ""
+      : (ruleFound && !re ? "Fix the pattern to save the rule."
+      : (ruleOk && flagged ? `⚠ The rule also catches ${flagged} line${flagged === 1 ? "" : "s"} in another bucket.` : ""));
+    $("footHint").style.color = ruleOk && flagged ? "#b91c1c" : "";
+  }
+
+  function renderRule(n, re) {
+    const box = $("rule");
+    box.className = "rule";
+    box.hidden = !state.target;
+    if (!state.target) return;
+    if (state.looking) {
+      box.innerHTML = `<div class="looking"><span class="spinner"></span>Looking for a rule for these lines…</div>`;
+      return;
+    }
+    if (n === 0) {
+      box.innerHTML = `<div class="empty-note"><span class="icon">✨</span><span>Tick at least one transaction to see a rule for next time.</span></div>`;
+      return;
+    }
+    if (!state.rule) {
+      box.innerHTML = `<div class="empty-note"><span class="icon">ⓘ</span><span><strong>No rule for next time.</strong><br>
+        <span class="muted">These lines have too little in common to make one rule. You can still move them, or add a rule on the Routing Rules page.</span></span></div>`;
+      return;
+    }
+    box.classList.add("ready");
+    const label = LABELS[state.target];
+    const moving = ticked();
+    const caught = re ? moving.filter(([d, , a]) => catches(re, d, a)).length : 0;
+    const way = state.rule.direction === "out" ? "money went out" : "money came in";
+
+    const partOf = state.unticked.size || state.blocked.length ? "ticked lines" : "lines";
+    const reach = re ? `
+      <div class="reach">
+        <span class="${caught === moving.length ? "ok" : "bad"}">Catches <b>${caught} of ${moving.length}</b> ${partOf} in this cluster.</span>
+      </div>` : "";
+
+    // Other lines of the project the rule would also catch, split by whether they sit in the target bucket.
+    const alsoCaught = re ? PROJECT_LINES.filter(([d, , a]) => catches(re, d, a)) : [];
+    const sameBucket = alsoCaught.filter((l) => l[3] === state.target);
+    const otherBucket = alsoCaught.filter((l) => l[3] !== state.target);
+    const byBucket = {};
+    otherBucket.forEach((l) => { byBucket[l[3]] = (byBucket[l[3]] || 0) + 1; });
+    const where = Object.entries(byBucket)
+      .map(([b, c]) => `${c} line${c === 1 ? "" : "s"} in ${LABELS[b]}`).join(" and ");
+    const fromNames = [...new Set(otherBucket.map((l) => LABELS[l[3]]))].join(" or ");
+    const flag = otherBucket.length ? `
+      <div class="flag" role="alert">
+        <strong>⚠ This rule also catches ${where}.</strong>
+        ${otherBucket.length === 1 ? "It stays where it is" : "They stay where they are"} now, but lines like ${otherBucket.length === 1 ? "it" : "them"} would go to ${label} next time instead of ${fromNames}.
+        <button class="link" id="toggleFlagged">${state.showFlagged ? "Hide lines" : "Show lines"}</button>
+        ${state.showFlagged ? `<ul>${otherBucket.map(([d, date, a, b]) => `
+          <li><div class="desc">${d}</div><div class="meta muted small">${date} · ${money(a)}</div>
+          <span class="from">Now in ${LABELS[b]} → would go to ${label}</span></li>`).join("")}</ul>` : ""}
+      </div>` : "";
+    const same = sameBucket.length
+      ? `<div class="same">Also matches ${sameBucket.length} line${sameBucket.length === 1 ? "" : "s"} already in ${label}. No change for ${sameBucket.length === 1 ? "it" : "them"}.</div>`
+      : "";
+
+    const missed = moving.length - caught;
+    const warnings = re && missed
+      ? [`${missed} line${missed === 1 ? " isn't" : "s aren't"} caught by this rule. ${missed === 1 ? "It still moves" : "They still move"} now, but lines like ${missed === 1 ? "it" : "them"} won't go to ${label} next time.`]
+      : [];
+
+    const words = state.rows[0][0].split(/\s+/);
+    box.innerHTML = `
+      <div class="rule-head">
+        <span class="icon">✨</span>
+        <div style="flex:1; min-width:0">
+          <div class="rule-title">Rule for next time${state.justUpdated ? '<span class="updated">Updated for the ticked lines</span>' : ""}</div>
+          <div class="rule-sentence">If a bank line ${sentenceFor(state.rule.pattern)} and ${way} → <span class="bucket-chip">${label}</span></div>
+          ${reach}${flag}${same}
+          <div class="team-note" style="margin-top:6px">Applies to future imports on every bank account of this team. Transactions already imported stay where they are.</div>
+        </div>
+        <button class="link" id="toggleEdit">${state.editing ? "Hide" : "Edit rule"}</button>
+      </div>
+      ${state.editing ? `
+      <div class="rule-edit">
+        ${warnings.map((w) => `<div class="warn">${w}</div>`).join("")}
+        <div><span class="label">Name</span><input type="text" id="ruleName" value="${state.rule.name}"></div>
+        <div>
+          <span class="label">Pattern</span>
+          <div class="builder">
+            <div class="small" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+              <span>Build from</span><select class="small"><option>${state.rows[0][0]}</option></select>
+              <span style="flex:1"></span>
+              <button class="btn small" id="strict" style="padding:4px 10px">Strict</button>
+              <button class="btn small" id="broadBtn" style="padding:4px 10px">Broad</button>
+            </div>
+            <div class="chips">${words.map((w, i) => {
+              const st = state.rule.chips[i] || "ignore";
+              return `<span class="chip ${st}" data-c="${i}" title="Click to change">${st === "any" ? "‹" + w + "›" : w}</span>`;
+            }).join("")}</div>
+            <div class="small muted">Click a word: <b style="color:var(--primary-dark)">exact</b> → <b style="color:var(--warning-text)">a number</b> (number words only) → <s>ignored</s></div>
+          </div>
+          <textarea rows="2" id="pattern" style="margin-top:8px">${state.rule.pattern}</textarea>
+          ${re ? "" : '<div class="bad-pattern">This pattern isn\'t valid, so nothing is caught.</div>'}
+        </div>
+        <div><span class="label">Direction</span>
+          <div class="radios">
+            <label><input type="radio" name="dir" value="out" ${state.rule.direction === "out" ? "checked" : ""}> Money out</label>
+            <label><input type="radio" name="dir" value="in" ${state.rule.direction === "in" ? "checked" : ""}> Money in</label>
+          </div>
+        </div>
+      </div>` : (warnings.length ? `<div class="rule-edit">${warnings.map((w) => `<div class="warn">${w}</div>`).join("")}</div>` : "")}`;
+
+    $("toggleEdit").addEventListener("click", () => { state.editing = !state.editing; render(); });
+    $("toggleFlagged")?.addEventListener("click", () => { state.showFlagged = !state.showFlagged; render(); });
+    if (!state.editing) return otherBucket.length;
+    $("ruleName").addEventListener("input", (e) => { state.rule.name = e.target.value; });
+    $("pattern").addEventListener("change", (e) => { state.rule.pattern = e.target.value; render(); });
+    box.querySelectorAll('input[name="dir"]').forEach((r) => r.addEventListener("change", (e) => { state.rule.direction = e.target.value; render(); }));
+    box.querySelectorAll(".chip").forEach((chip) => chip.addEventListener("click", () => {
+      const i = Number(chip.dataset.c);
+      const cur = state.rule.chips[i] || "ignore";
+      state.rule.chips[i] = cur === "exact" ? (isNumber(words[i]) ? "any" : "ignore") : cur === "any" ? "ignore" : "exact";
+      state.rule.whole = false;
+      state.rule.pattern = fromChips();
+      render();
+    }));
+    $("strict").addEventListener("click", () => {
+      state.rule.chips = words.map((w) => (/\d/.test(w) ? (isNumber(w) ? "any" : "ignore") : "exact"));
+      state.rule.whole = true;
+      state.rule.pattern = fromChips();
+      render();
+    });
+    $("broadBtn").addEventListener("click", () => {
+      const sets = ticked().map(([d]) => new Set(d.toUpperCase().split(/\s+/)));
+      state.rule.chips = words.map((w) => (sets.every((s) => s.has(w.toUpperCase())) ? "exact" : "ignore"));
+      state.rule.whole = false;
+      state.rule.pattern = fromChips();
+      render();
+    });
+    return otherBucket.length;
+  }
+
+  function toast(text, undo) {
+    $("toastText").textContent = text;
+    $("toastUndo").style.display = undo ? "inline" : "none";
+    $("toast").classList.add("show");
+    clearTimeout(toast.t);
+    toast.t = setTimeout(() => $("toast").classList.remove("show"), 5000);
+  }
+
+  $("scenarios").addEventListener("click", (e) => { if (e.target.dataset.s) load(e.target.dataset.s); });
+  // Picking a bucket asks the server for a rule; the mock waits a moment to show that step.
+  $("bucket").addEventListener("change", (e) => {
+    state.target = e.target.value || null;
+    state.justUpdated = false;
+    state.showFlagged = false;
+    state.looking = Boolean(state.target);
+    render();
+    clearTimeout(state.lookTimer);
+    if (state.looking) state.lookTimer = setTimeout(() => { state.looking = false; render(); }, 700);
+  });
+  $("cancel").addEventListener("click", () => toast("Nothing moved.", false));
+  $("move").addEventListener("click", () => toast(`Moved ${ticked().length} transactions to ${LABELS[state.target]}.`, false));
+  $("moveRule").addEventListener("click", () =>
+    toast(`Moved ${ticked().length} transactions to ${LABELS[state.target]}. Rule saved: similar transactions will go there on future imports.`, true));
+  $("toastUndo").addEventListener("click", () => toast("Rule switched off. The move stays.", false));
+
+  // Keep the modal below the scenario bar, whose height changes with the window width.
+  const fitOverlay = () => {
+    document.querySelector(".overlay").style.paddingTop = `${$("scenarios").offsetHeight + 24}px`;
+  };
+  window.addEventListener("resize", fitOverlay);
+  fitOverlay();
+
+  load("suggested");
+</script>
+</body>
+</html>
