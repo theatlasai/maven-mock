@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cluster Counterparty Suggestion</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary:       #6366f1;
+    --primary-light: #eef2ff;
+    --primary-dark:  #4f46e5;
+    --ink:    #1c2434;
+    --muted:  #8a91a0;
+    --line:   #e7e5df;
+    --line-2: #eeece6;
+    --paper:  #fbfaf7;
+    --ai:        #9a6b14;
+    --ai-dark:   #6f4f11;
+    --ai-bg:     #faf1da;
+    --ai-border: #ecdcb8;
+    --ok-bg:  #f0fdf4; --ok-text: #15803d; --ok-border: #bbf7d0;
+    --warn-bg: #fffbeb; --warn-text: #b45309; --warn-border: #fde68a;
+    --radius: 13px; --radius-sm: 9px;
+    --shadow: 0 1px 2px rgba(28,36,52,.04), 0 6px 22px rgba(28,36,52,.05);
+    --shadow-lg: 0 20px 40px -12px rgb(15 23 42 / .25);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 13px; background: #f4f3ef; color: var(--ink); min-height: 100vh;
+  }
+
+  /* ── Scenario bar (mock only) ── */
+  .scenarios {
+    position: sticky; top: 0; z-index: 30;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+    padding: 10px 16px; background: #0f172a; color: #fff;
+  }
+  .scenarios strong { font-size: 12px; margin-right: 6px; color: #cbd5e1; }
+  .scenarios button {
+    font: inherit; font-size: 12px; padding: 5px 10px; border-radius: 999px;
+    border: 1px solid #475569; background: transparent; color: #e2e8f0; cursor: pointer;
+  }
+  .scenarios button.on { background: #fff; color: #0f172a; border-color: #fff; }
+  .scenario-note { width: 100%; font-size: 12px; color: #94a3b8; padding-top: 2px; }
+
+  .page { max-width: 1120px; margin: 0 auto; padding: 24px 16px 80px; display: grid; gap: 16px; }
+  .page > * { min-width: 0; }
+  .crumbs { font-size: 12px; color: var(--muted); }
+  .crumbs b { color: var(--ink); }
+
+  /* ── Cluster card (mirrors TransactionReviewFeed group card) ── */
+  .card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .card-head { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--radius) var(--radius) 0 0; background: linear-gradient(to bottom, #faf1da, #fff); cursor: pointer; }
+  .kind {
+    display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+    font-size: 10.5px; font-weight: 700; letter-spacing: .02em; padding: 3px 9px; border-radius: 6px;
+    background: #fff; border: 1px solid var(--ai-border); color: var(--ai);
+  }
+  .kind svg { width: 11px; height: 11px; }
+  .head-main { flex: 1; min-width: 0; }
+  .label { font-size: 14px; font-weight: 700; letter-spacing: -.01em; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sub { font-size: 12px; color: var(--ai-dark); margin-top: 2px; }
+  .head-count { font-size: 12.5px; font-weight: 600; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .chev { width: 18px; height: 18px; color: var(--muted); flex-shrink: 0; transform: rotate(180deg); }
+
+  /* ── NEW: suggestion entry points ── */
+  .mini-conf { font-size: 11px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .mini-conf.low { color: var(--warn-text); }
+  .btn.ai-soft { background: var(--ai-bg); border-color: var(--ai-border); color: var(--ai-dark); }
+  .btn.ai-soft:hover { background: #f3e5c0; }
+  .kebab-wrap { margin-left: auto; position: relative; }
+  .menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 5; min-width: 240px; background: #fff; border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow-lg); padding: 4px; display: grid; }
+  .menu[hidden] { display: none; }
+  .menu button { text-align: left; font: inherit; font-size: 13px; border: 0; background: none; padding: 8px 10px; border-radius: 6px; cursor: pointer; color: #384152; }
+  .menu button:hover { background: var(--paper); }
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 16px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; font-weight: 600;
+    padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: #fff; color: #384152; cursor: pointer;
+  }
+  .btn svg { width: 14px; height: 14px; }
+  .btn:hover:not(:disabled) { background: var(--paper); }
+  .btn.approve { background: #2f5d50; border-color: #2f5d50; color: #fff; }
+  .btn.ai { background: var(--ai); border-color: var(--ai); color: #fff; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .kebab { padding: 6px 10px; }
+
+  /* Table */
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 860px; }
+  th { background: var(--paper); text-align: left; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line-2); white-space: nowrap; }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--line-2); vertical-align: middle; font-size: 13px; color: #384152; }
+  tr:last-child td { border-bottom: 0; }
+  tr.ticked td { background: #f7f8ff; }
+  td.date { font-family: ui-monospace, Menlo, monospace; font-size: 12px; white-space: nowrap; }
+  td.date .rchev { color: #cbd5e1; margin-right: 8px; font-size: 10px; }
+  td.desc { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: #0f172a; }
+  td.amt { font-family: ui-monospace, Menlo, monospace; font-weight: 700; color: #b4442b; white-space: nowrap; }
+  td.cp .dash { color: var(--muted); }
+  td.cp .flash { animation: flash 1.4s ease-out; border-radius: 4px; padding: 1px 4px; margin-left: -4px; }
+  td.rowmenu { color: var(--muted); text-align: center; width: 28px; }
+  @keyframes flash { from { background: #fde68a; } to { background: transparent; } }
+  input[type=checkbox] { accent-color: var(--primary); width: 15px; height: 15px; }
+  .status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 2px 10px; border-radius: 999px; white-space: nowrap; border: 1px solid; }
+  .status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .status.review { background: var(--warn-bg); color: var(--warn-text); border-color: var(--warn-border); }
+  .status.posted { background: var(--ok-bg); color: var(--ok-text); border-color: var(--ok-border); }
+  .status.flagged { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+  .status.excluded { background: #f8fafc; color: #64748b; border-color: #e2e8f0; }
+  .who { font-size: 11px; color: var(--muted); margin-left: 6px; }
+  td.cp .ai-unknown { color: var(--muted); font-style: italic; }
+
+  /* ── Modal ── */
+  .overlay { position: fixed; inset: 0; z-index: 40; display: flex; align-items: flex-start; justify-content: center; padding: 70px 16px 24px; background: rgb(15 23 42 / .35); overflow-y: auto; }
+  .overlay[hidden] { display: none; }
+  .modal { width: 100%; max-width: 600px; background: #fff; border-radius: 16px; box-shadow: var(--shadow-lg); }
+  .modal-head { display: flex; align-items: center; gap: 10px; padding: 18px 22px; border-bottom: 1px solid #e2e8f0; }
+  .modal-head h2 { font-size: 16px; font-weight: 600; flex: 1; }
+  .close { border: 0; background: none; font-size: 20px; color: #94a3b8; cursor: pointer; }
+  .modal-body { padding: 18px 22px; display: grid; gap: 14px; }
+  .modal-foot { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 14px 22px; border-top: 1px solid #e2e8f0; }
+  .foot-hint { flex: 1; font-size: 12px; color: #64748b; }
+  .field-label { font-size: 12px; color: #475569; margin-bottom: 4px; display: block; }
+  .name-wrap { position: relative; }
+  .name-wrap input { width: 100%; font: inherit; font-size: 14px; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); padding: 8px 10px; }
+  .name-wrap input:focus { outline: 2px solid #c7d2fe; border-color: var(--primary); }
+  .suggest-list { position: absolute; left: 0; right: 0; top: calc(100% + 4px); background: #fff; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); box-shadow: var(--shadow-lg); list-style: none; z-index: 2; max-height: 180px; overflow-y: auto; }
+  .suggest-list li { padding: 7px 10px; cursor: pointer; display: flex; justify-content: space-between; }
+  .suggest-list li:hover { background: #f8fafc; }
+  .suggest-list .tag { font-size: 11px; color: #94a3b8; }
+  .why { font-size: 12px; color: #64748b; line-height: 1.5; }
+  .why b { color: #334155; }
+  .match { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid; font-size: 12.5px; line-height: 1.45; }
+  .match.new { background: var(--primary-light); border-color: #c7d2fe; color: #3730a3; }
+  .match.existing { background: var(--ok-bg); border-color: var(--ok-border); color: var(--ok-text); }
+  .match.inactive { background: var(--warn-bg); border-color: var(--warn-border); color: var(--warn-text); }
+  .match.error { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+  .rows { list-style: none; max-height: 210px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); }
+  .rows li { display: flex; gap: 10px; padding: 8px 10px; border-top: 1px solid #f1f5f9; }
+  .rows li:first-child { border-top: 0; }
+  .rows li.skip { opacity: .6; }
+  .rows .d { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: #334155; }
+  .rows .m { font-size: 11px; color: #64748b; }
+  .rows .r { font-size: 11px; color: var(--warn-text); }
+  .rows-head { display: flex; justify-content: space-between; align-items: baseline; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 50; background: #1f2a3c; color: #fff; padding: 10px 16px; border-radius: 10px; font-size: 13px; box-shadow: var(--shadow-lg); display: flex; gap: 12px; align-items: center; max-width: calc(100% - 32px); }
+  .toast[hidden] { display: none; }
+  .toast button { border: 0; background: none; color: #a5b4fc; font: inherit; font-weight: 600; cursor: pointer; }
+
+  .notes { background: #fff; border: 1px dashed #cbd5e1; border-radius: var(--radius); padding: 14px 16px; font-size: 12.5px; color: #475569; line-height: 1.6; }
+  .notes h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; margin-bottom: 6px; }
+  .notes li { margin-left: 18px; }
+
+
+  /* ── Create counterparty drawer (mirrors MasterDataDrawer) ── */
+  .drawer-wrap[hidden] { display: none; }
+  .drawer-backdrop { position: fixed; inset: 0; z-index: 60; background: rgb(15 23 42 / .4); backdrop-filter: blur(2px); }
+  .drawer { position: fixed; top: 0; right: 0; z-index: 61; height: 100%; width: 100%; max-width: 448px; background: #fff; box-shadow: var(--shadow-lg); display: flex; flex-direction: column; }
+  .d-head { display: flex; align-items: flex-start; gap: 12px; padding: 20px 24px; border-bottom: 1px solid #e2e8f0; background: linear-gradient(135deg, #eef2ff99, #fff 60%); }
+  .d-icon { flex-shrink: 0; width: 36px; height: 36px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; background: #e0e7ff; color: var(--primary-dark); font-size: 18px; }
+  .d-titles { flex: 1; }
+  .d-titles h2 { font-size: 16px; font-weight: 700; }
+  .d-titles p { font-size: 12.5px; color: #64748b; margin-top: 2px; line-height: 1.45; }
+  .d-body { flex: 1; overflow-y: auto; padding: 20px 24px; display: grid; gap: 18px; align-content: start; }
+  .d-label { display: block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #334155; margin-bottom: 6px; }
+  .d-label i { color: #ef4444; font-style: normal; }
+  .d-input { width: 100%; font: inherit; font-size: 14px; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; }
+  .d-input:focus { outline: 4px solid #6366f11a; border-color: var(--primary); }
+  .types { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .type-card { position: relative; text-align: left; font: inherit; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; cursor: pointer; display: grid; gap: 2px; }
+  .type-card.on { border: 2px solid #818cf8; background: #eef2ff; padding: 9px 11px; }
+  .type-card.on::after { content: ""; position: absolute; top: 8px; right: 8px; width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
+  .t-label { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .type-card.on .t-label { color: #3730a3; }
+  .t-hint { font-size: 11.5px; color: #64748b; }
+  .d-alert { display: flex; gap: 10px; padding: 10px 14px; background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 8px; font-size: 13px; color: #78350f; }
+  .d-alert[hidden], .d-hint[hidden] { display: none; }
+  .d-alert .btn.sm { margin-top: 8px; font-size: 12px; padding: 4px 10px; }
+  .d-hint { font-size: 12px; color: #64748b; }
+  .apply { border: 1px solid var(--ai-border); background: #fffcf4; border-radius: 10px; padding: 12px; display: grid; gap: 10px; }
+  .apply-top { display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; }
+  .apply-title { font-weight: 600; font-size: 13px; }
+  .apply-sub { font-size: 12px; color: #64748b; margin-top: 2px; line-height: 1.45; }
+  .apply-note { font-size: 11.5px; color: #64748b; }
+  .apply .rows { background: #fff; }
+  .link { border: 0; background: none; color: var(--primary-dark); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .d-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 16px 24px; border-top: 1px solid #e2e8f0; background: #f8fafccc; }
+  .btn.ghost { border-color: transparent; background: transparent; }
+  .btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+  @media (max-width: 640px) {
+    .label { white-space: normal; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scenarios" id="scenarios">
+  <strong>ATLS-367 scenarios</strong>
+  <div class="scenario-note" id="scenarioNote"></div>
+</div>
+
+<div class="page">
+  <div id="card"></div>
+
+  <div class="notes">
+    <h3>What this mock shows</h3>
+    <ul>
+      <li>When the AI named a vendor for rows that have no counterparty, the action row gets one more button: <b>✦ Set counterparty: DoorDash 92%</b>. The % is the AI's confidence in the name and turns amber under 70%. Any score is shown; if the AI can only say something vague ("Bank", "Payment", "Transfer") it gives no suggestion and there's no button.</li>
+      <li>A row counts as empty when it has no counterparty (—), or when the <b>AI</b> set it to "Unknown". "Unknown" picked by a person or a rule is left alone.</li>
+      <li>Only <b>For Review</b> rows are filled. Posted, Flagged and Excluded rows are skipped. Only the counterparty changes; COA and type stay.</li>
+      <li>If the name is already a counterparty, the button opens a small confirm, where the name can also be changed. If it's new, it opens the existing <b>Create counterparty</b> drawer (name + type); "Create and apply to N" does both. If the name turns out to exist (active or switched off), the drawer says so after Create is clicked, as it does today, and offers to use or reactivate it. No duplicate is created.</li>
+      <li>Tick rows first to apply to just those rows. With nothing ticked, the button ticks every row in the cluster (Cancel unticks them).</li>
+      <li>Filled rows become <b>manual</b> (a person applied them). There is no Undo for now.</li>
+      <li>The ⋮ menu is unchanged. The button goes away once every empty row has a counterparty.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="modal-head">
+      <h2 id="mTitle">Set counterparty</h2>
+      <button class="close" aria-label="Close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <label class="field-label" for="cpName">Counterparty</label>
+        <div class="name-wrap">
+          <input id="cpName" type="text" autocomplete="off" />
+          <ul class="suggest-list" id="cpList" hidden></ul>
+        </div>
+      </div>
+      <div class="match" id="mMatch"></div>
+      <div>
+        <div class="rows-head">
+          <span class="field-label" id="rowsLabel"></span>
+          <span class="field-label" id="rowsScope"></span>
+        </div>
+        <ul class="rows" id="mRows"></ul>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn ai" id="mApply" onclick="confirmApply()"></button>
+    </div>
+  </div>
+</div>
+
+
+<div class="drawer-wrap" id="drawer" hidden>
+  <div class="drawer-backdrop" onclick="closeDrawer()"></div>
+  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+    <div class="d-head">
+      <span class="d-icon">+</span>
+      <div class="d-titles">
+        <h2 id="dTitle">Create counterparty</h2>
+        <p>Added to your master list, then set on this cluster's rows</p>
+      </div>
+      <button class="close" aria-label="Close" onclick="closeDrawer()">×</button>
+    </div>
+    <form class="d-body" onsubmit="event.preventDefault(); createAndApply();">
+      <div>
+        <label class="d-label" for="dName">Name <i>*</i></label>
+        <input id="dName" class="d-input" type="text" autocomplete="off" />
+      </div>
+      <div>
+        <span class="d-label">Type <i>*</i></span>
+        <div class="types" id="dTypes"></div>
+      </div>
+      <div class="d-alert" id="dAlert" hidden></div>
+      <div class="d-hint" id="dHint">✧ You can edit the type later from the Counterparties page.</div>
+    </form>
+    <div class="d-foot">
+      <button class="btn ghost" onclick="closeDrawer()">Cancel</button>
+      <button class="btn primary" id="dSubmit" onclick="createAndApply()"></button>
+    </div>
+  </aside>
+</div>
+
+<div class="toast" id="toast" hidden><span id="toastText"></span></div>
+
+<script>
+  // Team counterparty master data (mock).
+  const BASE_COUNTERPARTIES = [
+    { name: "Amazon", active: true }, { name: "Chipotle", active: true },
+    { name: "Comcast", active: true }, { name: "Gusto", active: true },
+    { name: "Starbucks", active: true }, { name: "Uber", active: true },
+    { name: "Grubhub", active: false }, { name: "Shell", active: true },
+  ];
+
+  const doordashRows = (n) => Array.from({ length: n }, (_, i) => ({
+    id: i + 1,
+    date: `Oct ${28 - i}, 2026`,
+    desc: `DOORDASH*ORDER ${48210 + i * 37} SAN FRANCISCO CA`,
+    amount: -(18.4 + ((i * 7.31) % 41)).toFixed(2),
+    coa: "Meals & Entertainment",
+    cp: "", src: "llm", status: "review",
+  }));
+
+  const SCENARIOS = {
+    newHigh: {
+      title: "New vendor · 92%",
+      note: "DoorDash isn't in the team's counterparty list, so every row shows –. The AI is confident; Apply opens the Create counterparty drawer prefilled with DoorDash; the reviewer picks the type.",
+      label: "DoorDash food delivery orders",
+      sample: "DOORDASH*ORDER 48210 SAN FRANCISCO CA",
+      suggestion: { name: "DoorDash", conf: 92 },
+      rows: doordashRows(12),
+    },
+    existingLow: {
+      title: "Existing name · 62%",
+      note: "The team has a counterparty named \"Unknown\", so the AI's \"Unknown\" landed on it and the rows show Unknown. They still count as empty because the AI set them. The AI thinks it's Uber (already a counterparty) but only at 62%, so the % is amber; applying uses the existing Uber.",
+      label: "Ride share trips",
+      sample: "UBR* PENDING.UBER.COM 8005928996",
+      suggestion: { name: "Uber", conf: 62 },
+      rows: Array.from({ length: 7 }, (_, i) => ({
+        id: i + 1, date: `Oct ${25 - i * 2}, 2026`,
+        desc: `UBR* PENDING.UBER.COM ${8005928996 + i}`,
+        amount: -(11.2 + i * 3.4).toFixed(2), coa: "Travel", cp: "Unknown", src: "llm", status: "review",
+      })),
+    },
+    mixed: {
+      title: "Some rows skipped",
+      note: "A reviewer set Starbucks on one row and picked \"Unknown\" on purpose on another; one row is Posted, one Flagged, one Excluded. All five are skipped; only the 7 empty For Review rows are filled.",
+      label: "DoorDash food delivery orders",
+      sample: "DOORDASH*ORDER 48210 SAN FRANCISCO CA",
+      suggestion: { name: "DoorDash", conf: 92 },
+      rows: doordashRows(12).map((r, i) =>
+        i === 2 ? { ...r, cp: "Starbucks", src: "manual" } :
+        i === 6 ? { ...r, cp: "Unknown", src: "manual" } :
+        i === 8 ? { ...r, status: "flagged" } :
+        i === 9 ? { ...r, status: "posted" } :
+        i === 11 ? { ...r, status: "excluded" } : r),
+    },
+    ticked: {
+      title: "Only ticked rows",
+      note: "The reviewer ticked 3 rows first. The drawer says 3 ticked rows, and after apply the pill stays for the other 9.",
+      label: "DoorDash food delivery orders",
+      sample: "DOORDASH*ORDER 48210 SAN FRANCISCO CA",
+      suggestion: { name: "DoorDash", conf: 92 },
+      rows: doordashRows(12),
+      ticked: [1, 2, 3],
+    },
+    inactive: {
+      title: "Matches an inactive one",
+      note: "Grubhub exists but was switched off, so it isn't an active match and the Create counterparty drawer opens. Clicking Create shows that Grubhub already exists (as the drawer does today), with 'Reactivate and apply' instead of creating a duplicate.",
+      label: "Grubhub delivery",
+      sample: "GRUBHUB*ACMEBAKERY 877-585-7878",
+      suggestion: { name: "Grubhub", conf: 88 },
+      rows: Array.from({ length: 5 }, (_, i) => ({
+        id: i + 1, date: `Oct ${20 - i * 3}, 2026`,
+        desc: `GRUBHUB*ACMEBAKERY ${877585 + i}`,
+        amount: -(24 + i * 6.5).toFixed(2), coa: "Meals & Entertainment", cp: "", src: "llm", status: "review",
+      })),
+    },
+    none: {
+      title: "No suggestion",
+      note: "The AI couldn't name a real vendor (only something vague like \"Bank fee\"), so it gave no suggestion. No button; the card looks like today.",
+      label: "Miscellaneous card fees",
+      sample: "INTL TXN FEE 0.30 PCT",
+      suggestion: null,
+      rows: Array.from({ length: 4 }, (_, i) => ({
+        id: i + 1, date: `Oct ${22 - i * 4}, 2026`,
+        desc: `INTL TXN FEE ${(0.3 + i * 0.1).toFixed(2)} PCT`,
+        amount: -(1.2 + i).toFixed(2), coa: "Bank Charges", cp: "", src: "llm", status: "review",
+      })),
+    },
+  };
+
+  let COUNTERPARTIES = [];
+  let current = "newHigh";
+  let state;
+
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  const norm = (s) => s.trim().replace(/\s+/g, " ").toLowerCase();
+  const findCp = (name) => COUNTERPARTIES.find((c) => norm(c.name) === norm(name));
+  const money = (n) => (n < 0 ? "−$" : "$") + Math.abs(n).toFixed(2);
+
+  // Empty = no counterparty, or "Unknown" that the AI set. Only For Review rows are filled.
+  const aiUnknown = (r) => r.cp === "Unknown" && r.src === "llm";
+  function eligible(r) { return r.status === "review" && (!r.cp || aiUnknown(r)); }
+  const STATUS_LABEL = { review: "For Review", posted: "Posted", flagged: "Flagged", excluded: "Excluded" };
+  function scopeRows() {
+    const t = state.rows.filter((r) => state.ticked.includes(r.id));
+    return t.length ? t : state.rows;
+  }
+
+  function renderScenarios() {
+    const bar = document.getElementById("scenarios");
+    bar.querySelectorAll("button").forEach((b) => b.remove());
+    const note = document.getElementById("scenarioNote");
+    Object.entries(SCENARIOS).forEach(([key, s]) => {
+      const b = document.createElement("button");
+      b.textContent = s.title;
+      b.className = key === current ? "on" : "";
+      b.onclick = () => { current = key; resetScenario(); };
+      bar.insertBefore(b, note);
+    });
+    note.textContent = SCENARIOS[current].note;
+  }
+
+  function resetScenario() {
+    const s = SCENARIOS[current];
+    COUNTERPARTIES = clone(BASE_COUNTERPARTIES);
+    state = { ...clone(s), ticked: [...(s.ticked || [])], justFilled: [], excluded: [] };
+    document.getElementById("toast").hidden = true;
+    renderScenarios();
+    renderCard();
+  }
+
+  function suggestionLive() {
+    const s = state.suggestion;
+    return s && state.rows.some(eligible) ? s : null;
+  }
+  // Low is said in words as well as colour (frontend constitution: state legible without colour).
+  const confHtml = (s) => `<span class="mini-conf ${s.conf < 70 ? "low" : ""}" title="AI confidence in this name">${s.conf}%${s.conf < 70 ? " low" : ""}</span>`;
+
+  function actionBtnHtml() {
+    const s = suggestionLive();
+    if (!s) return "";
+    return `<button class="btn ai-soft" onclick="openModal()" title="AI-suggested counterparty for the rows without one">
+      ✦ Set counterparty: ${s.name} ${confHtml(s)}</button>`;
+  }
+  function toggleMenu(e) {
+    e.stopPropagation();
+    const m = document.getElementById("kebabMenu");
+    m.hidden = !m.hidden;
+  }
+  document.addEventListener("click", () => { const m = document.getElementById("kebabMenu"); if (m) m.hidden = true; });
+
+  const STAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 4.6L18.5 9l-3.5 3 1 5L12 14.8 8 17l1-5L5.5 9l4.6-1.4L12 3z"/></svg>';
+  const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+  const EXPAND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+  const fmtAmt = (n) => n < 0 ? `($${Math.abs(n).toFixed(2)})` : `$${n.toFixed(2)}`;
+
+  function renderCard() {
+    const pending = state.rows.filter((r) => r.status === "review").length;
+    const allTicked = state.ticked.length === state.rows.length;
+    const n = state.rows.length;
+    document.getElementById("card").innerHTML = `
+      <div class="card">
+        <div class="card-head">
+          <span class="kind">${STAR} AI Suggested</span>
+          <div class="head-main">
+            <div class="label">${state.label}</div>
+            <div class="sub">AI suggested, didn't match an existing rule</div>
+          </div>
+          <span class="head-count">${n} ${n === 1 ? "txn" : "txns"}</span>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="actions">
+          <button class="btn approve" ${pending ? "" : "disabled"}>${CHECK} Approve all ${pending}</button>
+          <button class="btn">${EXPAND} Expand</button>
+          <button class="btn">Save as a rule</button>
+          ${actionBtnHtml()}
+          <div class="kebab-wrap">
+            <button class="btn kebab" title="Cluster actions" onclick="toggleMenu(event)">⋮</button>
+            <div class="menu" id="kebabMenu" hidden>
+              <button>⇄ Move to…</button>
+              <button>↻ Needs categorisation</button>
+            </div>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:36px"><input type="checkbox" ${allTicked ? "checked" : ""} onchange="tickAll(this.checked)" aria-label="Tick all" /></th>
+            <th>Date</th><th>Description</th><th>Counterparty</th><th>COA</th><th>Type</th><th>Amount</th><th>Status</th><th></th>
+          </tr></thead>
+          <tbody>
+            ${state.rows.map((r) => `
+              <tr class="${state.ticked.includes(r.id) ? "ticked" : ""}">
+                <td><input type="checkbox" ${state.ticked.includes(r.id) ? "checked" : ""} onchange="tick(${r.id}, this.checked)" aria-label="Tick row" /></td>
+                <td class="date"><span class="rchev">⌄</span>${r.date}</td>
+                <td class="desc">${r.desc}</td>
+                <td class="cp">${!r.cp
+                  ? `<span class="dash">—</span>`
+                  : aiUnknown(r)
+                    ? `<span class="ai-unknown" title="Set by the AI">Unknown</span>`
+                    : `<span class="${state.justFilled.includes(r.id) ? "flash" : ""}">${r.cp}</span>${
+                        state.justFilled.includes(r.id) ? `<span class="who">manual</span>` : ""}`}</td>
+                <td>${r.coa}</td>
+                <td>${r.type || "Expense"}</td>
+                <td class="amt">${fmtAmt(Number(r.amount))}</td>
+                <td><span class="status ${r.status}">${STATUS_LABEL[r.status]}</span></td>
+                <td class="rowmenu">⋮</td>
+              </tr>`).join("")}
+          </tbody>
+        </table>
+        </div>
+      </div>`;
+  }
+
+  function tick(id, on) {
+    state.ticked = on ? [...state.ticked, id] : state.ticked.filter((x) => x !== id);
+    renderCard();
+  }
+  function tickAll(on) { state.ticked = on ? state.rows.map((r) => r.id) : []; renderCard(); }
+
+  // ── Routing: existing active name → small confirm; new or inactive → Create counterparty drawer ──
+  function openModal() {
+    state.excluded = [];
+    // Nothing ticked → tick every row in the cluster so the reviewer sees what it covers.
+    if (!state.ticked.length) {
+      state.ticked = state.rows.map((r) => r.id);
+      state.autoTicked = true;
+      renderCard();
+    }
+    const s = state.suggestion;
+    const existing = findCp(s.name);
+    if (existing && existing.active) openConfirm(s.name);
+    else openDrawer(s.name);
+  }
+
+  function rowsHtml(rows) {
+    return rows.map((r) => {
+      const skip = !eligible(r);
+      const reason = r.status !== "review"
+        ? `Skipped · ${STATUS_LABEL[r.status]}`
+        : skip ? `Skipped · already ${r.cp}${r.cp === "Unknown" ? " (set by a person)" : ""}` : "";
+      return `<li class="${skip ? "skip" : ""}">
+        <input type="checkbox" ${skip ? "disabled" : state.excluded.includes(r.id) ? "" : "checked"} onchange="exclude(${r.id}, !this.checked)" />
+        <div><div class="d">${r.desc}</div>
+        <div class="m">${r.date} · ${money(Number(r.amount))}</div>
+        ${reason ? `<div class="r">${reason}</div>` : ""}</div></li>`;
+    }).join("");
+  }
+  const fillRows = () => scopeRows().filter((r) => eligible(r) && !state.excluded.includes(r.id));
+
+  function exclude(id, out) {
+    state.excluded = out ? [...state.excluded, id] : state.excluded.filter((x) => x !== id);
+    if (!document.getElementById("overlay").hidden) refreshModal();
+    if (!document.getElementById("drawer").hidden) refreshDrawer();
+  }
+
+  // ── Small confirm (name already a counterparty) ──
+  function openConfirm(name) {
+    const input = document.getElementById("cpName");
+    input.value = name;
+    refreshModal();
+    document.getElementById("overlay").hidden = false;
+    input.focus(); input.select();
+  }
+  // Cancel puts the ticks back the way they were.
+  function clearAutoTicks() {
+    if (!state.autoTicked) return;
+    state.ticked = [];
+    state.autoTicked = false;
+    renderCard();
+  }
+  function closeModal() { clearAutoTicks(); hideModal(); }
+  function hideModal() {
+    document.getElementById("overlay").hidden = true;
+    document.getElementById("cpList").hidden = true;
+  }
+
+  function refreshModal() {
+    const name = document.getElementById("cpName").value;
+    const match = document.getElementById("mMatch");
+    const btn = document.getElementById("mApply");
+    const rows = scopeRows();
+    const n = fillRows().length;
+
+    document.getElementById("rowsLabel").textContent = `${n} of ${rows.length} rows will be filled`;
+    document.getElementById("rowsScope").textContent = state.ticked.length && !state.autoTicked ? `${rows.length} ticked rows` : "Whole cluster";
+    document.getElementById("mRows").innerHTML = rowsHtml(rows);
+
+    if (!name.trim()) {
+      match.className = "match error";
+      match.innerHTML = "Enter a counterparty name.";
+      btn.disabled = true; btn.textContent = "Apply";
+      return;
+    }
+    const existing = findCp(name);
+    if (existing && existing.active) {
+      match.className = "match existing";
+      match.innerHTML = `✓ Matches your counterparty <b>${existing.name}</b>. It will be assigned; nothing new is added.`;
+      btn.disabled = n === 0;
+      btn.textContent = `Apply to ${n} row${n === 1 ? "" : "s"}`;
+    } else {
+      match.className = "match new";
+      match.innerHTML = `<b>${name.trim()}</b> isn't an active counterparty. Next you'll create it (name and type), then it's applied.`;
+      btn.disabled = n === 0;
+      btn.textContent = "Create counterparty…";
+    }
+  }
+
+  function confirmApply() {
+    const name = document.getElementById("cpName").value;
+    const existing = findCp(name);
+    if (existing && existing.active) { hideModal(); finishApply(existing.name, ""); }
+    else { hideModal(); openDrawer(name.trim()); }
+  }
+
+  function renderList() {
+    const q = norm(document.getElementById("cpName").value);
+    const list = document.getElementById("cpList");
+    const hits = COUNTERPARTIES.filter((c) => q && c.active && norm(c.name).includes(q) && norm(c.name) !== q);
+    list.hidden = hits.length === 0;
+    list.innerHTML = hits.map((c) =>
+      `<li onmousedown="pick('${c.name}')"><span>${c.name}</span><span class="tag">existing</span></li>`).join("");
+  }
+  function pick(name) {
+    document.getElementById("cpName").value = name;
+    document.getElementById("cpList").hidden = true;
+    refreshModal();
+  }
+
+  document.getElementById("cpName").addEventListener("input", () => { refreshModal(); renderList(); });
+  document.getElementById("cpName").addEventListener("blur", () => { document.getElementById("cpList").hidden = true; });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeModal(); closeDrawer(); } });
+  document.getElementById("overlay").addEventListener("click", (e) => { if (e.target.id === "overlay") closeModal(); });
+
+  // ── Create counterparty drawer (the existing MasterDataDrawer) ──
+  const CP_TYPES = [
+    { value: "vendor", label: "Vendor", hint: "Pays for goods/services" },
+    { value: "customer", label: "Customer", hint: "Receives invoices" },
+    { value: "employee", label: "Employee", hint: "Payroll, reimbursements" },
+    { value: "other", label: "Other", hint: "Doesn't fit above" },
+  ];
+  let drawerType = "vendor";
+  // As in the real drawer, a name clash is only found when Create is clicked (the server's 409).
+  let drawerConflict = false;
+
+  function openDrawer(name) {
+    drawerType = "vendor";
+    drawerConflict = false;
+    document.getElementById("dName").value = name;
+    refreshDrawer();
+    document.getElementById("drawer").hidden = false;
+    document.getElementById("dName").focus();
+  }
+  function closeDrawer() { clearAutoTicks(); document.getElementById("drawer").hidden = true; }
+  function setType(t) { drawerType = t; refreshDrawer(); }
+
+  function refreshDrawer() {
+    const name = document.getElementById("dName").value;
+    const existing = drawerConflict ? findCp(name) : null;
+    const fill = fillRows();
+
+    document.getElementById("dTypes").innerHTML = CP_TYPES.map((t) => `
+      <button type="button" class="type-card ${drawerType === t.value ? "on" : ""}" onclick="setType('${t.value}')">
+        <span class="t-label">${t.label}</span><span class="t-hint">${t.hint}</span>
+      </button>`).join("");
+
+    const alert = document.getElementById("dAlert");
+    const hint = document.getElementById("dHint");
+    const btn = document.getElementById("dSubmit");
+    const n = fill.length;
+    btn.disabled = !name.trim() || n === 0;
+    if (existing && existing.active) {
+      alert.hidden = false; hint.hidden = true;
+      alert.innerHTML = `<span>⚠</span><div>A counterparty named "${existing.name}" already exists.<br><button type="button" class="btn sm" onclick="useExisting()">Use existing and apply to ${n}</button></div>`;
+      btn.disabled = true;
+    } else if (existing) {
+      alert.hidden = false; hint.hidden = true;
+      alert.innerHTML = `<span>⚠</span><div>An inactive counterparty named "${existing.name}" already exists.<br><button type="button" class="btn sm" onclick="useExisting()">Reactivate and apply to ${n}</button></div>`;
+      btn.disabled = true;
+    } else {
+      alert.hidden = true; hint.hidden = false;
+    }
+    btn.textContent = `Create and apply to ${n}`;
+  }
+  document.getElementById("dName").addEventListener("input", () => { drawerConflict = false; refreshDrawer(); });
+
+  function createAndApply() {
+    const name = document.getElementById("dName").value.trim().replace(/\s+/g, " ");
+    if (!name || !fillRows().length) return;
+    if (findCp(name)) { drawerConflict = true; refreshDrawer(); return; }
+    COUNTERPARTIES.push({ name, active: true, type: drawerType });
+    closeDrawer();
+    const label = CP_TYPES.find((t) => t.value === drawerType).label;
+    finishApply(name, `${name} added to counterparties as ${label} · `);
+  }
+  function useExisting() {
+    const existing = findCp(document.getElementById("dName").value);
+    const wasActive = existing.active;
+    existing.active = true;
+    closeDrawer();
+    finishApply(existing.name, wasActive ? "" : `${existing.name} reactivated · `);
+  }
+
+  function finishApply(finalName, prefix) {
+    const rows = scopeRows();
+    const fill = fillRows();
+    const skipped = rows.filter((r) => !eligible(r)).length;
+    fill.forEach((r) => { r.cp = finalName; r.src = "manual"; });
+    state.justFilled = fill.map((r) => r.id);
+    state.ticked = [];
+    state.autoTicked = false;
+    renderCard();
+    toast(`${prefix}${fill.length} row${fill.length === 1 ? "" : "s"} set to ${finalName}${skipped ? ` · ${skipped} skipped` : ""}`);
+  }
+
+  function toast(text) {
+    document.getElementById("toastText").textContent = text;
+    document.getElementById("toast").hidden = false;
+  }
+
+  resetScenario();
+</script>
+</body>
+</html>
