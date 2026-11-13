@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IIF Export Check</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary: #4f46e5; --primary-2: #6366f1; --primary-light: #eef2ff; --primary-border: #c7d2fe;
+    --ink: #111827; --muted: #6b7280; --faint: #9ca3af;
+    --line: #e5e7eb; --line-2: #f1f2f4; --bg: #f8f9fb;
+    --side: #0f172a; --side-2: #1e293b; --side-text: #cbd5e1;
+    --ok-bg: #f0fdf4; --ok-text: #15803d; --ok-border: #bbf7d0;
+    --warn-bg: #fffbeb; --warn-text: #b45309; --warn-border: #fde68a;
+    --bad-bg: #fef2f2; --bad-text: #b91c1c; --bad-border: #fecaca;
+    --radius: 12px; --radius-sm: 8px;
+    --shadow: 0 1px 2px rgba(17,24,39,.04), 0 4px 16px rgba(17,24,39,.05);
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 13px; color: var(--ink); background: var(--bg); }
+  button { font: inherit; cursor: pointer; }
+
+  /* ── Scenario bar (mock only) ── */
+  .scenarios { position: sticky; top: 0; z-index: 40; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px 16px; background: #020617; color: #fff; }
+  .scenarios strong { font-size: 12px; color: #cbd5e1; margin-right: 4px; }
+  .scenarios .sep { width: 1px; height: 18px; background: #334155; margin: 0 6px; }
+  .scenarios button { font-size: 12px; padding: 5px 10px; border-radius: 999px; border: 1px solid #475569; background: transparent; color: #e2e8f0; }
+  .scenarios button.on { background: #fff; color: #0f172a; border-color: #fff; }
+  .scenario-note { width: 100%; font-size: 12px; color: #94a3b8; padding-top: 4px; }
+
+  /* ── App shell (mirrors the real app) ── */
+  .app { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: calc(100vh - 74px); }
+  .side { background: var(--side); color: var(--side-text); padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .brand { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 600; padding: 4px 6px 16px; }
+  .brand i { width: 30px; height: 30px; border-radius: 8px; background: var(--primary-2); display: grid; place-items: center; font-style: normal; }
+  .side .label { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: #64748b; padding: 12px 8px 4px; }
+  .client { background: var(--side-2); border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; color: #fff; font-weight: 600; display: flex; justify-content: space-between; }
+  .side a { color: var(--side-text); text-decoration: none; padding: 7px 8px; border-radius: 7px; }
+  .side a.on { background: var(--side-2); color: #fff; }
+  main { min-width: 0; }
+  .topbar { height: 60px; background: #fff; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+  .topbar h1 { font-size: 20px; }
+  .topbar .who { border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font-size: 12px; }
+  .content { padding: 20px 24px 60px; display: grid; gap: 16px; }
+
+  .btn { border-radius: 8px; padding: 7px 13px; font-size: 12.5px; font-weight: 500; border: 1px solid var(--line); background: #fff; color: var(--ink); display: inline-flex; align-items: center; gap: 6px; }
+  .btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .btn.soft { background: var(--primary-light); border-color: var(--primary-border); color: var(--primary); }
+  .btn[disabled] { opacity: .55; cursor: default; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+
+  /* ── Project page ── */
+  .crumbs-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .crumbs { color: var(--muted); font-size: 12px; } .crumbs b { color: var(--ink); }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 16px; align-items: start; }
+  .sect-title { font-weight: 600; margin-bottom: 8px; display: flex; justify-content: space-between; }
+  .sect-title span { font-weight: 400; color: var(--faint); font-size: 12px; }
+  .ghost { color: var(--faint); padding: 14px 16px; }
+  .accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .acct { padding: 14px; border-radius: var(--radius); border: 1px solid var(--line); background: #fff; }
+  .acct.wait { background: #fefce8; border-color: #fde68a; }
+  .acct.blue { background: #eef2ff; border-color: var(--primary-border); }
+  .acct b { display: block; margin-bottom: 6px; } .acct small { color: var(--muted); }
+
+  .exports-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line-2); flex-wrap: wrap; }
+  .exports-head h3 { font-size: 15px; } .exports-head h3 span { font-weight: 400; color: var(--muted); font-size: 12px; margin-left: 6px; }
+  .exports-body { padding: 18px 16px; text-align: center; color: var(--muted); display: grid; gap: 10px; justify-items: center; }
+
+  .check { margin: 0 16px 16px; border-radius: 10px; border: 1px solid var(--line); padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; text-align: left; }
+  .check .dot { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; font-size: 13px; font-weight: 700; }
+  .check .txt { flex: 1; min-width: 0; display: grid; gap: 3px; }
+  .check .txt b { font-size: 13px; } .check .txt small { color: var(--muted); }
+  .check .links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+  .check.run { background: var(--primary-light); border-color: var(--primary-border); } .check.run .dot { background: #fff; color: var(--primary); }
+  .check.ok { background: var(--ok-bg); border-color: var(--ok-border); } .check.ok .dot { background: #fff; color: var(--ok-text); }
+  .check.issues { background: var(--warn-bg); border-color: var(--warn-border); } .check.issues .dot { background: #fff; color: var(--warn-text); }
+  .check.bad { background: var(--bad-bg); border-color: var(--bad-border); } .check.bad .dot { background: #fff; color: var(--bad-text); }
+  .spin { width: 13px; height: 13px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; display: inline-block; animation: s 0.8s linear infinite; }
+  @keyframes s { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+
+  .period { padding: 14px; display: grid; gap: 8px; font-size: 12px; }
+  .period .lbl { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+  .period .range { background: var(--primary-light); border-radius: 8px; padding: 10px; color: var(--primary); font-weight: 600; }
+  .period .kv { display: flex; justify-content: space-between; } .period .kv span { color: var(--muted); }
+
+  /* ── Workflows page ── */
+  .wf-head { display: flex; gap: 12px; align-items: center; }
+  .wf-head i { width: 36px; height: 36px; border-radius: 9px; background: var(--primary-light); display: grid; place-items: center; font-style: normal; color: var(--primary); }
+  .wf-head h2 { font-size: 18px; } .wf-head p { color: var(--muted); }
+  .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .toolbar .muted { color: var(--muted); }
+  .wf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+  .wf { padding: 14px; display: grid; gap: 12px; }
+  .wf-top { display: flex; gap: 10px; align-items: flex-start; }
+  .wf-top i { width: 30px; height: 30px; border-radius: 8px; background: var(--primary-light); display: grid; place-items: center; font-style: normal; color: var(--primary); flex-shrink: 0; }
+  .wf-top b { font-size: 14px; } .wf-top code { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .badge { display: inline-block; font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 6px; margin-left: 6px; vertical-align: 1px; }
+  .badge.here { background: var(--primary-light); color: var(--primary); }
+  .badge.shared { background: var(--ok-bg); color: var(--ok-text); border: 1px solid var(--ok-border); }
+  .wf-foot { display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--line-2); padding-top: 10px; }
+
+  /* ── Dialog ── */
+  .scrim { position: fixed; inset: 0; background: rgba(15,23,42,.45); display: grid; place-items: center; z-index: 50; padding: 16px; }
+  .dialog { width: 100%; max-width: 440px; background: #fff; border-radius: 14px; box-shadow: 0 24px 48px -12px rgba(15,23,42,.35); }
+  .dialog header { padding: 16px 18px 6px; } .dialog header h3 { font-size: 16px; } .dialog header p { color: var(--muted); margin-top: 4px; }
+  .dialog .body { padding: 12px 18px; display: grid; gap: 6px; }
+  .dialog label { font-weight: 600; font-size: 12px; }
+  .dialog select { font: inherit; padding: 9px 10px; border-radius: 8px; border: 1px solid var(--line); background: #fff; width: 100%; }
+  .dialog .hint { color: var(--muted); font-size: 12px; }
+  .dialog .empty { background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn-text); border-radius: 8px; padding: 10px; }
+  .dialog footer { padding: 12px 18px 16px; display: flex; justify-content: flex-end; gap: 8px; }
+
+  .note { font-size: 12px; color: var(--muted); border-left: 3px solid var(--primary-border); padding: 4px 10px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="scenarios">
+  <strong>Page</strong>
+  <button data-page="project" class="on">Project page</button>
+  <button data-page="workflows">Workflows page</button>
+  <span class="sep"></span>
+  <strong>State</strong>
+  <span id="project-states">
+    <button data-state="not-set-up">Not set up</button>
+    <button data-state="ready" class="on">Ready</button>
+    <button data-state="running">Running</button>
+    <button data-state="issues">Done · problems found</button>
+    <button data-state="ok">Done · all good</button>
+    <button data-state="failed">Failed</button>
+  </span>
+  <span id="workflow-states" hidden>
+    <button data-wstate="list" class="on">List</button>
+    <button data-wstate="pick">Run → pick project</button>
+    <button data-wstate="no-projects">Run → no projects</button>
+  </span>
+  <div class="scenario-note" id="note"></div>
+</div>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand"><i>A</i> Atlas</div>
+    <div class="label">Client</div>
+    <div class="client"><span id="client-name">Testing 2</span><span>⌄</span></div>
+    <div class="label">Bookkeeping</div>
+    <a href="#" id="nav-projects" class="on">Projects</a>
+    <a href="#">Transactions</a>
+    <a href="#" id="nav-workflows">Workflows</a>
+    <a href="#">Settings</a>
+  </aside>
+
+  <main>
+    <!-- ═════════ PROJECT PAGE ═════════ -->
+    <section id="page-project">
+      <div class="topbar"><h1>Dashboard</h1><span class="who">admin@theatlas.ai</span></div>
+      <div class="content">
+        <div class="crumbs-row">
+          <div class="crumbs">Projects / Testing 2 / <b>2025 filing</b></div>
+          <div class="actions">
+            <button class="btn primary">Documents</button>
+            <button class="btn">↻ Sync</button>
+            <button class="btn">↻ Re-run enrichment</button>
+            <button class="btn soft">Review All Transactions</button>
+            <button class="btn" disabled>Complete Project</button>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div style="display:grid;gap:16px;min-width:0">
+            <div>
+              <div class="sect-title">Checklist <span>1 still required</span></div>
+              <div class="card ghost">1 of 3 items complete · Bank statement for BoA Checking 6859 ✓ · cc · Checks</div>
+            </div>
+            <div>
+              <div class="sect-title">Accounts <span>2 accounts · 1 categorizing</span></div>
+              <div class="accounts">
+                <div class="acct wait"><b>cc</b><small>Waiting for Statement</small></div>
+                <div class="acct blue"><b>BoA Checking 6859</b><small>1,531 ingested · 1,389 categorized</small></div>
+              </div>
+            </div>
+
+            <!-- Exports card: the new check lives here, next to Export -->
+            <div class="card" id="exports">
+              <div class="exports-head">
+                <h3>Exports <span>Posted transactions, one CSV per account</span></h3>
+                <div class="actions">
+                  <button class="btn soft" id="check-btn">✓ Check for QuickBooks</button>
+                  <button class="btn">Export</button>
+                </div>
+              </div>
+
+              <div class="check run" data-show="running">
+                <div class="dot"><span class="spin"></span></div>
+                <div class="txt">
+                  <b>Checking 1,389 reviewed transactions…</b>
+                  <small>Started a few seconds ago by admin@theatlas.ai. You can leave this page; it keeps running.</small>
+                  <div class="links"><button class="btn">View run →</button></div>
+                </div>
+              </div>
+
+              <div class="check issues" data-show="issues">
+                <div class="dot">!</div>
+                <div class="txt">
+                  <b>Some transactions would be rejected by QuickBooks</b>
+                  <small>Finished 2 min ago. The file lists each problem transaction and what's wrong with it.</small>
+                  <div class="links">
+                    <button class="btn primary">⤓ Download problems (CSV)</button>
+                    <button class="btn">View run →</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="check ok" data-show="ok">
+                <div class="dot">✓</div>
+                <div class="txt">
+                  <b>All transactions passed</b>
+                  <small>Finished 2 min ago. Safe to export to QuickBooks.</small>
+                  <div class="links"><button class="btn">View run →</button></div>
+                </div>
+              </div>
+
+              <div class="check bad" data-show="failed">
+                <div class="dot">✕</div>
+                <div class="txt">
+                  <b>The check couldn't finish</b>
+                  <small>Something went wrong while checking. Open the run to see which step stopped.</small>
+                  <div class="links">
+                    <button class="btn">View run →</button>
+                    <button class="btn">↻ Try again</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="exports-body">
+                Nothing has been exported yet. Post some transactions, then take the whole ledger away as one archive.
+              </div>
+            </div>
+
+          </div>
+
+          <div class="card period">
+            <span class="lbl">Project period</span>
+            <div class="range">Jan 1 – Dec 31, 2025</div>
+            <div class="kv"><span>Client</span>Testing 2</div>
+            <div class="kv"><span>Opened</span>Oct 29, 2026</div>
+            <div class="kv"><span>Due</span>Jan 1, 2026</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════ WORKFLOWS PAGE ═════════ -->
+    <section id="page-workflows" hidden>
+      <div class="topbar"><h1>Workflows</h1><span class="who">admin@theatlas.ai</span></div>
+      <div class="content">
+        <div class="wf-head"><i>⧉</i><div><h2>Workflows</h2><p>Choose a workflow to run and monitor it step by step.</p></div></div>
+        <div class="toolbar">
+          <button class="btn">← Back to old workflows</button>
+          <button class="btn primary">+ Create workflow</button>
+          <button class="btn">◷ All executions</button>
+          <span class="muted">Integration account</span>
+          <button class="btn">AI counterparty suggestion ⌄</button>
+        </div>
+
+        <div class="wf-grid">
+          <div class="card wf">
+            <div class="wf-top"><i>⧉</i><div><b>IIF export validation</b><span class="badge shared">Shared with all clients</span><code>iif_export_validation</code></div></div>
+            <div class="wf-foot"><button class="btn">✎ Edit</button><button class="btn primary" id="wf-run">▷ Run</button></div>
+          </div>
+          <div class="card wf">
+            <div class="wf-top"><i>⧉</i><div><b>Counterparty suggestions</b><span class="badge here">Built here</span><code>counterparty_suggestions</code></div></div>
+            <div class="wf-foot"><button class="btn">✎ Edit</button><button class="btn primary">▷ Run</button></div>
+          </div>
+        </div>
+        <p class="note">Viewing as the client <b>AI counterparty suggestion</b>, which didn't build the IIF workflow. It shows because it's global, with a "Shared with all clients" badge next to the existing "Built here" one.</p>
+      </div>
+
+      <div class="scrim" id="dialog" hidden>
+        <div class="dialog" role="dialog" aria-labelledby="dlg-title">
+          <header><h3 id="dlg-title">Run IIF export validation</h3><p>This workflow checks one project. Choose which one.</p></header>
+          <div class="body" id="dlg-pick">
+            <label for="project">Project</label>
+            <select id="project">
+              <option>2025 filing</option>
+              <option>2022 Filing</option>
+            </select>
+            <span class="hint">This client's bookkeeping projects.</span>
+          </div>
+          <div class="body" id="dlg-empty" hidden>
+            <div class="empty">This client has no bookkeeping projects yet, so there's nothing to check.</div>
+          </div>
+          <footer><button class="btn">Cancel</button><button class="btn primary" id="dlg-run">▷ Run</button></footer>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  const notes = {
+    'not-set-up': 'The workflow isn\'t in this client\'s list yet (not imported, or not marked global), so the button doesn\'t show. Only Export is there.',
+    'ready': 'The workflow is in this client\'s list, so the button shows. Clicking it starts the check for this project straight away; no project question, because the page already knows the project.',
+    'running': 'The button is disabled while a check runs for this project (the backend also refuses a second one). The card stays if you leave and come back.',
+    'issues': 'The run finished and wrote a CSV of problem transactions. The button is enabled again to re-check after fixing.',
+    'ok': 'The run finished and every transaction passed.',
+    'failed': 'The run failed (for example a step error). Try again starts a new run.',
+  };
+  const wnotes = {
+    'list': 'The global workflow shows for every client, with a badge.',
+    'pick': 'Run on a workflow that needs a project asks for it first. Other workflows still start straight away as today.',
+    'no-projects': 'A client with no projects can\'t run it; Run stays disabled.',
+  };
+  const $ = (s) => document.querySelector(s);
+  let page = 'project', state = 'ready', wstate = 'list';
+
+  function render() {
+    $('#page-project').hidden = page !== 'project';
+    $('#page-workflows').hidden = page !== 'workflows';
+    $('#project-states').hidden = page !== 'project';
+    $('#workflow-states').hidden = page !== 'workflows';
+    $('#nav-projects').classList.toggle('on', page === 'project');
+    $('#nav-workflows').classList.toggle('on', page === 'workflows');
+    $('#client-name').textContent = page === 'project' ? 'Testing 2' : 'AI counterparty suggestion';
+    document.querySelectorAll('[data-page]').forEach(b => b.classList.toggle('on', b.dataset.page === page));
+    document.querySelectorAll('[data-state]').forEach(b => b.classList.toggle('on', b.dataset.state === state));
+    document.querySelectorAll('[data-wstate]').forEach(b => b.classList.toggle('on', b.dataset.wstate === wstate));
+
+    const btn = $('#check-btn');
+    btn.hidden = state === 'not-set-up';
+    btn.disabled = state === 'running';
+    btn.innerHTML = state === 'running' ? '<span class="spin"></span> Checking…' : '✓ Check for QuickBooks';
+    document.querySelectorAll('[data-show]').forEach(el => { el.hidden = el.dataset.show !== state; });
+
+    $('#dialog').hidden = wstate === 'list';
+    $('#dlg-pick').hidden = wstate !== 'pick';
+    $('#dlg-empty').hidden = wstate !== 'no-projects';
+    $('#dlg-run').disabled = wstate === 'no-projects';
+
+    $('#note').textContent = page === 'project' ? notes[state] : wnotes[wstate];
+  }
+
+  document.querySelectorAll('[data-page]').forEach(b => b.onclick = () => { page = b.dataset.page; render(); });
+  document.querySelectorAll('[data-state]').forEach(b => b.onclick = () => { state = b.dataset.state; render(); });
+  document.querySelectorAll('[data-wstate]').forEach(b => b.onclick = () => { wstate = b.dataset.wstate; render(); });
+  $('#check-btn').onclick = () => { state = 'running'; render(); };
+  $('#wf-run').onclick = () => { wstate = 'pick'; render(); };
+  document.querySelectorAll('.dialog footer .btn:not(.primary)').forEach(b => b.onclick = () => { wstate = 'list'; render(); });
+  $('#dlg-run').onclick = () => { wstate = 'list'; render(); };
+  render();
+</script>
+</body>
+</html>
