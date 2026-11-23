@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Project IIF Export</title>
+<!--
+  ATLS-374 phase 1 mock: export a project's posted transactions as a QuickBooks Desktop IIF file,
+  with our checks shown before the file is made.
+  Mirrors maven-frontend ExportsSection.tsx (the project page's Exports card) and adds:
+    - an "Export IIF" button next to the existing CSV export,
+    - a review dialog (check first, then create the file),
+    - IIF runs in the same Exports list, with a format badge.
+-->
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #0f172a; --text: #334155; --muted: #64748b; --faint: #94a3b8;
+    --line: #e2e8f0; --line-2: #f1f5f9; --bg: #f8fafc;
+    --indigo: #4f46e5; --indigo-bg: #eef2ff; --indigo-line: #c7d2fe;
+    --red: #dc2626; --red-bg: #fef2f2; --red-line: #fecaca;
+    --amber: #b45309; --amber-bg: #fffbeb; --amber-line: #fde68a;
+    --green: #15803d; --green-bg: #f0fdf4; --green-line: #bbf7d0;
+    --blue: #2563eb; --blue-bg: #eff6ff;
+    --shadow: 0 1px 2px rgba(15,23,42,.05);
+    --shadow-lg: 0 24px 48px -12px rgba(15,23,42,.3);
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 13px; color: var(--text); background: var(--bg); min-height: 100vh; }
+  button { font: inherit; }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+
+  /* scenario bar (mock only) */
+  .scenarios { position: sticky; top: 0; z-index: 40; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px 16px; background: #0f172a; color: #fff; }
+  .scenarios strong { font-size: 12px; margin-right: 6px; color: #cbd5e1; }
+  .scenarios button { font-size: 12px; padding: 5px 10px; border-radius: 999px; border: 1px solid #475569; background: transparent; color: #e2e8f0; cursor: pointer; }
+  .scenarios button.on { background: #fff; color: #0f172a; border-color: #fff; }
+  .note { width: 100%; font-size: 12px; color: #94a3b8; padding-top: 4px; line-height: 1.5; }
+  .note b { color: #e2e8f0; }
+
+  .page { max-width: 1040px; margin: 0 auto; padding: 22px 16px 80px; display: grid; gap: 16px; }
+  .crumbs { font-size: 12px; color: var(--muted); }
+  .crumbs b { color: var(--ink); }
+  .title-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .title-row h1 { font-size: 20px; color: var(--ink); letter-spacing: -.01em; }
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
+  .pill.green { background: var(--green-bg); color: var(--green); }
+  .pill.blue { background: var(--blue-bg); color: var(--blue); }
+  .pill.red { background: var(--red-bg); color: var(--red); }
+  .pill.grey { background: var(--line-2); color: var(--muted); }
+
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+  .card-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 12px 16px; border-bottom: 1px solid var(--line-2); }
+  .card-head h2 { font-size: 15px; color: var(--ink); }
+  .card-head .sub { font-size: 12px; color: var(--muted); }
+  .grow { flex: 1; }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; border: 1px solid; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background .15s; white-space: nowrap; }
+  .btn svg { width: 13px; height: 13px; }
+  .btn.on { border-color: var(--indigo-line); background: var(--indigo-bg); color: var(--indigo); }
+  .btn.on:hover { background: #e0e7ff; }
+  .btn.solid { border-color: var(--indigo); background: var(--indigo); color: #fff; }
+  .btn.solid:hover { background: #4338ca; }
+  .btn.ghost { border-color: var(--indigo-line); background: #fff; color: var(--indigo); }
+  .btn.ghost:hover { background: var(--indigo-bg); }
+  .btn.plain { border-color: var(--line); background: #fff; color: var(--text); }
+  .btn:disabled, .btn.off { border-color: var(--line); background: var(--line-2); color: var(--faint); cursor: not-allowed; }
+  .new { font-size: 10px; font-weight: 700; letter-spacing: .04em; color: #fff; background: #f59e0b; border-radius: 4px; padding: 1px 5px; }
+
+  /* export rows */
+  .run { display: grid; grid-template-columns: 52px 1fr auto auto; align-items: center; gap: 14px; padding: 12px 16px; border-top: 1px solid var(--line-2); }
+  .run:first-child { border-top: 0; }
+  .fmt { font-size: 10.5px; font-weight: 700; text-align: center; padding: 3px 0; border-radius: 6px; letter-spacing: .03em; }
+  .fmt.iif { background: var(--indigo-bg); color: var(--indigo); }
+  .fmt.csv { background: var(--line-2); color: var(--muted); }
+  .run .when { font-size: 13px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .run .who { font-size: 12px; color: var(--muted); }
+  .run .receipt { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+  .run .receipt .warn { color: var(--amber); }
+  .card-foot { display: flex; justify-content: space-between; align-items: center; padding: 9px 16px; border-top: 1px solid var(--line-2); background: #f8fafcaa; font-size: 12px; color: var(--faint); border-radius: 0 0 12px 12px; }
+  .spin { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid currentColor; border-right-color: transparent; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== run page (copies the v2 runner: RunnerTopBar, banners, GraphCanvas, ExecutionTabs, CurrentTaskPanel) ===== */
+  .rv { display: grid; grid-template-columns: 210px 1fr; min-height: calc(100vh - 110px); background: #f8fafc; }
+  .rv-side { background: #0f172a; color: #cbd5e1; padding: 14px 12px; font-size: 12.5px; display: grid; align-content: start; gap: 4px; }
+  .rv-side .brand { display: flex; align-items: center; gap: 8px; color: #fff; font-weight: 700; margin-bottom: 10px; }
+  .rv-side .brand span { width: 26px; height: 26px; border-radius: 7px; background: #4f46e5; display: grid; place-items: center; font-size: 12px; }
+  .rv-side .cap { font-size: 10px; letter-spacing: .08em; color: #64748b; margin-top: 10px; }
+  .rv-side a { padding: 6px 8px; border-radius: 6px; } .rv-side a.on { background: #1e293b; color: #fff; }
+  .rv-main { display: flex; flex-direction: column; min-width: 0; }
+  .rv-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: #fff; border-bottom: 1px solid var(--line); }
+  .rv-head h2 { font-size: 18px; color: var(--ink); } .rv-head .user { font-size: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 5px 10px; }
+  .rv-top { display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: #fff; border-bottom: 1px solid var(--line); }
+  .rv-top .back { width: 26px; height: 26px; border: 1px solid var(--line); border-radius: 7px; display: grid; place-items: center; color: var(--muted); background: #fff; }
+  .rv-top .wico { width: 30px; height: 30px; border-radius: 8px; background: var(--indigo-bg); color: var(--indigo); display: grid; place-items: center; font-size: 14px; }
+  .rv-top .t { font-size: 15px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+  .rv-top .v { font-size: 10px; background: var(--line-2); color: var(--muted); border-radius: 5px; padding: 1px 5px; font-weight: 600; }
+  .rv-top .meta { font-size: 11.5px; color: var(--faint); display: flex; gap: 14px; margin-top: 3px; }
+  .state { font-size: 11px; font-weight: 600; border-radius: 999px; padding: 2px 8px; }
+  .state.ok { background: var(--green-bg); color: var(--green); } .state.bad { background: var(--red-bg); color: var(--red); }
+  .rv-top .grow { flex: 1; }
+  .rv-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 20px; font-size: 13px; border-bottom: 1px solid var(--line); background: #f8fafc; color: var(--text); }
+  .rv-banner.fail { background: var(--red-bg); border-color: var(--red-line); color: var(--red); align-items: flex-start; justify-content: flex-start; }
+  .rv-banner .small { font-size: 11.5px; }
+  .rv-body { display: grid; grid-template-columns: 1fr 300px; gap: 12px; padding: 12px; min-height: 0; }
+  .rv-card { background: #fff; border: 1px solid var(--line); border-radius: 12px; }
+  .graph { height: 200px; display: flex; align-items: center; justify-content: center; gap: 0; background-image: radial-gradient(#e2e8f0 1px, transparent 1px); background-size: 14px 14px; border-radius: 12px; }
+  .gnode { width: 168px; border: 1.5px solid #86efac; background: #fff; border-radius: 10px; padding: 9px 11px; display: grid; grid-template-columns: 22px 1fr 16px; gap: 8px; align-items: center; cursor: pointer; }
+  .gnode.sel { border-color: #818cf8; box-shadow: 0 0 0 3px #eef2ff; }
+  .gnode.skip { border: 1.5px dashed #cbd5e1; opacity: .75; } .gnode.fail { border-color: #fca5a5; }
+  .gnode .ic { width: 22px; height: 22px; border-radius: 6px; background: var(--indigo-bg); color: var(--indigo); display: grid; place-items: center; font-size: 11px; }
+  .gnode .nm { font-size: 12.5px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gnode .st { font-size: 11px; color: var(--faint); }
+  .gnode .ok { color: #16a34a; font-size: 13px; } .gnode .no { color: var(--faint); font-size: 12px; } .gnode .x { color: var(--red); font-size: 12px; }
+  .gedge { width: 26px; height: 0; border-top: 1.5px solid #cbd5e1; } .gedge.off { border-top-style: dashed; }
+  .rv-tabs { display: flex; gap: 18px; padding: 10px 14px 0; border-bottom: 1px solid var(--line-2); font-size: 12.5px; color: var(--muted); }
+  .rv-tabs span { padding-bottom: 8px; cursor: pointer; } .rv-tabs span.on { color: var(--indigo); border-bottom: 2px solid var(--indigo); font-weight: 600; }
+  .tl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .tl th { text-align: left; font-size: 10.5px; color: var(--faint); font-weight: 600; letter-spacing: .04em; padding: 8px 14px; }
+  .tl td { padding: 9px 14px; border-top: 1px solid var(--line-2); color: var(--text); }
+  .sp { font-size: 11px; font-weight: 600; border-radius: 999px; padding: 2px 8px; }
+  .sp.ok { background: var(--green-bg); color: var(--green); } .sp.skip { background: var(--line-2); color: var(--muted); } .sp.bad { background: var(--red-bg); color: var(--red); }
+  .af-g { padding: 8px 14px; } .af-g .gh { font-size: 12.5px; font-weight: 600; color: #334155; padding: 6px 0; display: flex; gap: 8px; align-items: center; }
+  .af-g .gh .c { font-size: 10px; background: var(--line-2); color: var(--muted); border-radius: 999px; padding: 1px 7px; }
+  .af-f { display: flex; justify-content: space-between; align-items: center; padding: 7px 0 7px 22px; border-left: 1px solid var(--line-2); margin-left: 6px; }
+  .af-f .n { font-size: 12.5px; font-weight: 600; color: var(--ink); } .af-f .m { font-size: 11px; color: var(--faint); }
+  .af-f a { font-size: 12px; color: var(--indigo); font-weight: 600; }
+  .af-none { font-size: 11.5px; color: var(--faint); padding: 4px 0 6px 22px; }
+  .task { padding: 12px 14px; display: grid; gap: 10px; font-size: 12.5px; }
+  .task .h { display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--ink); }
+  .task .kv { display: flex; justify-content: space-between; color: var(--muted); } .task .kv b { color: var(--ink); font-weight: 600; }
+  .task .cap { font-size: 10.5px; letter-spacing: .06em; color: var(--faint); font-weight: 600; margin-top: 4px; }
+  .task pre { background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 11.5px; white-space: pre-wrap; color: #334155; }
+  .task .okbox { background: var(--green-bg); border: 1px solid var(--green-line); color: var(--green); border-radius: 8px; padding: 8px 10px; }
+  .task .badbox { background: var(--red-bg); border: 1px solid var(--red-line); color: var(--red); border-radius: 8px; padding: 8px 10px; }
+  @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+
+  .help { display: grid; gap: 6px; padding: 12px 16px; border-top: 1px solid var(--line-2); background: var(--indigo-bg); color: #3730a3; font-size: 12.5px; line-height: 1.55; border-radius: 0 0 12px 12px; }
+  .help b { color: #312e81; }
+  .help ol { padding-left: 18px; display: grid; gap: 2px; }
+
+  /* dialog */
+  .scrim { position: fixed; inset: 0; z-index: 50; background: rgba(15,23,42,.45); display: grid; place-items: start center; padding: 56px 16px 24px; overflow-y: auto; }
+  .scrim[hidden] { display: none; }
+  .dialog { width: min(720px, 100%); background: #fff; border-radius: 14px; box-shadow: var(--shadow-lg); display: grid; }
+  .d-head { display: flex; align-items: flex-start; gap: 12px; padding: 16px 20px 12px; border-bottom: 1px solid var(--line-2); }
+  .d-head h3 { font-size: 16px; color: var(--ink); }
+  .d-head p { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .x { margin-left: auto; border: 0; background: none; color: var(--faint); font-size: 20px; line-height: 1; cursor: pointer; padding: 2px 6px; }
+  .d-body { padding: 14px 20px; display: grid; gap: 14px; }
+  .checking { display: flex; align-items: center; gap: 10px; padding: 28px 0; justify-content: center; color: var(--muted); font-size: 13px; }
+
+  .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .stat { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 2px; }
+  .stat .n { font-size: 20px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .stat .l { font-size: 12px; color: var(--muted); }
+  .stat.ok { border-color: var(--green-line); background: var(--green-bg); } .stat.ok .n { color: var(--green); }
+  .stat.err { border-color: var(--red-line); background: var(--red-bg); } .stat.err .n { color: var(--red); }
+  .stat.wrn { border-color: var(--amber-line); background: var(--amber-bg); } .stat.wrn .n { color: var(--amber); }
+  .stat.zero { opacity: .55; }
+
+  .group h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 6px; display: flex; gap: 6px; align-items: center; }
+  .issue { display: grid; grid-template-columns: 20px 1fr auto; gap: 10px; align-items: start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 6px; }
+  .issue.err { border-color: var(--red-line); background: #fffafa; }
+  .issue.wrn { border-color: var(--amber-line); background: #fffdf5; }
+  .issue .ic { font-weight: 700; font-size: 14px; line-height: 1.2; }
+  .issue.err .ic { color: var(--red); } .issue.wrn .ic { color: var(--amber); }
+  .issue .row1 { font-size: 12.5px; color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .issue .row1 span { color: var(--muted); font-weight: 400; }
+  .issue .msg { font-size: 12.5px; color: var(--text); margin-top: 2px; }
+  .issue .what { font-size: 11.5px; margin-top: 3px; }
+  .issue.err .what { color: var(--red); } .issue.wrn .what { color: var(--amber); }
+
+  .clean { display: flex; gap: 10px; align-items: center; padding: 12px; border: 1px solid var(--green-line); background: var(--green-bg); color: var(--green); border-radius: 10px; font-size: 13px; font-weight: 600; }
+
+
+  .d-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 20px 16px; border-top: 1px solid var(--line-2); }
+  .d-foot .why { font-size: 12px; color: var(--muted); }
+  .d-foot .why.lock { color: var(--red); }
+  .banner { padding: 10px 12px; border-radius: 10px; font-size: 13px; font-weight: 600; }
+  .banner.fail { border: 1px solid var(--red-line); background: var(--red-bg); color: var(--red); }
+  .banner.ok { border: 1px solid var(--green-line); background: var(--green-bg); color: var(--green); }
+  .linkbtn { background: none; border: 0; padding: 0; color: #4338ca; font: inherit; cursor: pointer; text-decoration: underline; }
+
+  details.peek { border: 1px solid var(--line); border-radius: 10px; }
+  details.peek summary { cursor: pointer; padding: 9px 12px; font-size: 12.5px; font-weight: 600; color: var(--ink); }
+  details.peek pre { margin: 0; padding: 10px 12px; border-top: 1px solid var(--line-2); background: #0f172a; color: #e2e8f0; overflow-x: auto; font-size: 11.5px; line-height: 1.55; border-radius: 0 0 10px 10px; }
+  details.peek pre .hl { color: #fbbf24; }
+  details.peek pre .c { color: #64748b; }
+
+  .legend { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .legend b { color: var(--ink); }
+
+  /* ── Transaction page (mirrors ProjectReviewPage + TransactionReviewFeed, table view) ── */
+  .txn-view[hidden], .page[hidden] { display: none; }
+  .addr { display: flex; align-items: center; gap: 8px; padding: 7px 14px; background: #e2e8f0; border-bottom: 1px solid #cbd5e1; font-size: 12px; color: var(--muted); }
+  .addr .bar { flex: 1; min-width: 0; background: #fff; border: 1px solid #cbd5e1; border-radius: 999px; padding: 4px 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .addr .bar b { color: var(--indigo); font-weight: 600; }
+  .addr .tabname { font-weight: 600; color: var(--text); white-space: nowrap; font-size: 12px; padding: 4px 10px; border-radius: 7px 7px 0 0; }
+  .addr .tab-other { border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+  .addr .tab-other:hover { background: #cbd5e1; }
+  .addr .tab-on { background: #fff; }
+  input.search { color: var(--ink); font: inherit; font-size: 12px; outline: none; }
+  input.search:focus { border-color: var(--indigo-line); box-shadow: 0 0 0 3px var(--indigo-bg); }
+  .empty { padding: 26px 16px; text-align: center; color: var(--muted); font-size: 12.5px; line-height: 1.6; }
+  .shell { display: grid; grid-template-columns: 190px 1fr; min-height: calc(100vh - 140px); }
+  .side { background: #0f172a; color: #cbd5e1; padding: 14px 10px; display: grid; align-content: start; gap: 2px; font-size: 12.5px; }
+  .side .brand { display: flex; align-items: center; gap: 8px; color: #fff; font-weight: 700; padding: 4px 6px 12px; }
+  .side .brand span { width: 26px; height: 26px; border-radius: 7px; background: var(--indigo); display: grid; place-items: center; font-size: 13px; }
+  .side .cap { font-size: 10px; letter-spacing: .08em; color: #64748b; padding: 10px 8px 4px; }
+  .side a { color: inherit; text-decoration: none; padding: 6px 8px; border-radius: 7px; }
+  .side a.on { background: #1e293b; color: #a5b4fc; font-weight: 600; }
+  .appmain { display: flex; flex-direction: column; min-width: 0; background: #fff; }
+  .apphead { display: flex; align-items: center; padding: 12px 18px; border-bottom: 1px solid var(--line); }
+  .apphead h2 { font-size: 17px; color: var(--ink); }
+  .apphead .user { margin-left: auto; font-size: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px; color: var(--ink); font-weight: 600; }
+  .topbar { display: flex; align-items: center; gap: 10px; padding: 9px 18px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+  .topbar b { color: var(--ink); }
+  .acct { margin-left: auto; border: 1px solid var(--line); border-radius: 8px; padding: 5px 10px; font-weight: 600; color: var(--ink); font-size: 12px; }
+  .work { display: grid; grid-template-columns: 210px 1fr; flex: 1; min-height: 0; }
+  .lp { border-right: 1px solid var(--line); display: grid; align-content: start; }
+  .lp .prog { display: flex; gap: 10px; align-items: center; padding: 12px; border-bottom: 1px solid var(--line-2); }
+  .lp .ring { width: 38px; height: 38px; border-radius: 50%; border: 4px solid #e0e7ff; border-top-color: var(--indigo); display: grid; place-items: center; font-size: 10px; font-weight: 700; color: var(--ink); }
+  .lp .prog .big { font-size: 15px; font-weight: 700; color: var(--ink); }
+  .lp .prog .small { font-size: 11px; color: var(--muted); }
+  .segs { display: flex; gap: 4px; padding: 8px 10px; border-bottom: 1px solid var(--line-2); }
+  .segs span { flex: 1; text-align: center; font-size: 12px; padding: 5px 0; border-radius: 7px; color: var(--muted); }
+  .segs span.on { background: var(--indigo-bg); color: var(--indigo); font-weight: 600; border: 1px solid var(--indigo-line); }
+  .tree { padding: 8px 10px; display: grid; gap: 6px; font-size: 12px; }
+  .tree .grp { font-weight: 700; color: var(--indigo); letter-spacing: .04em; font-size: 11px; display: flex; justify-content: space-between; }
+  .tree .leaf { padding-left: 14px; display: flex; justify-content: space-between; color: var(--text); }
+  .tree .leaf span:last-child, .tree .grp span:last-child { color: var(--faint); font-weight: 600; }
+  .feed { display: flex; flex-direction: column; min-width: 0; background: #f8fafc; }
+  .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 9px 14px; background: #fff; border-bottom: 1px solid var(--line); }
+  .seg2 { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; padding: 2px; background: var(--line-2); font-size: 11.5px; }
+  .seg2 span { padding: 3px 9px; border-radius: 6px; color: var(--muted); }
+  .seg2 span.on { background: #fff; color: var(--ink); font-weight: 600; box-shadow: var(--shadow); }
+  .search { flex: 1; min-width: 140px; border: 1px solid var(--line); border-radius: 8px; padding: 5px 10px; color: var(--faint); font-size: 12px; }
+  .filt { border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px; font-size: 11.5px; color: var(--text); }
+  .count { font-size: 11.5px; color: var(--faint); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 14px; background: #f8fafc; border-bottom: 1px solid var(--line); font-size: 12px; }
+  .fchip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 8px; border-radius: 6px; background: #f1f5f9; color: var(--muted); font-size: 12px; font-weight: 500; }
+  .fchip button { border: 0; background: none; color: inherit; cursor: pointer; padding: 1px 4px; border-radius: 4px; font-size: 13px; line-height: 1; }
+  .fchip button:hover { background: #e2e8f0; }
+  .fchip.txn { background: var(--indigo-bg); color: var(--indigo); font-weight: 600; outline: 1px solid var(--indigo-line); }
+  .fchip.txn button:hover { background: #e0e7ff; }
+  .from { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 12px 14px 0; padding: 10px 12px; border-radius: 10px; font-size: 12.5px; }
+  .from.err { background: var(--red-bg); border: 1px solid var(--red-line); color: #991b1b; }
+  .from.wrn { background: var(--amber-bg); border: 1px solid var(--amber-line); color: #92400e; }
+  .from b { color: inherit; }
+  .from a { margin-left: auto; color: var(--indigo); font-weight: 600; text-decoration: none; cursor: pointer; white-space: nowrap; }
+  .tbl-wrap { margin: 12px 14px; background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+  table.tx { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 760px; }
+  table.tx th { text-align: left; font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  table.tx td { padding: 9px 10px; border-bottom: 1px solid var(--line-2); vertical-align: top; color: var(--ink); }
+  table.tx tr:last-child td { border-bottom: 0; }
+  table.tx td.desc { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; }
+  table.tx td.amt { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  table.tx td.amt.in { color: var(--green); } table.tx td.amt.out { color: #c2410c; }
+  table.tx tr.focus td { background: #f5f7ff; }
+  table.tx tr.focus td:first-child { box-shadow: inset 3px 0 0 var(--indigo); }
+  .pen { color: var(--faint); font-size: 11px; margin-left: 4px; }
+  .stat-pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--green-bg); color: var(--green); }
+  .tfoot { display: flex; justify-content: space-between; padding: 8px 14px; font-size: 11.5px; color: var(--faint); margin-top: auto; border-top: 1px solid var(--line); background: #fff; }
+  .loading-row { display: flex; gap: 10px; align-items: center; justify-content: center; padding: 60px 0; color: var(--muted); font-size: 13px; }
+
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; } .side { display: none; }
+    .work { grid-template-columns: 1fr; } .lp { display: none; }
+  }
+
+  @media (max-width: 640px) {
+    .run { grid-template-columns: 44px 1fr; }
+    .run .receipt { grid-column: 2; text-align: left; }
+    .run .act { grid-column: 2; }
+    .summary { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scenarios" role="toolbar" aria-label="Mock scenarios">
+  <strong>ATLS-374 · phase 1 mock</strong>
+  <button data-s="start">1 · Exports card</button>
+  <button data-s="running">2 · Exporting</button>
+  <button data-s="failed">3 · Export failed: errors</button>
+  <button data-s="done">4 · File ready: warnings</button>
+  <button data-s="ready">5 · Exports list after</button>
+  <button data-s="crashed">6 · Export crashed</button>
+  <button data-s="txn">7 · Open transaction</button>
+  <button data-s="txn-cleared">8 · Filter cleared</button>
+  <button data-s="txn-search">9 · Find it by search</button>
+  <button data-s="run-ok">10 · Run page: file made</button>
+  <button data-s="run-errors">11 · Run page: export failed</button>
+  <button data-s="run-crashed">12 · Run page: crashed</button>
+  <div class="note" id="note"></div>
+</div>
+
+<!-- transaction page, opened by "Open transaction →" (a new tab in the real app) -->
+<section class="txn-view" id="txn-view" hidden aria-label="Project review page">
+  <div class="addr"><button class="tabname tab-other" type="button" data-to-export title="Mock: switch back to the first tab">Acme Ltd · Exports</button><span class="tabname tab-on">Atlas · transaction</span><span class="bar" id="addr"></span></div>
+  <div class="shell">
+    <nav class="side" aria-label="App">
+      <div class="brand"><span>A</span>Atlas</div>
+      <div class="cap">CLIENT</div><a>Acme Ltd</a>
+      <div class="cap">ACCOUNTING</div><a>Transactions</a><a>Receipt Matching</a>
+      <a class="on">Bookkeeping</a><a>Settings</a>
+    </nav>
+    <div class="appmain">
+      <div class="apphead"><h2>Dashboard</h2><span class="user">ramesh@firm.com</span></div>
+      <div class="topbar">Projects / Acme Ltd / <b>Nov 2026</b><span class="acct" id="acct"></span></div>
+      <div class="work">
+        <aside class="lp">
+          <div class="prog"><span class="ring">100%</span><span><div class="big" id="lp-count"></div><div class="small">reviewed · 0 remaining</div></span></div>
+          <div class="segs"><span class="on">All</span><span>For Review</span><span>Posted</span></div>
+          <div class="tree" id="lp-tree"></div>
+        </aside>
+        <div class="feed" id="feed"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="run-view" hidden aria-label="Workflow run page">
+  <div class="rv">
+    <nav class="rv-side" aria-label="App"><div class="brand"><span>A</span>Atlas</div>
+      <a>Home</a><div class="cap">CLIENT</div><a>Acme Ltd</a><div class="cap">ACCOUNTING</div><a>Transactions</a><a class="on">Bookkeeping</a><a>Settings</a></nav>
+    <div class="rv-main">
+      <div class="rv-head"><h2>Workflows</h2><span class="user">ramesh@firm.com</span></div>
+      <div id="rv-content"></div>
+    </div>
+  </div>
+</section>
+
+<main class="page" id="export-view">
+  <div class="crumbs">Bookkeeping › Projects › <b>Acme Ltd · Nov 2026</b></div>
+  <div class="title-row">
+    <h1>Acme Ltd · Nov 2026</h1>
+    <span class="pill green">5 posted</span>
+    <span class="pill grey">QuickBooks Desktop</span>
+  </div>
+
+  <section class="card" aria-labelledby="exports-h">
+    <div class="card-head">
+      <h2 id="exports-h">Exports</h2>
+      <span class="sub">Posted transactions as CSV (one per account) or as a QuickBooks Desktop file</span>
+      <span class="grow"></span>
+      <button class="btn ghost" type="button" id="btn-csv">Export CSV</button>
+      <button class="btn on" type="button" id="btn-iif">Export IIF <span class="new">NEW</span></button>
+    </div>
+    <div id="runs"></div>
+    <div class="card-foot"><span></span><span id="total"></span></div>
+  </section>
+
+  <p class="legend">
+    <b>Mock only.</b> Values are made up. The Exports card copies today's <code>ExportsSection</code>; the
+    <b>IIF</b> button, the review dialog, the format badge and the help text are new.
+  </p>
+</main>
+
+<!-- review dialog -->
+<div class="scrim" id="scrim" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="d-title">
+    <div class="d-head">
+      <div>
+        <h3 id="d-title">Export to QuickBooks Desktop (IIF)</h3>
+        <p id="d-sub">Acme Ltd · Nov 2026 · 5 posted transactions</p>
+      </div>
+      <button class="x" type="button" aria-label="Close" id="d-close">×</button>
+    </div>
+    <div class="d-body" id="d-body"></div>
+    <div class="d-foot" id="d-foot"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const ICON_DL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14"/></svg>';
+
+  const OLD_RUNS = [
+    { fmt: "csv", when: "Nov 18, 2026 · 16:05", who: "Ramesh K.", status: "ok", receipt: "3 accounts · 5 transactions" },
+  ];
+
+  const NOTES = {
+    start: "<b>Step 1.</b> The project page's Exports card, as today, plus one new <b>Export IIF</b> button. There is no separate check step: one click starts one run that builds, checks and (if it can) writes the file.",
+    running: "<b>Step 2: one run, no pop-up.</b> Like today's CSV export, the click just adds a row to the Exports list that says <b>Exporting</b>. In the background: <b>build_journal</b> → <b>check_iif</b> → <b>write_iif</b> → <b>save_document</b>. When it ends, the row shows the result.",
+    failed: "<b>Step 3: accounting error → Export failed.</b> Row 4596's bank account isn't linked, so the run stopped after the checks: <b>no file</b>. This is the dialog <b>View issues</b> opens from the failed row: every issue from the run (errors and warnings) with <b>Open transaction</b>. The user fixes the row in Atlas and clicks <b>Export IIF again</b>: a brand-new run on fresh data.",
+    done: "<b>Step 4: no errors → file made.</b> The dialog <b>View issues</b> opens from a finished row: warnings (QuickBooks-only problems and exceptions) never block the file, and the <b>Download</b> button sits right next to them.",
+    ready: "<b>Step 5.</b> When a run ends, its row shows the result: the failed try (<span style='color:#f87171'>Failed</span>, '1 error · 2 warnings · no file') and the good one (Download, '2 warnings'). <b>View issues</b> on either opens its list. The help text explains a safe import.",
+    crashed: "<b>Step 6 (rare): a real crash.</b> Not a data problem but a bug or an outage. The run itself fails, the export row says so, and the fix is simply to try again. Users see 'Export failed' in both cases; only the message differs.",
+    "start-failed": "<b>Step 3, in the list.</b> The run ended with an error: the row says <b>Failed</b> with '1 error · 2 warnings · no file'. Click <b>View issues</b> to see them.",
+    "run-ok": "<b>Step 10: the run page (for the team, not the accountant).</b> Same layout as today's v2 runner. All 4 nodes ran; the <b>Download</b> banner is the run's main download (<code>project-39.iif</code>). Click a node to see its outputs on the right, and the <b>Artifacts</b> tab to download <code>0_journal.json</code>, <code>issues.json</code> or the file.",
+    "run-errors": "<b>Step 11: run page of an export that failed on an accounting error.</b> The run is <b>Completed</b>, not Failed: nothing broke. Build Journal and Check IIF ran; Check IIF said <code>can_write: false</code>, so the guard skipped Write IIF and Save Document. No download banner. The journal and the issues are still downloadable from Artifacts. The export record shows 'Failed: 1 error' to the accountant.",
+    "run-crashed": "<b>Step 12: run page of a real crash.</b> Here the run itself is <b>Failed</b>: today's red failure banner names the node and the error, and Retry is offered. The export record shows 'Something went wrong, try again'.",
+    "txn-loading": "<b>Step 7: Open transaction (new tab).</b> The link carries only <code>?transactionId=…</code>. The page first asks the backend for that row to learn its bank account…",
+    txn: "<b>Step 7.</b> …then fills the URL in: the row's <b>account</b>, the <b>All</b> tab with no group filter and <b>Table</b> view, plus a <b>Transaction #… ×</b> chip. Only that row is listed and it's opened; the user decides the fix. Then back in the first tab (click <b>Acme Ltd · Exports</b> above) they click <b>Export IIF again</b>.",
+    "txn-search": "<b>Step 9: finding it by search instead.</b> Today search looks at <b>description, counterparty and notes</b>, so <code>ACME</code> finds it. <b>New:</b> the row number shown in the export dialog works too: <code>4596</code> or <code>ATLAS-4596</code> finds exactly that row. Try it.",
+    "txn-cleared": "<b>Step 8.</b> The Transaction chip is cleared: <code>transactionId</code> leaves the URL and the whole list for that account comes back.",
+  };
+
+  // Posted rows per bank account (mock data). The focus row is the one the export check named.
+  const ACCOUNTS = {
+    4596: { acctId: 14, acct: "BofA Savings 4410", kind: "err",
+      tree: [["GENERAL", 3, [["Acme Ltd", 1], ["Bank of America", 1], ["Interest", 1]]]],
+      rows: [
+        { id: 4596, date: "Nov 19, 2026", desc: "ACME INV 77 DEPOSIT REF 88213", cp: "Acme Ltd", coa: "Income:Sales", type: "Deposit", amt: "$500.00", dir: "in" },
+        { id: 4597, date: "Nov 22, 2026", desc: "INTEREST PAYMENT NOV", cp: "Bank of America", coa: "Interest Income", type: "Deposit", amt: "$1.20", dir: "in" },
+        { id: 4598, date: "Nov 28, 2026", desc: "MONTHLY MAINTENANCE FEE", cp: "Bank of America", coa: "Bank Charges", type: "Check", amt: "($12.00)", dir: "out" },
+      ] },
+    4521: { acctId: 12, acct: "Chase Checking 6859", kind: "wrn",
+      tree: [["GENERAL", 2, [["Office Depot", 1], ["Gusto Payroll", 1]]], ["TRANSFERS", 1, [["To savings", 1]]]],
+      rows: [
+        { id: 4521, date: "Nov 16, 2026", desc: "OFFICE DEPOT #123 NY", cp: "Office Depot Business Solutions Division NY", coa: "Expenses:Office Supplies", type: "Check", amt: "($108.00)", dir: "out" },
+        { id: 4560, date: "Nov 16, 2026", desc: "ONLINE TRANSFER TO SAV 4410", cp: "—", coa: "Transfer", type: "Transfer", amt: "($1,000.00)", dir: "out" },
+        { id: 4561, date: "Nov 21, 2026", desc: "GUSTO PAYROLL 112026", cp: "Gusto Payroll", coa: "Payroll Expenses", type: "Check", amt: "($2,340.00)", dir: "out" },
+      ] },
+  };
+  ACCOUNTS[4595] = { acctId: 20, acct: "HDFC Credit Card 0021", kind: "wrn",
+    tree: [["GENERAL", 2, [["Uber", 1], ["Office Depot", 1]]]],
+    rows: [
+      { id: 4595, date: "Nov 18, 2026", desc: "UBER TRIP HELP.UBER.COM", cp: "Uber", coa: "Expenses:Travel", type: "Credit Card", amt: "($45.00)", dir: "out" },
+      { id: 4541, date: "Nov 20, 2026", desc: "OFFICE DEPOT REFUND", cp: "Office Depot", coa: "Expenses:Office Supplies", type: "Credit Card Credit", amt: "$20.00", dir: "in" },
+    ] };
+  let txnId = 4596;
+  let query = "";   // the review page's search box
+
+  const ISSUES = {
+    error: { id: 4596, date: "Nov 19", amount: "+500.00", acct: "BofA Savings", party: "Acme Ltd",
+      msg: "BofA Savings isn't linked to a chart-of-accounts account, so QuickBooks wouldn't know which account this is.",
+      what: "No file until fixed" },
+    warning: { id: 4521, date: "Nov 16", amount: "−108.00", acct: "Chase Checking", party: "Office Depot Business…",
+      msg: "Counterparty name 'Office Depot Business Solutions Division NY' is 43 characters; QuickBooks allows 41. Shorten it in QuickBooks after import, or in Atlas.",
+      what: "In the file · please check" },
+    exception: { id: 4595, date: "Nov 18", amount: "−45.00", acct: "HDFC Credit Card", party: "Uber",
+      msg: "Posted with an exception: the posting check \"Counterparty type doesn't match the account\" was skipped by Priya on Nov 18.",
+      what: "In the file · please check" },
+  };
+
+  const $ = (id) => document.getElementById(id);
+  let state = "start";
+  let fixed = false;     // mock: the user opened row 4596 and fixed it elsewhere
+
+  function runRow(r) {
+    const badge = `<span class="fmt ${r.fmt}">${r.fmt.toUpperCase()}</span>`;
+    let act;
+    if (r.status === "ok") act = `<button class="btn ghost act" type="button">${ICON_DL} Download</button>`;
+    else if (r.status === "failed") act = `<span class="pill red act">Failed</span>`;
+    else act = `<span class="pill blue act"><span class="spin" aria-hidden="true"></span> Exporting</span>`;
+    const view = r.view ? ` · <button class="linkbtn" type="button" data-view="${r.view}">View issues</button>` : "";
+    return `<div class="run">${badge}
+      <span><div class="when">${r.when}</div><div class="who">${r.who}</div></span>
+      <span class="receipt">${r.receipt || ""}${view}</span>${act}</div>`;
+  }
+
+  const FAILED_RUN = { fmt: "iif", when: "Nov 19, 2026 · 14:20", who: "Ramesh K.", status: "failed", view: "failed",
+    receipt: '<span style="color:var(--red)">1 error</span> · <span class="warn">2 warnings</span> · no file' };
+  const OK_RUN = { fmt: "iif", when: "Nov 19, 2026 · 14:31", who: "Ramesh K.", status: "ok", view: "done",
+    receipt: '5 transactions · <span class="warn">2 warnings</span>' };
+
+  function renderRuns() {
+    const runs = [...OLD_RUNS];
+    if (["failed", "start-failed", "done", "ready"].includes(state) || (state === "running" && fixed)) runs.unshift(FAILED_RUN);
+    if (state === "running") runs.unshift({ fmt: "iif", when: fixed ? "Nov 19, 2026 · 14:31" : "Nov 19, 2026 · 14:20", who: "Ramesh K.", status: "running" });
+    if (["done", "ready"].includes(state)) runs.unshift(OK_RUN);
+    if (state === "crashed") runs.unshift({ fmt: "iif", when: "Nov 19, 2026 · 14:20", who: "Ramesh K.", status: "failed",
+      receipt: '<span style="color:var(--red)">Something went wrong on our side. Please try again.</span>' });
+    $("runs").innerHTML = runs.map(runRow).join("");
+    $("total").textContent = `${runs.length} in total`;
+
+    const old = document.querySelector(".help");
+    if (old) old.remove();
+    if (state === "ready") {
+      const help = document.createElement("div");
+      help.className = "help";
+      help.innerHTML = `<b>Importing into QuickBooks Desktop</b>
+        <ol>
+          <li><b>Back up</b> your QuickBooks company file first.</li>
+          <li>File → Utilities → Import → IIF Files, and pick this file.</li>
+          <li>If some transactions fail, QuickBooks saves them in an error file. Find each one in Atlas by its date, amount and description, and <b>fix that row</b>.</li>
+          <li><b>Don't import this full file again</b>: QuickBooks would add every transaction a second time. Restore the backup first, or import only the fixed rows.</li>
+        </ol>
+        <details class="peek"><summary>Peek inside the file</summary><pre><span class="c">!ACCNT / !VEND / !CUST lists (only names this file uses) …</span>
+TRNS  CHECK        11/16/2026  Chase Checking    <span class="hl">Office Depot Business Solutions Division NY</span>  -108.00  OFFICE DEPOT
+SPL   CHECK        11/16/2026  Expenses:Office Supplies         108.00
+ENDTRNS
+TRNS  CREDIT CARD  11/18/2026  HDFC Credit Card  Uber           -45.00  UBER TRIP
+SPL   CREDIT CARD  11/18/2026  Expenses:Travel                   45.00
+ENDTRNS
+TRNS  DEPOSIT      11/19/2026  BofA Savings      Acme Ltd       500.00  ACME INV 77
+SPL   DEPOSIT      11/19/2026  Income:Sales      Acme Ltd      -500.00
+ENDTRNS
+<span class="c">… 2 more (one is the 4560 transfer)</span></pre></details>`;
+      document.querySelector(".card").appendChild(help);
+    }
+  }
+
+  function issueCard(kind, it) {
+    const cls = kind === "error" ? "err" : "wrn";
+    const ic = kind === "error" ? "✖" : "!";
+    return `<div class="issue ${cls}"><span class="ic" aria-hidden="true">${ic}</span>
+      <div><div class="row1">Row ${it.id} <span>· ${it.date} · ${it.amount} · ${it.acct} · ${it.party}</span></div>
+      <div class="msg">${it.msg}</div><div class="what">${it.what}</div></div>
+      <button class="btn ghost" type="button" data-open="${it.id}">Open transaction →</button></div>`;
+  }
+
+  function renderDialog() {
+    const open = ["failed", "done"].includes(state);
+    $("scrim").hidden = !open;
+    if (!open) return;
+    const body = $("d-body"), foot = $("d-foot");
+
+    const failed = state === "failed";
+    $("d-sub").textContent = failed ? "Acme Ltd · Nov 2026 · no file was made" : "Acme Ltd · Nov 2026 · project-39.iif · 5 transactions";
+    body.innerHTML = `
+      ${failed ? `<div class="banner fail">✖ Export failed: fix 1 row in Atlas, then export again.</div>`
+               : `<div class="banner ok">✓ File ready. Check the 2 warnings before importing.</div>`}
+      ${failed ? `<div class="group"><h4>Errors · no file until fixed</h4>${issueCard("error", ISSUES.error)}</div>` : ""}
+      <div class="group"><h4>Warnings · in the file, check them</h4>${issueCard("warning", ISSUES.warning)}${issueCard("warning", ISSUES.exception)}</div>`;
+
+    foot.innerHTML = failed
+      ? `<span class="why lock">No file was made</span><span class="grow"></span>
+         <button class="btn plain" type="button" data-close>Close</button>
+         <button class="btn solid" type="button" data-again>Export IIF again</button>`
+      : `<span class="why">Saved in the document library</span><span class="grow"></span>
+         <button class="btn plain" type="button" data-close>Close</button>
+         <button class="btn solid" type="button">${ICON_DL} Download</button>`;
+  }
+
+  function renderTxn() {
+    const onTxn = state.startsWith("txn");
+    $("txn-view").hidden = !onTxn;
+    $("export-view").hidden = onTxn;
+    if (!onTxn) return;
+    const a = ACCOUNTS[txnId];
+    const base = "localhost:3000/dashboard/atlas/bookkeeping/projects/39/review";
+    const feed = $("feed");
+
+    if (state === "txn-loading") {
+      $("addr").innerHTML = `${base}?<b>transactionId=${txnId}</b>`;
+      $("acct").textContent = "…";
+      $("lp-count").textContent = "…";
+      $("lp-tree").innerHTML = "";
+      feed.innerHTML = `<div class="loading-row"><span class="spin" aria-hidden="true"></span> Finding transaction #${txnId}…</div>`;
+      return;
+    }
+
+    const focused = state === "txn";
+    if (state === "txn-search" && query === "__init__") query = "ACME";
+    $("addr").innerHTML = `${base}?accountId=${a.acctId}` + (focused ? `&amp;<b>transactionId=${txnId}</b>` : "");
+    $("acct").textContent = `${a.acct} ▾`;
+    $("lp-count").textContent = `${a.rows.length} / ${a.rows.length}`;
+    $("lp-tree").innerHTML = a.tree.map(([g, n, leaves]) =>
+      `<div class="grp"><span>▾ ${g}</span><span>${n}</span></div>` +
+      leaves.map(([l, c]) => `<div class="leaf"><span>${l}</span><span>${c}</span></div>`).join("")).join("");
+
+    const q = query.trim().toLowerCase();
+    const rows = (focused ? a.rows.filter(r => r.id === txnId) : a.rows)
+      .filter(r => {
+        if (!q) return true;
+        // NEW: a row number, alone or as QuickBooks' "ATLAS-4596", matches that row exactly.
+        const idTerm = q.match(/^(?:atlas-)?(\d+)$/);
+        if (idTerm) return r.id === Number(idTerm[1]);
+        return (r.desc + " " + r.cp).toLowerCase().includes(q);
+      });
+    const tr = (r) => {
+      const isFocus = focused && r.id === txnId;
+      const pen = isFocus ? '<span class="pen">✎</span>' : "";
+      return `<tr class="${isFocus ? "focus" : ""}">
+        <td><input type="checkbox" aria-label="Select row ${r.id}" /></td>
+        <td>${r.date}</td>
+        <td class="desc">${r.desc}${isFocus ? `<div style="color:var(--muted);margin-top:3px">Row ${r.id} · ${a.acct}</div>` : ""}</td>
+        <td>${r.cp}${pen}</td><td>${r.coa}${pen}</td><td>${r.type}${pen}</td>
+        <td class="amt ${r.dir}">${r.amt}</td><td><span class="stat-pill">● Posted</span></td></tr>`;
+    };
+    feed.innerHTML = `
+      <div class="tools">
+        <span class="seg2"><span class="on">Review</span><span>Exceptions</span></span>
+        <input class="search" id="q" type="search" placeholder="Search transactions…" value="${query.replace(/"/g, "&quot;")}" aria-label="Search transactions" />
+        <span class="seg2"><span>Clustered</span><span class="on">Table</span></span>
+        <span class="filt">⚲ Filters</span>
+        <span class="count">${rows.length} result${rows.length === 1 ? "" : "s"}</span>
+      </div>
+      <div class="chips">
+        <span class="fchip">Account: ${a.acct}<button type="button" aria-label="Remove account filter" data-noop>×</button></span>
+        ${focused ? `<span class="fchip txn">Transaction #${txnId}<button type="button" aria-label="Clear transaction filter" data-clear-txn>×</button></span>
+          <span style="color:var(--faint)">Showing 1 transaction</span>` : ""}
+      </div>
+      <div class="tbl-wrap"><table class="tx">
+        <thead><tr><th></th><th>Date</th><th>Description</th><th>Counterparty</th><th>COA</th><th>Type</th><th style="text-align:right">Amount</th><th>Status</th></tr></thead>
+        <tbody>${rows.map(tr).join("")}</tbody>
+      </table>${rows.length ? "" : `<div class="empty">No transactions match <b>${q.replace(/</g, "&lt;")}</b> in this account and tab.<br>Search looks at the row number, description, counterparty and notes.</div>`}</div>
+      <div class="tfoot"><span>Show 200 per page</span><span>1–${rows.length} of ${rows.length}</span></div>`;
+  }
+
+
+  // ===== run page mock (same layout as the v2 runner, RunnerPage.tsx) =====
+  let runNode = "check_iif", runTab = "timeline";
+  const RUNS = {
+    "run-ok": { id: 1204, state: ["Completed", "ok"], started: "19/11/2026, 14:31:02", dur: "3.8s",
+      nodes: { build_journal: "ok", check_iif: "ok", write_iif: "ok", save_document: "ok" },
+      durs: { build_journal: "2.9s", check_iif: "120ms", write_iif: "340ms", save_document: "410ms" } },
+    "run-errors": { id: 1198, state: ["Completed", "ok"], started: "19/11/2026, 14:20:11", dur: "3.1s",
+      nodes: { build_journal: "ok", check_iif: "ok", write_iif: "skip", save_document: "skip" },
+      durs: { build_journal: "2.9s", check_iif: "110ms", write_iif: "—", save_document: "—" } },
+    "run-crashed": { id: 1191, state: ["Failed", "bad"], started: "19/11/2026, 13:58:40", dur: "31.0s",
+      nodes: { build_journal: "bad", check_iif: "skip", write_iif: "skip", save_document: "skip" },
+      durs: { build_journal: "31.0s", check_iif: "—", write_iif: "—", save_document: "—" } },
+  };
+  const NODE_INFO = {
+    build_journal: { title: "Build Journal", desc: "Load the project's posted rows, build journal entries, run the accounting checks.", type: "Task · ASYNC", timeout: "900s",
+      out: { "run-ok": "journal: 0_journal.json (artifact)\nerror_count: 0", "run-errors": "journal: 0_journal.json (artifact)\nerror_count: 1",
+             "run-crashed": null } },
+    check_iif: { title: "Check IIF", desc: "QuickBooks Desktop rules on every entry; joins all issues into one list.", type: "Task", timeout: "300s",
+      out: { "run-ok": "issues: issues.json (artifact) · 0 errors, 2 warnings\ncan_write: true", "run-errors": "issues: issues.json (artifact) · 1 error, 2 warnings\ncan_write: false" } },
+    write_iif: { title: "Write IIF", desc: "Map entries to TRNS/SPL lines and write the .iif file.", type: "Task", timeout: "300s",
+      out: { "run-ok": "iif_file: project-39.iif (artifact)\nentry_count: 5" } },
+    save_document: { title: "Save Document", desc: "Save the file to the document library and mark the export record.", type: "Task", timeout: "300s",
+      out: { "run-ok": "document_id: 9120" } },
+  };
+  const ARTIFACTS = {
+    build_journal: [["0_journal.json", "application/json · 18.4 KB"]],
+    check_iif: [["issues.json", "application/json · 1.9 KB"]],
+    write_iif: [["project-39.iif", "text/plain · 4.2 KB"]],
+    save_document: [],
+  };
+
+  function renderRunPage() {
+    const onRun = state.startsWith("run-");
+    $("run-view").hidden = !onRun;
+    if (!onRun) return;
+    $("export-view").hidden = true; $("txn-view").hidden = true; $("scrim").hidden = true;
+    const r = RUNS[state];
+    if (r.nodes[runNode] === "skip" && state === "run-crashed") runNode = "build_journal";
+    const order = ["build_journal", "check_iif", "write_iif", "save_document"];
+    const stTxt = { ok: "Completed", skip: "Skipped", bad: "Failed" };
+    const mark = { ok: '<span class="ok">✓</span>', skip: '<span class="no">–</span>', bad: '<span class="x">✕</span>' };
+    const graph = order.map((n, i) => {
+      const st = r.nodes[n];
+      const edge = i ? `<span class="gedge ${st === "skip" ? "off" : ""}"></span>` : "";
+      return `${edge}<div class="gnode ${st === "skip" ? "skip" : st === "bad" ? "fail" : ""} ${n === runNode ? "sel" : ""}" data-node="${n}">
+        <span class="ic">⑂</span><span><div class="nm">${NODE_INFO[n].title}</div><div class="st">${stTxt[st]}</div></span>${mark[st]}</div>`;
+    }).join("");
+
+    const banner = state === "run-ok"
+      ? `<div class="rv-banner"><span>⤓ <b style="color:var(--ink)">project-39.iif</b> <span style="color:var(--faint)">· 4.2 KB</span></span><button class="btn solid" type="button">${ICON_DL} Download</button></div>`
+      : state === "run-crashed"
+      ? `<div class="rv-banner fail"><span>⚠</span><span><b>Run failed</b> · Build Journal<div class="small">OperationalError: could not connect to server (timed out after 30s)</div></span></div>`
+      : "";
+
+    const tl = `<table class="tl"><thead><tr><th>STEP</th><th>NODE</th><th>TYPE</th><th>STATUS</th><th>DURATION</th></tr></thead><tbody>${
+      order.map((n, i) => { const st = r.nodes[n];
+        return `<tr><td>${i + 1}</td><td>${NODE_INFO[n].title}</td><td>Task</td><td><span class="sp ${st}">${st === "ok" ? "✓ Success" : st === "skip" ? "Skipped" : "✕ Failed"}</span></td><td>${r.durs[n]}</td></tr>`; }).join("")}</tbody></table>`;
+    const af = order.filter(n => r.nodes[n] === "ok").map(n => `<div class="af-g"><div class="gh">▸ ${NODE_INFO[n].title} <span class="c">${ARTIFACTS[n].length}</span></div>${
+      ARTIFACTS[n].length ? ARTIFACTS[n].map(([f, m]) => `<div class="af-f"><span><div class="n">${f}</div><div class="m">${m}</div></span><a>⤓ Download</a></div>`).join("")
+                          : `<div class="af-none">No files (document_id is a value)</div>`}</div>`).join("") || `<div class="af-none" style="padding:30px;text-align:center">No artifacts produced yet.</div>`;
+
+    const info = NODE_INFO[runNode], st = r.nodes[runNode];
+    const out = (info.out || {})[state];
+    const task = `<div class="task"><div class="h">Current Task <span class="sp ${st}">${stTxt[st]}</span></div>
+      <div><b style="color:var(--ink)">${info.title}</b><div style="color:var(--muted);margin-top:2px">${info.desc}</div></div>
+      <div class="kv">Duration <b>${r.durs[runNode]}</b></div><div class="kv">Type <b>${info.type}</b></div>
+      <div class="kv">Attempt <b>${st === "skip" ? "—" : "1 of 1"}</b></div><div class="kv">Timeout in <b>${info.timeout}</b></div>
+      <div class="cap">OUTPUTS</div>${out ? `<pre>${out}</pre>` : `<div style="color:var(--faint)">${st === "skip" ? "Skipped: the guard on Check IIF → Write IIF was false (can_write)." : "None"}</div>`}
+      ${st === "bad" ? `<div class="badbox">OperationalError: could not connect to server</div>` : st === "ok" ? `<div class="okbox">No errors</div>` : ""}</div>`;
+
+    $("rv-content").innerHTML = `
+      <div class="rv-top"><span class="back">←</span><span class="wico">⑂</span>
+        <span><div class="t">Bookkeeping: Export Project IIF <span class="v">v1</span> <span class="state ${r.state[1]}">● ${r.state[0]}</span></div>
+        <div class="meta"><span>Execution ID: ${r.id}</span><span>Started: ${r.started}</span><span>Duration: ${r.dur}</span></div></span>
+        <span class="grow"></span>${state === "run-crashed" ? '<button class="btn plain" type="button">↻ Retry</button>' : ""}</div>
+      ${banner}
+      <div class="rv-body">
+        <div style="display:grid;gap:12px;align-content:start;min-width:0">
+          <div class="rv-card graph">${graph}</div>
+          <div class="rv-card"><div class="rv-tabs">${["timeline", "artifacts", "context", "logs"].map(t =>
+            `<span data-rtab="${t}" class="${t === runTab ? "on" : ""}">${t[0].toUpperCase() + t.slice(1)}</span>`).join("")}</div>
+            ${runTab === "artifacts" ? af : runTab === "timeline" ? tl : `<div class="af-none" style="padding:30px;text-align:center">(not part of this mock)</div>`}</div>
+        </div>
+        <div class="rv-card">${task}</div>
+      </div>`;
+  }
+  $("run-view").addEventListener("click", (e) => {
+    const n = e.target.closest("[data-node]"); if (n) { runNode = n.dataset.node; renderRunPage(); return; }
+    const t = e.target.closest("[data-rtab]"); if (t) { runTab = t.dataset.rtab; renderRunPage(); }
+  });
+
+  function go(s) {
+    state = s;
+    document.querySelectorAll(".scenarios button").forEach(b => b.classList.toggle("on", b.dataset.s === s));
+    $("note").innerHTML = NOTES[s];
+    renderTxn();
+    renderRunPage();
+    if (s.startsWith("run-")) return;
+    if (s.startsWith("txn")) { $("scrim").hidden = true; return; }
+    renderRuns();
+    renderDialog();
+  }
+
+  function openTxn(id) {
+    txnId = id; query = "";
+    if (id === 4596) fixed = true;   // mock: the user fixes it on this page
+    go("txn-loading");
+    setTimeout(() => state === "txn-loading" && go("txn"), 900);
+  }
+
+  // interactions
+  document.querySelectorAll(".scenarios button").forEach(b => b.addEventListener("click", () => {
+    fixed = false;
+    if (b.dataset.s === "txn") return openTxn(4596);
+    if (b.dataset.s.startsWith("run-")) { runNode = "check_iif"; runTab = "timeline"; }
+    query = "";
+    if (b.dataset.s === "txn-cleared") txnId = 4596;
+    if (b.dataset.s === "txn-search") { txnId = 4596; query = "__init__"; }
+    go(b.dataset.s);
+  }));
+  function exportIif() {
+    go("running");
+    setTimeout(() => state === "running" && go(fixed ? "ready" : "start-failed"), 1400);
+  }
+  $("btn-iif").addEventListener("click", exportIif);
+  $("btn-csv").addEventListener("click", () => alert("Today's CSV export (unchanged)."));
+  const closeTo = () => go(state === "done" ? "ready" : state === "failed" ? "start-failed" : "start");
+  $("d-close").addEventListener("click", closeTo);
+  $("scrim").addEventListener("click", (e) => {
+    const t = e.target;
+    if (t === $("scrim") || t.closest("[data-close]")) return closeTo();
+    if (t.closest("[data-again]")) return exportIif();
+    const open = t.closest("[data-open]");
+    if (open) { openTxn(Number(open.dataset.open)); return; }
+  });
+  $("runs").addEventListener("click", (e) => {
+    const v = e.target.closest("[data-view]");
+    if (v) go(v.dataset.view);
+  });
+  $("txn-view").addEventListener("click", (e) => {
+    const t = e.target;
+    if (t.closest("[data-clear-txn]")) return go("txn-cleared");
+  });
+  $("txn-view").addEventListener("input", (e) => {
+    if (e.target.id !== "q") return;
+    query = e.target.value;
+    const pos = e.target.selectionStart;
+    renderTxn();
+    const box = $("q"); box.focus(); box.setSelectionRange(pos, pos);
+  });
+  document.querySelector("[data-to-export]").addEventListener("click", () => go("failed"));
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("scrim").hidden) closeTo(); });
+
+  go("start");
+})();
+</script>
+</body>
+</html>
