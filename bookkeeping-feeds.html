@@ -92,7 +92,8 @@ body{
 @media (prefers-reduced-motion:reduce){*{animation:none !important; transition:none !important}}
 
 /* ---------- shell ---------- */
-.app{display:grid; grid-template-columns:17rem minmax(0,1fr); min-height:100vh}
+.app{display:grid; grid-template-columns:auto minmax(0,1fr); min-height:100vh}
+.app .anav{position:sticky; top:0; align-self:start}
 
 /* The sidebar is its own dark world in the real console -- a fixed navy gradient
    that does not follow the page theme. Values lifted from Sidebar.module.scss. */
@@ -402,8 +403,55 @@ tr[aria-expanded="true"] > td{background:var(--surface-2)}
 .grp-in{display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:12px}
 .grp-f{font-weight:600; color:var(--ink)}
 .grp-n{color:var(--ink-3)}
-tr.excl > td{opacity:.55}
-tr.excl .amt{text-decoration:line-through}
+/* ---------- invoice register: selection, export, read fields (ATLS-316) ---------- */
+.inv-only{display:none !important}
+.page[data-view="invoice"] .inv-only{display:inline-flex !important}
+.page[data-view="invoice"] .not-inv{display:none !important}
+.sel-sum{margin-left:auto; font-size:12px; color:var(--ink-3); white-space:nowrap; align-items:center}
+.btn:disabled{opacity:.45; cursor:not-allowed}
+.chk{width:15px; height:15px; margin:0; accent-color:var(--accent); cursor:pointer; vertical-align:middle}
+.chk:disabled{cursor:not-allowed}
+.refusal{
+  display:flex; gap:10px; align-items:flex-start; margin:12px 14px 0; padding:10px 12px;
+  border:1px solid rgba(220,38,38,.3); background:rgba(220,38,38,.07); color:#b91c1c;
+  border-radius:8px; font-size:12px;
+}
+.refusal[hidden]{display:none}
+.refusal span{flex:1}
+.refusal button{border:0; background:none; color:inherit; font:inherit; font-weight:600; cursor:pointer}
+.pill-open{background:rgba(220,38,38,.08); color:#dc2626; border-color:rgba(220,38,38,.3)}
+.counted, .xtag{font-family:var(--font, inherit); font-size:10.5px; color:var(--warn); margin-left:5px; white-space:nowrap}
+.copies{font-size:10.5px; color:var(--ink-3); margin-left:5px; white-space:nowrap}
+tr.arrived > td{background:var(--warn-weak) !important; box-shadow:inset 0 1px 0 var(--warn), inset 0 -1px 0 var(--warn)}
+.lvl{display:flex; align-items:baseline; gap:8px}
+.lvl b{font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-2)}
+.lvl span{font-size:11px; color:var(--ink-3)}
+.fgrp{display:flex; flex-direction:column; gap:6px}
+.fgrp-k{font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3)}
+.fgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:6px}
+.fld{display:flex; gap:8px; align-items:baseline; min-width:0; padding:6px 10px; border:1px solid var(--border); border-radius:8px; background:var(--surface)}
+.fld .fk{width:150px; flex-shrink:0; font-size:11px; color:var(--ink-3)}
+.fld .fv{min-width:0; overflow-wrap:anywhere; font-size:11px; color:var(--ink)}
+.fld .np{font-size:11px; font-style:italic; color:var(--ink-3)}
+.dtbl tr.dim td{opacity:.6}
+.dtbl.wide{min-width:1100px}
+.dtbl.wide th, .dtbl .nw{white-space:nowrap}
+.readtot{font-size:11px; color:var(--ink-3); margin:0}
+.readtot b{color:var(--ink-2); font-weight:600}
+/* The register's own density: eleven columns have to fit beside the nav, so cells are
+   tighter, figures never wrap their currency onto a second line, and long vendor names
+   ellipsise. The expanded panel is bounded to the visible width so its wide inner grids
+   scroll inside themselves instead of pushing the page sideways. */
+.page[data-view="invoice"] table#tbl{min-width:0}
+.page[data-view="invoice"] #tbl td, .page[data-view="invoice"] #tbl th{padding-left:9px; padding-right:9px}
+.page[data-view="invoice"] #tbl td.num{white-space:nowrap}
+.page[data-view="invoice"] #tbl .desc{display:inline-block; vertical-align:middle; max-width:210px}
+.page[data-view="invoice"] #tbl td .mono{white-space:nowrap}
+.page[data-view="invoice"] #tbl .fld .fv{white-space:normal}
+.page[data-view="invoice"] .exp-row > td{max-width:0}
+/* Like the app, the row table scrolls sideways when it must; the open panel stays pinned to
+   the visible width (--tw-w, set from the scroller) so its own grids scroll inside it. */
+.page[data-view="invoice"] .exp-in{position:sticky; left:0; box-sizing:border-box; width:var(--tw-w, 100%)}
 .kv dt{color:var(--ink-3); font-size:12.5px}
 .kv dd{margin:0; color:var(--ink); font-weight:500; overflow-wrap:anywhere}
 .note{
@@ -440,41 +488,8 @@ tr.excl .amt{text-decoration:line-through}
 <body>
 
 <div class="app">
-  <nav class="side" aria-label="Main">
-    <div class="brand">
-      <div class="brand-mark">A</div>
-      <div><div class="brand-name">Atlas</div><div class="brand-sub">atlas.theatlas.ai</div></div>
-    </div>
-    <button class="team" type="button">
-      <span class="team-in">CT</span>
-      <span><span class="team-n">Core Team</span><br><span class="team-t">Switch team</span></span>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 9l4 4 4-4"/></svg>
-    </button>
-
-    <div class="nav-group">Accounting</div>
-    <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg>Transactions</a>
-    <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/></svg>Receipt Matching</a>
-    <button class="sec-h" type="button" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 12h2m4 0h2M8 16h2m4 0h2"/></svg>Accounting<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
-
-    <!-- Projects are enabled for this tenant, so this section is "Bookkeeping",
-         not "Bookkeeping Recipes", and carries the Projects leaf. Feeds joins it
-         directly above Projects: the three rule screens are configuration, and
-         Feeds -> Projects is the data path in the order it actually runs. -->
-    <button class="sec-h on" type="button" aria-expanded="true"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 012-2h13v18H6a2 2 0 01-2-2V5z"/><path d="M9 3v18"/></svg>Bookkeeping<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
-    <div class="sec-items">
-      <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>General Categorisation</a>
-      <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="7" cy="17" r="2"/></svg>Custom</a>
-      <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Routing Rules</a>
-      <a class="nav-item" href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v5H4zM4 14h16v5H4z"/><path d="M7 7.5h4M7 16.5h4"/></svg>Feeds<span class="nav-new">NEW</span></a>
-      <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V7z"/></svg>Projects</a>
-    </div>
-
-    <button class="sec-h" type="button" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 8h13l-3-3m3 11H7l3 3"/></svg>Reconciliation<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
-
-    <div class="nav-group">Platform</div>
-    <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h5"/></svg>Document Library</a>
-    <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H15a3 3 0 013 3v6.5"/></svg>Workflows</a>
-  </nav>
+  <!-- The shared left nav (assets/atlas-nav.js), same as every other bookkeeping mock. -->
+  <div data-atlas-nav data-active="bookkeeping/feeds" data-client="bright-bloom"></div>
 
   <div class="main">
     <header class="topbar">
@@ -493,7 +508,9 @@ tr.excl .amt{text-decoration:line-through}
           <p>Every raw line that has entered the system, exactly as its statement, check pack or supplier invoice reported it. Feeds are immutable &mdash; a bookkeeping project claims them by date window, and only then do they become transactions.</p>
         </div>
         <div class="ph-actions">
-          <button class="btn" type="button">
+          <!-- On the Invoice tab the export is selection-driven and lives in the bar above the
+               table, so this page-level button is hidden there. -->
+          <button class="btn not-inv" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3m0 12l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
             Export CSV
           </button>
@@ -519,20 +536,29 @@ tr.excl .amt{text-decoration:line-through}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
             <input type="search" id="q" placeholder="Search description, payee, check number, file&hellip;" aria-label="Search feeds">
           </label>
-          <select id="f-account" aria-label="Filter by account"></select>
-          <select id="f-project" aria-label="Filter by project"></select>
-          <!-- Excluded invoices are recorded but are NOT part of the register (FR-028b);
-               this is a deliberate opt-in to a different view, not a default filter. -->
-          <button class="pg" type="button" id="f-excl" aria-pressed="false" hidden
-                  style="white-space:nowrap">Show excluded</button>
-          <select id="f-claim" aria-label="Filter by claim state">
+          <select id="f-account" class="not-inv" aria-label="Filter by account"></select>
+          <select id="f-project" class="not-inv" aria-label="Filter by project"></select>
+          <!-- Invoice tab: the register is ACCEPTED invoices only. A rejected invoice keeps its
+               record, but the rejection is read on the review screen where it was made, so there
+               is no "show excluded" toggle here. The bar is the export bar instead -- present
+               always, so the action is never somewhere a reviewer has to go looking. -->
+          <span class="sel-sum inv-only" id="selsum">Nothing selected</span>
+          <button class="btn" type="button" id="selclear" hidden>Clear</button>
+          <button class="btn btn-primary inv-only" type="button" id="selexport" disabled>Export CSV</button>
+          <select id="f-claim" class="not-inv" aria-label="Filter by claim state">
             <option value="">Any claim state</option>
             <option value="unclaimed">Unclaimed</option>
             <option value="pending">Claimed &middot; pending</option>
             <option value="routed">Claimed &middot; routed</option>
             <option value="matched">Matched to a transaction</option>
           </select>
-          <span class="filter-note" id="fnote"></span>
+          <span class="filter-note not-inv" id="fnote"></span>
+        </div>
+
+        <!-- The server's own sentence, verbatim: it names the invoice it refused and why. -->
+        <div class="refusal" id="refusal" role="alert" hidden>
+          <span id="refusal-t"></span>
+          <button type="button" id="refusal-x">Dismiss</button>
         </div>
 
         <div class="tw" id="panel" role="tabpanel" aria-labelledby="tab-bank">
@@ -703,52 +729,97 @@ tr.excl .amt{text-decoration:line-through}
     });
   }
 
-  /* ---------- invoice feed rows ---------- */
+  /* ---------- invoice feed rows ----------
+     Shaped like the shipped register (ATLS-316, InvoiceFeedsPage): ACCEPTED invoices only,
+     every figure as the backend emitted it, and an explicit "not printed" wherever the
+     invoice printed nothing. */
   var invoice = [];
+  var lineSeq = 900;
+  function L(o){
+    lineSeq++;
+    return {
+      id:lineSeq, ord:o.ord, label:o.label || "product", page:o.page == null ? 1 : o.page,
+      code:o.code || "", name:o.name || "", desc:o.desc || "", qty:o.qty == null ? null : o.qty,
+      unit:o.unit || "", price:o.price == null ? null : o.price, amount:o.amount,
+      tax:o.tax || 0, discPct:o.discPct == null ? null : o.discPct, discAmt:o.discAmt == null ? null : o.discAmt,
+      hsn:o.hsn || "", serial:o.serial || "",
+      /* Sent by the backend (LineMembership owns which labels reach the export) -- never
+         inferred here. An excluded line is shown, dimmed, and cannot be ticked. */
+      inExport:o.inExport !== false, reason:o.reason || ""
+    };
+  }
+
   /* The first three are the real reference invoices this feature was measured against;
      the rest are generated so the table has volume. */
   var REAL = [
     { file:"Feelflux invoice.pdf", vendor:0, no:"FLX-2025-235", date:"2026-08-14",
-      sub:222.10, tax:0, total:222.10, lines:4, copies:2, pages:6, notes:"1 invoice + 4 courier pages" },
+      sub:222.10, taxPrinted:0, taxCounted:0, total:222.10, copies:2, pages:6,
+      hdr:{ due_date:"2026-08-14", order_reference:"#235", payment_terms:"Paid by card",
+            vendor_tax_id:"HU27154622", vendor_address:"Bem rakpart 20, 1011 Budapest, Hungary",
+            customer_name:"Aina Labs", customer_billing_address:"221 Mission St, San Francisco CA 94105",
+            customer_shipping_address:"221 Mission St, San Francisco CA 94105",
+            amount_due_printed:"0.00", freight_printed:"25.00", entity_discount_amount:"21.90",
+            vendor_notes:"EUKT - outside-EU sale" } },
+    /* Kaapi charges tax and prints NO tax total -- so the register shows the counted figure,
+       marked "counted". It also prints its tax twice (tax table, then "Add : CGST" in the
+       totals); counting both is how tax came to 30,600 against 15,300 on run 618. */
     { file:"kaapi KMIPL BLR 252910650 Aina.pdf", vendor:1, no:"252910650", date:"2026-07-31",
-      sub:85000.00, tax:15300.00, total:100300.00, lines:1, copies:1, pages:2, notes:"CGST + SGST, labelled" },
+      sub:85000.00, taxPrinted:null, taxCounted:15300.00, total:100300.00, copies:1, pages:2,
+      hdr:{ due_date:"2026-07-31", date_of_supply:"2026-07-31", order_reference:"SO/BLR/2526/0412",
+            payment_terms:"Immediate", irn:"9f3c1a7be0d2c4f8a61e5d0b7c93e2a4f1b6d8c0e3a5f7b9d2c4e6a8b0f1d3e5",
+            ack_number:"112524915630071", ack_date:"2026-07-31", source_of_supply_printed:"29 - Karnataka",
+            vendor_gstin:"29AAECK4912M1ZQ", vendor_address:"No. 21, 2nd Cross, Bengaluru 560076",
+            vendor_bank_account:"HDFC 50200041127719", customer_name:"Aina Coffee LLP",
+            customer_gstin:"29ABKFA8810R1Z2", customer_billing_address:"14 Lavelle Rd, Bengaluru 560001",
+            customer_shipping_address:"14 Lavelle Rd, Bengaluru 560001", amount_due_printed:"100300.00",
+            round_off_printed:"0.00", terms:"Goods once sold will not be taken back." } },
     { file:"Hangzhou Yuanxintong - GP1154 - 26_01_2026.pdf", vendor:2, no:"GP1154", date:"2026-08-26",
-      sub:497.87, tax:0, total:550.39, lines:6, copies:1, pages:1, notes:"scanned, no text layer" }
+      sub:497.87, taxPrinted:null, taxCounted:null, total:550.39, copies:1, pages:1,
+      hdr:{ order_reference:"PI-GP1154", payment_terms:"100% T/T before shipment",
+            vendor_address:"Room 1203, Bldg 3, Binjiang District, Hangzhou, China",
+            vendor_bank_account:"CMB 5719 0628 1110 301", customer_name:"Zreyah Semiconductor",
+            customer_shipping_address:"4100 Bohannon Dr, Menlo Park CA 94025", freight_printed:"28.00",
+            amount_due_printed:"550.39" } }
   ];
-  /* Line items and tax components for the three real invoices, transcribed from the
-     documents. `amount` is the line's NET -- stored, never computed from qty x price,
-     because printed unit prices are rounded (100 x 1.17 = 117.00 against a printed
-     116.97). That is why InvoiceFeedLine stores it. */
+  /* Line items, transcribed from the documents. `amount` is the line's NET -- stored as
+     printed, never qty x price (100 x 1.17 = 117.00 against a printed 116.97). */
   var REAL_LINES = {
     "FLX-2025-235": [
-      { ord:1, label:"product",  page:1, code:"",               name:"Feel Flux - FLUX Original",       qty:1, unit:"EA", price:120,    amount:120.00,  tax:0 },
-      { ord:2, label:"product",  page:1, code:"",               name:"Spin Flux (Mirror Nickel)",       qty:1, unit:"EA", price:99,     amount:99.00,   tax:0 },
-      { ord:3, label:"discount", page:1, code:"2TJF-AMMK-BBQ1", name:"COUPON",                          qty:1, unit:"EA", price:-21.90, amount:-21.90,  tax:0 },
-      { ord:4, label:"charge",   page:1, code:"",               name:"Flat Rate Shipping",              qty:1, unit:"EA", price:25,     amount:25.00,   tax:0 }
+      { ord:1, label:"product",  code:"",               name:"Feel Flux - FLUX Original",  qty:1, unit:"EA", price:120,    amount:120.00 },
+      { ord:2, label:"product",  code:"",               name:"Spin Flux (Mirror Nickel)",  qty:1, unit:"EA", price:99,     amount:99.00 },
+      { ord:3, label:"discount", code:"2TJF-AMMK-BBQ1", name:"COUPON",                     qty:1, unit:"EA", price:-21.90, amount:-21.90 },
+      { ord:4, label:"charge",   code:"",               name:"Flat Rate Shipping",         qty:1, unit:"EA", price:25,     amount:25.00 }
     ],
     "252910650": [
-      { ord:1, label:"product", page:1, code:"BUDM80L", name:"Budan M80 Fully Automatic / 1 Grinder / Steam wand",
-        qty:1, unit:"", price:85000, amount:85000.00, tax:15300.00, hsn:"84.19.8190", serial:"E30BSTBCE 250400940092" }
+      { ord:1, label:"product", code:"BUDM80L", name:"Budan M80", desc:"Fully Automatic / 1 Grinder / Steam wand",
+        qty:1, unit:"NOS", price:85000, amount:85000.00, tax:15300.00, hsn:"84.19.8190", serial:"E30BSTBCE 250400940092" }
     ],
     "GP1154": [
-      { ord:1, label:"product", page:1, code:"H2B-C9F-AI00036A", name:"Printed Circuit Board: Flexible Board, 2 layers", qty:100, unit:"", price:1.17, amount:116.97, tax:0 },
-      { ord:2, label:"product", page:1, code:"H2B-C8F-AI00036A", name:"Printed Circuit Board: Flexible Board, 2 layers", qty:100, unit:"", price:1.17, amount:116.97, tax:0 },
-      { ord:3, label:"product", page:1, code:"H2B-C7F-AI00036A", name:"Printed Circuit Board: Flexible Board, 2 layers", qty:100, unit:"", price:1.17, amount:116.97, tax:0 },
-      { ord:4, label:"product", page:1, code:"H2B-C6F-AI00036A", name:"Printed Circuit Board: Flexible Board, 2 layers", qty:250, unit:"", price:0.59, amount:146.96, tax:0 },
-      { ord:5, label:"charge",  page:1, code:"", name:"Shipping fee", qty:null, unit:"", price:null, amount:28.00, tax:0 },
-      { ord:6, label:"charge",  page:1, code:"", name:"Payment fee",  qty:null, unit:"", price:null, amount:24.52, tax:0 }
+      { ord:1, code:"H2B-C9F-AI00036A", name:"Printed Circuit Board", desc:"Flexible Board, 2 layers", qty:100, unit:"PCS", price:1.17, amount:116.97 },
+      { ord:2, code:"H2B-C8F-AI00036A", name:"Printed Circuit Board", desc:"Flexible Board, 2 layers", qty:100, unit:"PCS", price:1.17, amount:116.97 },
+      { ord:3, code:"H2B-C7F-AI00036A", name:"Printed Circuit Board", desc:"Flexible Board, 2 layers", qty:100, unit:"PCS", price:1.17, amount:116.97 },
+      { ord:4, code:"H2B-C6F-AI00036A", name:"Printed Circuit Board", desc:"Flexible Board, 2 layers", qty:250, unit:"PCS", price:0.59, amount:146.96 },
+      { ord:5, label:"charge", name:"Shipping fee", amount:28.00 },
+      { ord:6, label:"charge", name:"Payment fee",  amount:24.52 }
     ]
   };
+  /* Tax as printed -- rows, not columns: CGST and SGST at 7,650.00 each differ only by the
+     label. `counted:false` is a restatement of a component already counted; shown, not hidden. */
   var REAL_TAX = {
     /* EUKT is a Hungarian VAT CODE, not a percentage -- which is why `rate` is nullable. */
-    "FLX-2025-235": [ { label:"EUKT", rate:null, amount:0 } ],
-    "252910650":    [ { label:"CGST", rate:9, amount:7650.00 },
-                      { label:"SGST", rate:9, amount:7650.00 },
-                      { label:"IGST", rate:0, amount:0 } ],
+    "FLX-2025-235": [ { label:"EUKT", rate:null, amount:0, scope:null, counted:true } ],
+    "252910650":    [ { label:"CGST",        rate:9, amount:7650.00, scope:1,    counted:true },
+                      { label:"SGST",        rate:9, amount:7650.00, scope:1,    counted:true },
+                      { label:"IGST",        rate:0, amount:0,       scope:1,    counted:true },
+                      { label:"Add : CGST",  rate:9, amount:7650.00, scope:null, counted:false },
+                      { label:"Add : SGST",  rate:9, amount:7650.00, scope:null, counted:false } ],
     "GP1154":       []
   };
   var GOODS = ["Consulting hours","Printed circuit assembly","Freight surcharge","Annual licence",
                "Toner cartridge, black","Site maintenance visit","Packaging materials"];
+  var STRUCK = ["Struck out by the reviewer: duplicate of line 1",
+                "Not a purchase: delivery note printed as a line",
+                "Subtotal row read as an item"];
   function genLines(n, subtotal, taxTotal, ccy){
     var out = [], left = subtotal, i;
     for (i = 1; i <= n; i++){
@@ -757,11 +828,57 @@ tr.excl .amt{text-decoration:line-through}
       if (!last && a >= left) a = Math.round((left / (n - i + 1)) * 100) / 100;
       left = Math.round((left - a) * 100) / 100;
       var qty = ri(1, 40);
-      out.push({ ord:i, label:"product", page:ri(1, 2), code:"", name:pick(GOODS),
-                 qty:qty, unit:"", price:Math.round(a / qty * 100) / 100, amount:a,
-                 tax:Math.round(taxTotal / n * 100) / 100 });
+      var disc = rnd() < 0.15;
+      out.push(L({ ord:i, page:ri(1, 2), name:pick(GOODS), qty:qty, unit:pick(["", "EA", "HRS", "NOS"]),
+                   price:Math.round(a / qty * 100) / 100, amount:a,
+                   tax:Math.round(taxTotal / n * 100) / 100,
+                   discPct: disc ? 5 : null, discAmt: disc ? Math.round(a * 0.05 * 100) / 100 : null,
+                   hsn: ccy === "INR" ? "9983" + ri(10, 99) : "" }));
+    }
+    /* Roughly one invoice in eight carries a line the reviewer struck out. It stays visible
+       (the Lines column counts it as "+1 excluded") but never reaches the export. */
+    if (rnd() < 0.13){
+      out.push(L({ ord:n + 1, page:1, name:pick(GOODS), qty:1, price:0, amount:0,
+                   inExport:false, reason:pick(STRUCK) }));
     }
     return out;
+  }
+  function fx(n){ return n == null ? null : Number(n).toFixed(2); }
+
+  /* Everything read off the invoice, grouped by the ask that read it -- the backend's
+     HEADER_GROUPS (invoice_feed_serializers.py): 11 + 9 + 14 = 34 invoice-level fields. */
+  var HEADER_GROUPS = [
+    ["IdentityAsk", "Identity", [
+      ["invoice_number","Invoice number"],["invoice_date","Invoice date"],["due_date","Due date"],
+      ["date_of_supply","Date of supply"],["order_reference","Order reference"],["currency_code","Currency code"],
+      ["payment_terms","Payment terms"],["irn","IRN"],["ack_number","Ack number"],["ack_date","Ack date"],
+      ["source_of_supply_printed","Source of supply (printed)"] ]],
+    ["PartyAsk", "Parties", [
+      ["vendor_name","Vendor name"],["vendor_tax_id","Vendor tax id"],["vendor_gstin","Vendor GSTIN"],
+      ["vendor_address","Vendor address"],["vendor_bank_account","Vendor bank account"],
+      ["customer_name","Customer name"],["customer_gstin","Customer GSTIN"],
+      ["customer_billing_address","Customer billing address"],["customer_shipping_address","Customer shipping address"] ]],
+    ["TotalsAsk", "Totals and notes", [
+      ["subtotal_printed","Subtotal printed"],["tax_total_printed","Tax total printed"],
+      ["grand_total_printed","Grand total printed"],["amount_due_printed","Amount due printed"],
+      ["freight_printed","Freight printed"],["round_off_printed","Round off printed"],
+      ["adjustment_printed","Adjustment printed"],["adjustment_description","Adjustment description"],
+      ["entity_discount_percent","Entity discount percent"],["entity_discount_amount","Entity discount amount"],
+      ["vendor_notes","Vendor notes"],["terms","Terms & conditions"],
+      ["printed_exchange_rate","Printed exchange rate"],["printed_secondary_total","Printed secondary total"] ]]
+  ];
+  function headerOf(r){
+    var base = {
+      invoice_number:r.no || null, invoice_date:r.date, currency_code:r.ccy, vendor_name:r.vendor,
+      subtotal_printed:fx(r.subtotal), tax_total_printed:fx(r.taxPrinted), grand_total_printed:fx(r.total)
+    };
+    var h = Object.assign({}, base, r.hdr || {});
+    return HEADER_GROUPS.map(function(g){
+      return { ask:g[0], name:g[1], fields:g[2].map(function(f){
+        var v = h[f[0]];
+        return { key:f[0], label:f[1], value:(v === "" || v == null) ? null : String(v) };
+      }) };
+    });
   }
 
   function buildInvoices(){
@@ -771,14 +888,13 @@ tr.excl .amt{text-decoration:line-through}
       var v = VENDORS[m.vendor];
       invoice.push({
         id:"IF-" + (70000 + i), kind:"invoice", date:m.date, vendor:v.name, ccy:v.ccy,
-        no:m.no, subtotal:m.sub, tax:m.tax, total:m.total, lines:m.lines,
-        copies:m.copies, pages:m.pages, residual:0, note:m.notes,
-        lineRows:REAL_LINES[m.no], taxRows:REAL_TAX[m.no],
-        outcome:"accepted", excludedReason:"",
+        no:m.no, subtotal:m.sub, taxPrinted:m.taxPrinted, taxCounted:m.taxCounted, total:m.total,
+        copies:m.copies, pages:m.pages, residual:0, hdr:m.hdr,
+        lineRows:REAL_LINES[m.no].map(L), taxRows:REAL_TAX[m.no],
         /* No project and no claim: a project claims BANK feeds by date window, because a
            statement covers a period. An invoice is a single dated document and is not
-           claimed at all — as of now. */
-        account:null, upload:up, project:null, claim:null,
+           claimed at all -- as of now. */
+        account:null, upload:up, project:null, claim:null, stored:true,
         status:"active"
       });
       up.items++;
@@ -786,38 +902,43 @@ tr.excl .amt{text-decoration:line-through}
     /* Only the batch files take extra invoices. The three reference files hold exactly
        one each -- Feelflux is one invoice printed twice, not six invoices. */
     var batch = invUploads.filter(function(u){ return REAL.every(function(m){ return m.file !== u.file; }); });
-    for (var k = 0; k < 41; k++){
+    for (var k = 0; k < 38; k++){
       var up2 = batch[k % batch.length];
       var v2 = pick(VENDORS);
       var d = dayIn(monthOf(up2.file));
-      var sub = ri(180, 24000) + rnd();
+      var sub = Math.round((ri(180, 24000) + rnd()) * 100) / 100;
       var hasTax = v2.ccy === "INR" || rnd() < 0.4;
       var tx = hasTax ? Math.round(sub * 0.18 * 100) / 100 : 0;
-      /* A few do not close -- that is the state a reviewer had to resolve before
-         approval, and it is worth seeing in the register rather than only in review. */
+      /* Some print a tax total; some charge tax and print none (shown as "counted"). */
+      var printsTax = hasTax && rnd() < 0.75;
+      /* A few do not close -- shown as "open" with the residual the backend emitted. */
       var off = rnd() < 0.07 ? (rnd() < 0.5 ? 21.90 : -0.63) : 0;
       var nl = ri(1, 9);
-      var excl = rnd() < 0.09;
       invoice.push({
         id:"IF-" + (70003 + k), kind:"invoice", date:d, vendor:v2.name, ccy:v2.ccy,
         no: rnd() < 0.06 ? "" : String(ri(100000, 999999)),
-        subtotal:Math.round(sub * 100) / 100, tax:tx,
-        total:Math.round((sub + tx) * 100) / 100, lines:nl,
-        copies: rnd() < 0.12 ? 2 : 1, pages:ri(1, 5), residual:off, note:"",
-        outcome: excl ? "excluded" : "accepted",
-        excludedReason: excl ? pick(["Duplicate of an invoice already recorded",
-                                     "Arithmetic could not be made to close",
-                                     "Not an invoice - delivery note"]) : "",
-        lineRows:genLines(nl, Math.round(sub * 100) / 100, tx, v2.ccy),
+        subtotal:sub, taxPrinted: printsTax ? tx : null, taxCounted: hasTax ? tx : null,
+        total:Math.round((sub + tx) * 100) / 100,
+        copies: rnd() < 0.12 ? 2 : 1, pages:ri(1, 5), residual:off,
+        hdr:{ due_date: rnd() < 0.6 ? d : null, payment_terms: rnd() < 0.5 ? pick(["Net 15", "Net 30", "Due on receipt"]) : null,
+              vendor_address: rnd() < 0.7 ? pick(["12 Wharf Rd, London N1", "88 Market St, San Jose CA", "Plot 7, Whitefield, Bengaluru"]) : null,
+              customer_name:"Core Team", amount_due_printed:fx(Math.round((sub + tx) * 100) / 100) },
+        lineRows:genLines(nl, sub, tx, v2.ccy),
         taxRows: tx ? (v2.ccy === "INR"
-          ? [ { label:"CGST", rate:9, amount:Math.round(tx / 2 * 100) / 100 },
-              { label:"SGST", rate:9, amount:Math.round(tx / 2 * 100) / 100 } ]
-          : [ { label:"VAT", rate:20, amount:tx } ]) : [],
+          ? [ { label:"CGST", rate:9, amount:Math.round(tx / 2 * 100) / 100, scope:null, counted:true },
+              { label:"SGST", rate:9, amount:Math.round(tx / 2 * 100) / 100, scope:null, counted:true } ]
+          : [ { label:"VAT", rate:20, amount:tx, scope:null, counted:true } ]) : [],
         account:null, upload:up2, project:null, claim:null,
-        status: rnd() < 0.02 ? "inactive" : "active"
+        /* One row has no stored reading -- selecting it and exporting shows the server's
+           refusal verbatim, which is the export-error state the screen has to handle. */
+        stored: k !== 11,
+        status:"active"
       });
       up2.items++;
     }
+    invoice.forEach(function(r){
+      r.taxRows.forEach(function(t, i){ t.id = r.id + "-t" + i; });
+    });
   }
 
   /* A batch file must have at least one page per invoice it held -- otherwise the register
@@ -830,14 +951,10 @@ tr.excl .amt{text-decoration:line-through}
     });
   }
 
-  /* Ordered by source document, then by date: the register groups by the file an invoice
-     came from, and a group header can only be emitted on a change of group if the rows
-     arrive together. */
+  /* Newest first. The shipped register is a flat list of invoices -- no grouping by the
+     source file -- so the order is simply the invoice date. */
   function sortInvoices(){
-    invoice.sort(function(a, b){
-      if (a.upload.uid !== b.upload.uid) return a.upload.uid < b.upload.uid ? -1 : 1;
-      return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
-    });
+    invoice.sort(function(a, b){ return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
   }
 
   /* ---------- feed rows ---------- */
@@ -949,8 +1066,18 @@ tr.excl .amt{text-decoration:line-through}
       { k:"Reviewed by", cls:"", get:function(r){ return whoCell(r.upload.reviewer, "Auto-approved"); } },
       { k:"Project",     cls:"", get:projCell }
     ],
+    /* Matches InvoiceFeedsPage column for column: select, expand, date, vendor, number,
+       net, tax, total, lines, arithmetic, approved by. */
     invoice: [
-      { k:"", cls:"", get:function(r){
+      { k:function(){
+          return '<input type="checkbox" class="chk" data-sel="all" aria-label="Select every invoice on this page"' +
+            (pageRows.length && pageRows.every(function(r){ return sel.whole[r.id]; }) ? " checked" : "") + ">"; },
+        cls:"", get:function(r){
+          var st = invState(r.id);
+          return '<input type="checkbox" class="chk" data-sel="inv" data-id="' + r.id + '"' +
+            (st === "all" ? " checked" : "") + (st === "some" ? " data-indet" : "") +
+            ' aria-label="Select invoice ' + esc(r.no || r.id) + '">'; } },
+      { k:"", cls:"", get:function(){
           return '<button class="exp-btn" type="button" tabindex="-1" aria-hidden="true">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" ' +
             'stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>'; } },
@@ -958,20 +1085,26 @@ tr.excl .amt{text-decoration:line-through}
       { k:"Vendor", cls:"", get:function(r){
           return '<span class="desc t-strong" title="' + esc(r.vendor) + '">' + esc(r.vendor) + "</span>"; } },
       { k:"Invoice no.", cls:"", get:function(r){
-          return r.no ? '<span class="mono t-strong">' + esc(r.no) + "</span>"
-                      : '<span class="t-dim">no number</span>'; } },
+          return r.no ? '<span class="mono t-strong">' + esc(r.no) + "</span>" : '<span class="t-dim">&mdash;</span>'; } },
       { k:"Net", cls:"num", get:function(r){ return amt(r.subtotal, r.ccy); } },
       { k:"Tax", cls:"num", get:function(r){
-          return r.tax ? amt(r.tax, r.ccy) : '<span class="t-dim">&mdash;</span>'; } },
+          /* Printed total if there is one; otherwise the sum of its components, marked --
+             "no tax" and "tax, totalled by us" must not look the same. */
+          if (r.taxPrinted != null) return amt(r.taxPrinted, r.ccy);
+          if (r.taxCounted != null) return '<span title="No tax total is printed on this invoice. This is the sum of its tax components.">' +
+            amt(r.taxCounted, r.ccy) + '<span class="counted">counted</span></span>';
+          return '<span class="t-dim">&mdash;</span>'; } },
       { k:"Total", cls:"num", get:function(r){ return amt(r.total, r.ccy); } },
       { k:"Lines", cls:"num", get:function(r){
-          return '<span class="mono">' + r.lineRows.length + "</span>" +
-            (r.copies > 1 ? ' <span class="mask mono">' + r.copies + " copies</span>" : ""); } },
+          var inc = r.lineRows.filter(function(l){ return l.inExport; }).length;
+          var exc = r.lineRows.length - inc;
+          return '<span class="mono">' + inc + "</span>" +
+            (exc ? '<span class="xtag">+' + exc + " excluded</span>" : "") +
+            (r.copies > 1 ? '<span class="copies">' + r.copies + " copies</span>" : ""); } },
       { k:"Arithmetic", cls:"", get:function(r){
           return r.residual
-            ? '<span class="pill pend"><i></i>off by ' + Math.abs(r.residual).toFixed(2) + "</span>"
-            : '<span class="pill ok"><i></i>closes</span>'; } },
-      { k:"Source file", cls:"", get:function(r){ return '<span class="t-dim mono">' + esc(r.upload.file) + "</span>"; } },
+            ? '<span class="pill pill-open"><i></i>open &middot; ' + r.residual.toFixed(2) + "</span>"
+            : '<span class="pill pill-matched"><i></i>closes</span>'; } },
       { k:"Approved by", cls:"", get:function(r){ return whoCell(r.upload.reviewer, "Auto-approved"); } }
     ],
     upload: [
@@ -1005,7 +1138,12 @@ tr.excl .amt{text-decoration:line-through}
      survive a filter change, a sort or a page turn. More than one may be open at once --
      comparing two invoices is a real thing a bookkeeper does. */
   var open = Object.create(null);
-  var showExcluded = false;
+  /* Invoice selection (selection.ts): an invoice is selected WHOLE ("every line that reaches
+     the CSV", resolved by the backend) or PARTLY (explicit line ids) -- never both. */
+  var sel = { whole:{}, partial:{} };
+  var pageRows = [];
+  var arrived = "";            /* ?feed=<id> -- the row a link landed on, outlined */
+  var exporting = false, exportedNote = "";
   var $ = function(id){ return document.getElementById(id); };
 
   function source(){
@@ -1027,14 +1165,13 @@ tr.excl .amt{text-decoration:line-through}
         var d = r.file.indexOf("2026-08") > -1 ? "BP-42" : "BP-38";
         if (d !== fp) return false;
       }
-      if (view === "invoice" && r.outcome === "excluded" && !showExcluded) return false;
       if (!isUp && fc && r.claim !== fc) return false;
       /* uploads have no claim axis; the control is cleared on tab switch */
       if (!q) return true;
       var hay = isUp
         ? [r.file, r.uid, r.account ? r.account.label : "", r.uploader.name, r.reviewer ? r.reviewer.name : "auto approved"]
         : [r.id, r.desc || "", r.payee || "", r.checkNo || "", r.vendor || "", r.no || "",
-           r.upload.file, r.account ? r.account.label : "",
+           (r.upload ? r.upload.file : ""), r.account ? r.account.label : "",
            r.upload.uploader.name, r.upload.reviewer ? r.upload.reviewer.name : "auto"];
       return hay.join(" ").toLowerCase().indexOf(q) > -1;
     });
@@ -1069,104 +1206,187 @@ tr.excl .amt{text-decoration:line-through}
   }
 
   /* ---------- the invoice detail panel ----------
-     Rendered INLINE, under its own row, rather than in the drawer: an invoice's eleven
-     columns are the context you read the lines against, and a drawer covers them. The
-     drawer stays for bank feeds, checks and uploads, which have far fewer columns. */
+     Rendered INLINE, under its own row, rather than in the drawer: the row's columns are the
+     context you read the lines against, and a drawer covers them. Four blocks, as shipped:
+     invoice-level fields, tax as printed, the per-line grid, and one line naming the total. */
+  var LINE_COLUMNS = [
+    { key:"ord", label:"#", num:true }, { key:"page", label:"Pg", num:true },
+    { key:"label", label:"Label" }, { key:"code", label:"Item code", mono:true },
+    { key:"name", label:"Item name" }, { key:"desc", label:"Description" },
+    { key:"qty", label:"Qty", num:true }, { key:"unit", label:"Unit" },
+    { key:"price", label:"Rate", num:true, money:true }, { key:"amount", label:"Net", num:true, money:true },
+    { key:"tax", label:"Tax", num:true, money:true }, { key:"discPct", label:"Disc %", num:true },
+    { key:"discAmt", label:"Disc amt", num:true, money:true }, { key:"hsn", label:"HSN/SAC", mono:true },
+    { key:"serial", label:"Serial / batch", mono:true }
+  ];
+  var DASH = '<span class="t-dim" style="font-style:italic">&mdash;</span>';
+  function nf(n){
+    return n == null ? DASH : '<span class="mono">' +
+      Number(n).toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 }) + "</span>";
+  }
+  function lvl(level, detail){
+    return '<div class="lvl"><b>' + level + "</b><span>" + detail + "</span></div>";
+  }
+
   function invoiceDetail(r){
-    var invSections = "";
-    if (r.outcome === "excluded"){
-      invSections += "<div class='note' style='border-left-color:#f59e0b'><b>Excluded by the reviewer.</b> " +
-        esc(r.excludedReason) + ". The record is kept so the decision stays answerable, but it is " +
-        "absent from the register and from the export.</div>";
+    var groups = headerOf(r);
+    var nHeader = groups.reduce(function(n, g){ return n + g.fields.length; }, 0);
+    var html = "";
+
+    /* 1. Invoice-level: rendered from the payload's own description, grouped by the ask
+       that read it. A value the invoice did not print says so -- a blank would read as
+       "nothing loaded", and not-printed vs not-read is the distinction this turns on. */
+    html += "<section>" + lvl("Invoice-level", nHeader + " fields, one value each") +
+      groups.map(function(g){
+        return '<div class="fgrp"><div class="fgrp-k">' + esc(g.name) + " &middot; " + esc(g.ask) + "</div>" +
+          '<div class="fgrid">' + g.fields.map(function(f){
+            return '<div class="fld"><span class="fk">' + esc(f.label) + "</span>" +
+              (f.value != null ? '<span class="fv mono">' + esc(f.value) + "</span>"
+                               : '<span class="np">&mdash; not printed</span>') + "</div>";
+          }).join("") + "</div></div>";
+      }).join("") + "</section>";
+
+    /* 2. Tax as printed: every component, including restatements (dimmed, never hidden). */
+    if (r.taxRows.length){
+      var restated = r.taxRows.filter(function(t){ return !t.counted; }).length;
+      html += "<section>" + lvl("Tax as printed", restated
+          ? r.taxRows.length + " components read &middot; " + (r.taxRows.length - restated) + " counted &middot; " + restated + " restated"
+          : r.taxRows.length + (r.taxRows.length === 1 ? " component" : " components")) +
+        '<div class="dtw"><table class="dtbl"><thead><tr><th>Label as printed</th><th class="num">Rate</th>' +
+        '<th class="num">Amount</th><th>Scope</th><th>Counted</th></tr></thead><tbody>' +
+        r.taxRows.map(function(t){
+          return '<tr class="' + (t.counted ? "" : "dim") + '">' +
+            '<td><span class="t-strong">' + esc(t.label) + "</span></td>" +
+            '<td class="num">' + (t.rate == null ? DASH : '<span class="mono">' + t.rate + "</span>") + "</td>" +
+            '<td class="num t-strong">' + nf(t.amount) + "</td>" +
+            '<td class="t-dim">' + (t.scope == null ? "invoice" : "line " + t.scope) + "</td>" +
+            "<td>" + (t.counted ? '<span class="t-dim">yes</span>'
+                                : '<span style="color:var(--warn)">restated &mdash; already counted above</span>') + "</td></tr>";
+        }).join("") +
+        (r.taxCounted != null
+          ? '</tbody><tfoot><tr><td>Tax counted</td><td></td><td class="num">' + nf(r.taxCounted) +
+            ' <span class="mask mono">' + r.ccy + '</span></td><td colspan="2" style="font-weight:400" class="t-dim">' +
+            "Each tax counted once; this is the figure the residual uses.</td></tr></tfoot>"
+          : "</tbody>") +
+        "</table></div></section>";
     }
-    {
-      var nf = function(n){ return n == null ? '<span class="t-dim">&mdash;</span>'
-        : '<span class="mono">' + Number(n).toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 }) + "</span>"; };
 
-      invSections +=
-        '<section><div class="dsec-k">Line items <span class="mask mono">' + r.lineRows.length + " rows</span></div>" +
-        '<div class="dtw"><table class="dtbl"><thead><tr>' +
-          '<th class="num">#</th><th>Label</th><th>Item</th><th class="num">Qty</th>' +
-          '<th class="num">Unit price</th><th class="num">Net</th><th class="num">Tax</th><th class="num">Pg</th>' +
-        "</tr></thead><tbody>" +
-        r.lineRows.map(function(l){
-          return "<tr>" +
-            '<td class="num mono t-dim">' + l.ord + "</td>" +
-            '<td><span class="lbl ' + l.label + '">' + l.label + "</span></td>" +
-            "<td>" + (l.code ? '<span class="mono t-strong">' + esc(l.code) + "</span><br>" : "") +
-              '<span class="' + (l.code ? "t-dim" : "t-strong") + '">' + esc(l.name) + "</span>" +
-              (l.hsn ? '<br><span class="mask mono">HSN ' + esc(l.hsn) + "</span>" : "") +
-              (l.serial ? '<br><span class="mask mono">' + esc(l.serial) + "</span>" : "") + "</td>" +
-            '<td class="num">' + (l.qty == null ? '<span class="t-dim">&mdash;</span>' : '<span class="mono">' + l.qty + "</span>") + "</td>" +
-            '<td class="num">' + nf(l.price) + "</td>" +
-            '<td class="num t-strong">' + nf(l.amount) + "</td>" +
-            '<td class="num">' + (l.tax ? nf(l.tax) : '<span class="t-dim">&mdash;</span>') + "</td>" +
-            '<td class="num mono t-dim">' + l.page + "</td>" +
-          "</tr>";
-        }).join("") +
-        "</tbody><tfoot><tr>" +
-          '<td colspan="5">Sum of ' + r.lineRows.length + (r.lineRows.length === 1 ? " line" : " lines") + "</td>" +
-          '<td class="num">' + nf(r.lineRows.reduce(function(a, l){ return a + l.amount; }, 0)) + "</td>" +
-          '<td class="num">' + nf(r.tax) + '</td><td></td>' +
-        "</tr></tfoot></table></div>" +
-        "<div class='note'>A line&rsquo;s net amount is <b>stored as printed</b>, never computed from " +
-        "quantity &times; unit price &mdash; printed unit prices are rounded, so " +
-        "<span class='mono'>100 &times; 1.17</span> is <span class='mono'>117.00</span> against a printed " +
-        "<span class='mono'>116.97</span>." +
-        (Math.abs(r.lineRows.reduce(function(a, l){ return a + l.amount; }, 0) - r.subtotal) > 0.005
-          ? " The sum here exceeds the printed net because charge lines (shipping, fees) sit in the " +
-            "grid while the invoice&rsquo;s own <i>net</i> figure counts products only &mdash; both are " +
-            "recorded, and the arithmetic check knows the difference."
-          : "") + "</div></section>";
+    /* 3. Per line item: fifteen fields, scrolls rather than dropping a column. Lines that do
+       not reach the export are shown dimmed, untickable, with the reason beside them. */
+    var nl = r.lineRows.length, nc = LINE_COLUMNS.length;
+    html += "<section>" + lvl("Per line item", nc + " fields &times; " + nl + (nl === 1 ? " line" : " lines") + " = " + (nc * nl) + " values") +
+      '<div class="dtw"><table class="dtbl wide"><thead><tr><th></th>' +
+      LINE_COLUMNS.map(function(c){ return '<th class="' + (c.num ? "num" : "") + '">' + c.label + "</th>"; }).join("") +
+      "</tr></thead><tbody>" +
+      (nl ? r.lineRows.map(function(l){
+        return '<tr class="' + (l.inExport ? "" : "dim") + '"><td>' +
+          '<input type="checkbox" class="chk" data-sel="line" data-id="' + r.id + '" data-line="' + l.id + '"' +
+          (isLineSel(r.id, l.id) ? " checked" : "") + (l.inExport ? "" : " disabled") +
+          ' aria-label="Select line ' + l.ord + '"' +
+          (l.inExport ? "" : ' title="' + esc(l.reason || "This line does not reach the export") + '"') + "></td>" +
+          LINE_COLUMNS.map(function(c){
+            var v = l[c.key];
+            var empty = v === null || v === undefined || v === "" || (c.key === "tax" && !v && !l.inExport);
+            var cell = empty ? DASH
+              : c.money ? nf(v)
+              : c.key === "label" ? '<span class="lbl ' + v + '">' + v + "</span>"
+              : c.mono ? '<span class="mono">' + esc(v) + "</span>"
+              : esc(v);
+            if (c.key === "desc" && !l.inExport){
+              cell += ' <span class="xtag">excluded' + (l.reason ? " &mdash; " + esc(l.reason) : "") + "</span>";
+            }
+            return '<td class="nw ' + (c.num ? "num" : "") + '">' + cell + "</td>";
+          }).join("") + "</tr>";
+      }).join("")
+        : '<tr><td colspan="' + (nc + 1) + '" class="t-dim">No lines were transcribed for this invoice.</td></tr>') +
+      "</tbody></table></div></section>";
 
-      invSections +=
-        '<section><div class="dsec-k">Tax components</div>' +
-        (r.taxRows.length
-          ? '<div class="dtw"><table class="dtbl"><thead><tr><th>Label as printed</th>' +
-            '<th class="num">Rate</th><th class="num">Amount</th></tr></thead><tbody>' +
-            r.taxRows.map(function(t){
-              return '<tr><td><span class="t-strong">' + esc(t.label) + "</span></td>" +
-                '<td class="num">' + (t.rate == null ? '<span class="t-dim">not a rate</span>'
-                                                     : '<span class="mono">' + t.rate + "%</span>") + "</td>" +
-                '<td class="num t-strong">' + nf(t.amount) + "</td></tr>";
-            }).join("") + "</tbody></table></div>" +
-            "<div class='note'>Rows, not columns &mdash; the label set is open and jurisdiction-specific, " +
-            "and a rate is not always printed. Feelflux prints <span class='mono'>EUKT</span>, a VAT " +
-            "<i>code</i> for an outside-EU sale.</div>"
-          : "<div class='note'>No tax printed on this invoice.</div>") +
-        "</section>";
+    /* 4. One line naming the whole -- every number derived from what was rendered above. */
+    html += '<p class="readtot"><b>' + (nHeader + nc) + " fields read in all</b> &mdash; " + nHeader +
+      " invoice-level, one value each &middot; " + nc + " per line item, read again for each of " + nl +
+      (nl === 1 ? " line" : " lines") + " (" + (nc * nl) + " values)</p>";
+    return html;
+  }
 
-      var DERIVED_DEMO = r.ccy === "INR"
-        ? [ ["exchange_rate", "1.0000", "currency + invoice date", "invoice currency == book currency"],
-            ["payment_terms_days", "0", "payment terms label", "label to day count"],
-            ["source_of_supply", "29 &mdash; Karnataka", "printed, cross-checked", "printed value wins; mismatch raises a check"],
-            ["destination_of_supply", "29 &mdash; Karnataka", "own tax registration", "registered state of the buyer"],
-            ["supply_type", "Intra-state", "source == destination", "CGST + SGST rather than IGST"],
-            ["account", "5210 &middot; Equipment", "item name + vendor history", "categorisation, 0.91 confidence"],
-            ["item_type", "Goods", "HSN/SAC 84.19.8190", "HSN chapter to goods, SAC to service"],
-            ["tds_section", "194Q", "vendor profile + account", "purchase of goods over the threshold"] ]
-        : [ ["exchange_rate", "&mdash;", "currency + invoice date", "daily rate lookup to book currency"],
-            ["payment_terms_days", "&mdash;", "payment terms label", "label to day count"],
-            ["account", "&mdash;", "item name + vendor history", "categorisation"],
-            ["item_type", "&mdash;", "HSN/SAC where printed", "HSN chapter to goods, SAC to service"] ];
+  /* ---------- selection (mirrors selection.ts) ---------- */
+  function rowById(id){ return invoice.filter(function(r){ return r.id === id; })[0]; }
+  function selectable(id){ return rowById(id).lineRows.filter(function(l){ return l.inExport; }); }
+  function invState(id){
+    if (sel.whole[id]) return "all";
+    return sel.partial[id] && Object.keys(sel.partial[id]).length ? "some" : "none";
+  }
+  function isLineSel(id, lineId){ return !!sel.whole[id] || !!(sel.partial[id] && sel.partial[id][lineId]); }
+  function cloneSel(){
+    var p = {};
+    Object.keys(sel.partial).forEach(function(k){ p[k] = Object.assign({}, sel.partial[k]); });
+    return { whole:Object.assign({}, sel.whole), partial:p };
+  }
+  function toggleInvoice(id){
+    var n = cloneSel();
+    if (invState(id) === "none") n.whole[id] = true; else delete n.whole[id];
+    delete n.partial[id];
+    sel = n;
+  }
+  /* Unticking a line of a whole invoice demotes it to the lines that remain; ticking every
+     selectable line individually promotes it back to whole. */
+  function toggleLine(id, lineId){
+    var n = cloneSel(), all = selectable(id);
+    if (n.whole[id]){
+      delete n.whole[id];
+      var rest = {};
+      all.forEach(function(l){ if (String(l.id) !== String(lineId)) rest[l.id] = true; });
+      if (Object.keys(rest).length) n.partial[id] = rest;
+      sel = n; return;
+    }
+    var cur = n.partial[id] || {};
+    if (cur[lineId]) delete cur[lineId]; else cur[lineId] = true;
+    var size = Object.keys(cur).length;
+    if (size && size === all.length){ delete n.partial[id]; n.whole[id] = true; }
+    else if (!size) delete n.partial[id];
+    else n.partial[id] = cur;
+    sel = n;
+  }
+  function toggleAll(){
+    var allOn = pageRows.length && pageRows.every(function(r){ return sel.whole[r.id]; });
+    var n = { whole:{}, partial:{} };
+    if (!allOn) pageRows.forEach(function(r){ n.whole[r.id] = true; });
+    sel = n;
+  }
+  function selCount(){
+    var lines = 0;
+    Object.keys(sel.partial).forEach(function(k){ lines += Object.keys(sel.partial[k]).length; });
+    return { invoices:Object.keys(sel.whole).length, lines:lines };
+  }
+  function renderSelBar(){
+    var c = selCount(), none = !c.invoices && !c.lines;
+    $("selsum").textContent = exportedNote ||
+      (none ? "Nothing selected"
+            : c.invoices + (c.invoices === 1 ? " invoice" : " invoices") + (c.lines ? " \u00b7 " + c.lines + " lines" : ""));
+    $("selclear").hidden = view !== "invoice" || none;
+    $("selexport").disabled = none || exporting;
+    $("selexport").textContent = exporting ? "Exporting\u2026" : "Export CSV";
+  }
+  function doExport(){
+    var ids = Object.keys(sel.whole).concat(Object.keys(sel.partial));
+    exporting = true; renderSelBar();
+    setTimeout(function(){
+      exporting = false;
+      var bad = ids.map(rowById).filter(function(r){ return !r.stored; })[0];
+      if (bad){
+        $("refusal-t").textContent = "invoice " + bad.id.replace("IF-", "") + " has no stored reading to export";
+        $("refusal").hidden = false;
+      } else {
+        var c = selCount();
+        exportedNote = "Downloaded invoice-feeds.csv \u00b7 " + c.invoices + " whole" + (c.lines ? " + " + c.lines + " lines" : "");
+        setTimeout(function(){ exportedNote = ""; renderSelBar(); }, 2600);
+      }
+      renderSelBar();
+    }, 700);
+  }
 
-      invSections +=
-        '<section><div class="dsec-k">Derived fields <span class="planned">Planned</span></div>' +
-        "<div class='note'>Nothing is derived yet. These arrive with the inference feature, in " +
-        "<b>their own table</b> &mdash; so where a value lives is what says whether it was read or " +
-        "computed. Shown greyed, with the shape each row will carry.</div>" +
-        '<div class="dtw"><table class="dtbl ghost"><thead><tr><th>Field</th><th class="num">Value</th>' +
-        "<th>Derived from</th><th>Rule</th></tr></thead><tbody>" +
-        DERIVED_DEMO.map(function(d){
-          return "<tr><td><span class='mono'>" + d[0] + "</span></td>" +
-            '<td class="num mono">' + d[1] + "</td><td>" + d[2] + "</td><td>" + d[3] + "</td></tr>";
-        }).join("") +
-        "</tbody></table></div>" +
-        "<div class='note'>Each will be a <b>stamped decision</b>, not a cache: frozen at approval and " +
-        "recorded with its inputs, the rule and version, the master-data snapshot, and whether a " +
-        "person overrode it. An approved value is never recomputed over.</div></section>";
-        }
-    return invSections;
+  function syncPanelWidth(){
+    var set = function(){ $("panel").style.setProperty("--tw-w", $("panel").clientWidth + "px"); };
+    set(); requestAnimationFrame(set);
   }
 
   function renderTable(){
@@ -1176,34 +1396,17 @@ tr.excl .amt{text-decoration:line-through}
     var start = (page - 1) * per, slice = rows.slice(start, start + per);
 
     $("thead").innerHTML = "<tr>" + cols.map(function(c){
-      return '<th scope="col" class="' + c.cls + '">' + c.k + "</th>";
+      return '<th scope="col" class="' + c.cls + '">' + (typeof c.k === "function" ? c.k() : c.k) + "</th>";
     }).join("") + "</tr>";
 
     var expandable = view === "invoice";
-    var lastGrp = null;
+    pageRows = slice;
     $("tbody").innerHTML = slice.length
       ? slice.map(function(r, i){
           var isOpen = expandable && !!open[r.id];
-          var head = "";
-          /* Invoices are grouped by the file they came from -- one source document can hold
-             several, and the anchor row is what they all hang off. Grouping is within the
-             current page, so a group spanning a page boundary repeats its header. */
-          if (expandable && r.upload.uid !== lastGrp){
-            lastGrp = r.upload.uid;
-            var sib = rows.filter(function(x){ return x.upload.uid === r.upload.uid; });
-            var exc = source().filter(function(x){
-              return x.upload.uid === r.upload.uid && x.outcome === "excluded"; }).length;
-            head = '<tr class="grp"><td colspan="' + cols.length + '"><div class="grp-in">' +
-              '<span class="grp-f mono">' + esc(r.upload.file) + "</span>" +
-              '<span class="grp-n">' + sib.length + (sib.length === 1 ? " invoice" : " invoices") +
-              " &middot; " + r.upload.pagesTotal + (r.upload.pagesTotal === 1 ? " page" : " pages") +
-              " &middot; " + esc(r.upload.uid) + "</span>" +
-              (exc ? '<span class="pill pend"><i></i>' + exc + " excluded</span>" : "") +
-              "</div></td></tr>";
-          }
-          var tr = head + '<tr tabindex="0" data-i="' + (start + i) + '"' +
-            (expandable ? ' data-id="' + r.id + '" aria-expanded="' + isOpen + '"' : "") +
-            (expandable && r.outcome === "excluded" ? ' class="excl"' : "") + ">" +
+          var cls = expandable && r.id === arrived ? ' class="arrived"' : "";
+          var tr = '<tr tabindex="0" data-i="' + (start + i) + '"' + cls +
+            (expandable ? ' data-id="' + r.id + '" aria-expanded="' + isOpen + '"' : "") + ">" +
             cols.map(function(c){
               return '<td class="' + c.cls + '">' + c.get(r) + "</td>";
             }).join("") + "</tr>";
@@ -1214,7 +1417,18 @@ tr.excl .amt{text-decoration:line-through}
           return tr;
         }).join("")
       : '<tr><td colspan="' + cols.length + '" style="padding:48px; text-align:center; color:var(--ink-3)">' +
-        "No feeds match these filters.</td></tr>";
+        (view === "invoice" && !$("q").value
+          ? "No accepted invoices yet. An invoice appears here once it has been through review."
+          : "No feeds match these filters.") + "</td></tr>";
+    /* "Some of its lines" is neither ticked nor clear -- the header and invoice boxes go
+       indeterminate rather than reading as unticked. */
+    Array.prototype.forEach.call(document.querySelectorAll("#tbody [data-indet]"), function(x){ x.indeterminate = true; });
+    if (expandable){
+      var hdr = document.querySelector('#thead [data-sel="all"]');
+      if (hdr && !hdr.checked) hdr.indeterminate = slice.some(function(r){ return invState(r.id) !== "none"; });
+    }
+    renderSelBar();
+    syncPanelWidth();
 
     var noun = view === "upload" ? "uploads" : view === "bank" ? "bank feed lines"
              : view === "invoice" ? "invoice feeds" : "check feeds";
@@ -1234,10 +1448,6 @@ tr.excl .amt{text-decoration:line-through}
     nav.push('<button class="pg" type="button" data-p="' + pages + '"' + (page === pages ? " disabled" : "") + ">Last</button>");
     $("pnav").innerHTML = nav.join("");
 
-    if (view === "invoice"){
-      var nExc = invoice.filter(function(x){ return x.outcome === "excluded"; }).length;
-      $("f-excl").textContent = (showExcluded ? "Hide excluded" : "Show excluded") + " (" + nExc + ")";
-    }
     $("fnote").textContent = rows.length === source().length
       ? "" : "Filtered from " + source().length.toLocaleString();
   }
@@ -1399,7 +1609,11 @@ tr.excl .amt{text-decoration:line-through}
       $("f-account").disabled = (view === "invoice");
       /* Not claimed, so neither control can mean anything here. */
       $("f-project").disabled = (view === "invoice");
-      $("f-excl").hidden = (view !== "invoice");
+      document.querySelector(".page").dataset.view = view;
+      $("q").placeholder = view === "invoice" ? "Vendor or invoice number"
+        : "Search description, payee, check number, file\u2026";
+      $("refusal").hidden = true;
+      arrived = "";
       renderAll();
     });
   });
@@ -1407,12 +1621,13 @@ tr.excl .amt{text-decoration:line-through}
   ["q","f-account","f-project","f-claim"].forEach(function(id){
     $(id).addEventListener("input", function(){ page = 1; renderAll(); });
   });
-  $("f-excl").addEventListener("click", function(){
-    showExcluded = !showExcluded;
-    this.setAttribute("aria-pressed", String(showExcluded));
-    this.textContent = showExcluded ? "Hide excluded" : "Show excluded";
-    page = 1; renderAll();
-  });
+  $("selclear").addEventListener("click", function(){ sel = { whole:{}, partial:{} }; renderAll(); });
+  $("selexport").addEventListener("click", doExport);
+  /* Re-measured on resize and once the shared nav has mounted (it renders after this
+     script runs, and narrows the scroller when it does). */
+  window.addEventListener("resize", syncPanelWidth);
+  window.addEventListener("load", syncPanelWidth);
+  $("refusal-x").addEventListener("click", function(){ $("refusal").hidden = true; });
   $("per").addEventListener("change", function(){ per = Number(this.value); page = 1; renderAll(); });
   $("pnav").addEventListener("click", function(e){
     var b = e.target.closest(".pg");
@@ -1433,13 +1648,24 @@ tr.excl .amt{text-decoration:line-through}
     }
     openDrawer(Number(tr.dataset.i));
   }
+  /* Checkboxes select; they never expand or collapse the row they sit in. */
+  $("panel").addEventListener("change", function(e){
+    var x = e.target.closest("input.chk");
+    if (!x) return;
+    if (x.dataset.sel === "all") toggleAll();
+    else if (x.dataset.sel === "inv") toggleInvoice(x.dataset.id);
+    else if (x.dataset.sel === "line") toggleLine(x.dataset.id, x.dataset.line);
+    renderAll();
+  });
   $("tbody").addEventListener("click", function(e){
+    if (e.target.closest("input.chk")) return;
     /* A click inside an open panel must not collapse it. */
     if (e.target.closest("tr.exp-row")) return;
     activate(e.target.closest("tr[data-i]"));
   });
   $("tbody").addEventListener("keydown", function(e){
     if (e.key !== "Enter" && e.key !== " ") return;
+    if (e.target.closest("input")) return;
     if (e.target.closest("tr.exp-row")) return;
     var tr = e.target.closest("tr[data-i]");
     if (tr){ e.preventDefault(); activate(tr); }
@@ -1457,7 +1683,25 @@ tr.excl .amt{text-decoration:line-through}
 
   renderRail();
   renderAll();
+
+  /* ?feed=<id> opens the register on one invoice -- expanded, scrolled to and outlined.
+     A duplicate check on the review screen says "this was booked on 4 Sep"; the link beside
+     it has to land on the row. Accepts IF-70001 or 70001. Try ?feed=IF-70001 (Kaapi). */
+  (function(){
+    var asked = new URLSearchParams(location.search).get("feed");
+    if (!asked) return;
+    var id = /^IF-/.test(asked) ? asked : "IF-" + asked;
+    var idx = invoice.map(function(r){ return r.id; }).indexOf(id);
+    if (idx < 0) return;
+    $("tab-invoice").click();
+    arrived = id; open[id] = true;
+    page = Math.floor(idx / per) + 1;
+    renderAll();
+    var row = document.querySelector('#tbody tr[data-id="' + id + '"]');
+    if (row) row.scrollIntoView({ block:"center" });
+  })();
 })();
 </script>
+<script src="assets/atlas-nav.js"></script>
 </body>
 </html>

@@ -20,8 +20,10 @@
    Structure (per product spec):
      Home → Dashboard (across clients)
      Client dropdown (sections below are client-scoped)
-       Bookkeeping → Projects · Recipes · Data
+       Bookkeeping → Projects · Recipes · Incoming Documents · Feeds
+       (Data -- bookkeeping-data.html -- is parked off the nav; reachable from index.html)
        Taxation    → Projects · Data
+     Document Library
      Workflows
      Integrations
      Settings
@@ -89,6 +91,7 @@
       "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253",
     taxation:
       "M9 7h6m-6 4h6m-2 4h2M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z",
+    library: "M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z",
     workflows: "M13 10V3L4 14h7v7l9-11h-7z",
     integrations:
       "M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z",
@@ -107,9 +110,11 @@
     home: "dashboard.html",
     "bookkeeping/projects": "projects-list.html",
     "bookkeeping/recipes": "rules-manager.html",
-    "bookkeeping/data": "bookkeeping-data.html",
+    "bookkeeping/documents": "bookkeeping-documents.html",
+    "bookkeeping/feeds": "bookkeeping-feeds.html",
     "taxation/projects": "projects-list-tax.html",
     "taxation/data": "#",
+    library: "#",
     workflows: "workflow-live.html",
     integrations: "#",
     settings: "#",
@@ -126,7 +131,11 @@
       children: [
         { key: "bookkeeping/projects", label: "Projects" },
         { key: "bookkeeping/recipes", label: "Recipes" },
-        { key: "bookkeeping/data", label: "Data" },
+        // As in the app's Bookkeeping menu (ATLS-349 / ATLS-316): the unfiled-document queue
+        // sits directly before Feeds -- a document is triaged there, and the invoice it
+        // becomes lands in the Feeds register.
+        { key: "bookkeeping/documents", label: "Incoming Documents" },
+        { key: "bookkeeping/feeds", label: "Feeds" },
       ],
     },
     {
@@ -139,6 +148,10 @@
         { key: "taxation/data", label: "Data" },
       ],
     },
+    // ATLS-48: the central, cross-app document layer. Same place as the app's Platform
+    // group: Document Library, then Workflows, then Integrations. Not the same screen as
+    // Bookkeeping -> Incoming Documents, which is the bookkeeping triage queue.
+    { key: "library", label: "Document Library", icon: "library", scoped: true },
     { key: "workflows", label: "Workflows", icon: "workflows", scoped: true },
     {
       key: "integrations",

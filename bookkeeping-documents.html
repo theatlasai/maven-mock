@@ -23,19 +23,6 @@
   body{font-family:var(--sans);color:var(--slate900);background:var(--slate900);font-size:14px;-webkit-font-smoothing:antialiased;}
   .shell{display:flex;height:100vh;overflow:hidden;}
 
-  .sidebar{width:17rem;flex:none;background:linear-gradient(180deg,#0c1929,#0f172a 50%,#131c2e);border-right:1px solid rgba(255,255,255,.06);color:#cbd5e1;display:flex;flex-direction:column;padding:14px 10px;overflow-y:auto;}
-  .tenant{display:flex;align-items:center;gap:10px;padding:6px 8px 12px;}
-  .tenant .tile{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#6366f1,#4f46e5 55%,#4338ca);display:grid;place-items:center;color:#fff;font-weight:800;font-size:14px;box-shadow:0 0 18px rgba(99,102,241,.35);}
-  .tenant .tn{font-weight:750;font-size:14px;background:linear-gradient(90deg,#fff,#c7d2fe);-webkit-background-clip:text;background-clip:text;color:transparent;}
-  .nav-sep{height:1px;background:rgba(255,255,255,.07);margin:8px 4px;}
-  .navgrp{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#64748b;padding:12px 10px 5px;}
-  .navitem{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;color:#94a3b8;font-size:13px;font-weight:550;cursor:pointer;position:relative;}
-  .navitem .ic{width:16px;text-align:center;opacity:.85;}
-  .navitem:hover{color:#e2e8f0;background:rgba(255,255,255,.04);}
-  .navitem.active{color:#fff;background:rgba(99,102,241,.14);}
-  .navitem.active::before{content:"";position:absolute;left:-10px;top:6px;bottom:6px;width:3px;border-radius:0 3px 3px 0;background:var(--ind500);}
-  .navitem.child{padding-left:34px;font-size:12.5px;}
-  .side-foot{margin-top:auto;padding-top:10px;}
 
   .mainwrap{flex:1;display:flex;flex-direction:column;min-width:0;}
   .header{height:4rem;flex:none;background:linear-gradient(90deg,#fff,#f8fafc);border-bottom:1px solid var(--slate200);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;}
@@ -170,25 +157,13 @@
   .errbox{background:var(--rose50);border:1px solid var(--rose500);border-radius:10px;padding:12px 14px;font-size:12.5px;color:var(--rose600);}
 
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--slate900);color:#fff;padding:11px 18px;border-radius:11px;font-size:13px;font-weight:600;box-shadow:var(--shadow-xl);display:none;align-items:center;gap:10px;z-index:60;} .toast .tk{color:var(--em500);}
-  @media(max-width:900px){.sidebar{display:none;}}
+  
 </style>
 </head>
 <body>
 <div class="shell">
-  <aside class="sidebar">
-    <div class="tenant"><div class="tile">A</div><div class="tn">Atlas AI</div></div>
-    <a class="navitem"><span class="ic">🏠</span> Home</a>
-    <div class="nav-sep"></div>
-    <div class="navgrp">Accounting</div>
-    <a class="navitem"><span class="ic">📗</span> Bookkeeping</a>
-    <a class="navitem child active">Projects</a>
-    <a class="navitem child">Recipes</a>
-    <a class="navitem"><span class="ic">🧾</span> Accounts Payable</a>
-    <a class="navitem"><span class="ic">⚖️</span> Reconciliation</a>
-    <div class="navgrp">Taxation</div>
-    <a class="navitem"><span class="ic">📑</span> Filings</a>
-    <div class="side-foot"><div class="nav-sep"></div><a class="navitem"><span class="ic">⚙️</span> Settings</a></div>
-  </aside>
+  <!-- The shared left nav (assets/atlas-nav.js), same as every other bookkeeping mock. -->
+  <div data-atlas-nav data-active="bookkeeping/documents" data-client="bright-bloom"></div>
 
   <div class="mainwrap">
     <header class="header">
@@ -453,5 +428,6 @@
   renderAll();showView("project");
 </script>
 
+<script src="assets/atlas-nav.js"></script>
 </body>
 </html>
