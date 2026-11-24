@@ -20,7 +20,8 @@
    Structure (per product spec):
      Home → Bookkeeping project dashboard (across clients; the app's ProjectDashboard)
      Client dropdown (sections below are client-scoped)
-       Bookkeeping → Projects · Recipes · Incoming Documents · Feeds
+       Bookkeeping → Projects · Recipes · Incoming Documents
+       (Feeds -- bookkeeping-feeds.html -- is off the nav while still being designed; reachable from index.html)
        (Data -- bookkeeping-data.html -- is parked off the nav; reachable from index.html)
        Taxation    → Projects · Data
      Document Library
@@ -111,7 +112,6 @@
     "bookkeeping/projects": "projects-list.html",
     "bookkeeping/recipes": "rules-manager.html",
     "bookkeeping/documents": "bookkeeping-documents.html",
-    "bookkeeping/feeds": "bookkeeping-feeds.html",
     "taxation/projects": "projects-list-tax.html",
     "taxation/data": "#",
     library: "#",
@@ -131,11 +131,8 @@
       children: [
         { key: "bookkeeping/projects", label: "Projects" },
         { key: "bookkeeping/recipes", label: "Recipes" },
-        // As in the app's Bookkeeping menu (ATLS-349 / ATLS-316): the unfiled-document queue
-        // sits directly before Feeds -- a document is triaged there, and the invoice it
-        // becomes lands in the Feeds register.
+        // As in the app's Bookkeeping menu (ATLS-349): the unfiled-document queue.
         { key: "bookkeeping/documents", label: "Incoming Documents" },
-        { key: "bookkeeping/feeds", label: "Feeds" },
       ],
     },
     {

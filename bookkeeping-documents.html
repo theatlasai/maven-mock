@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Documents Page — Action Inbox</title>
+<title>Atlas — Book Close Q1 2025 · Bright &amp; Bloom · Documents</title>
 <style>
   :root{
     --bg:#f9fafb; --white:#fff;
@@ -25,11 +25,6 @@
 
 
   .mainwrap{flex:1;display:flex;flex-direction:column;min-width:0;}
-  .header{height:4rem;flex:none;background:linear-gradient(90deg,#fff,#f8fafc);border-bottom:1px solid var(--slate200);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;}
-  .header h2{font-size:1.375rem;font-weight:700;color:var(--slate900);margin:0;letter-spacing:-.02em;}
-  .header .right{display:flex;align-items:center;gap:16px;color:var(--slate400);font-size:13px;}
-  .userchip{display:flex;align-items:center;gap:8px;background:var(--slate50);border:1px solid var(--slate200);border-radius:.625rem;padding:5px 10px;color:var(--slate700);font-weight:600;font-size:12.5px;}
-  .userchip .av{width:22px;height:22px;border-radius:50%;background:var(--ind600);color:#fff;display:grid;place-items:center;font-size:11px;}
 
   .content{flex:1;overflow-y:auto;background:var(--bg);}
   .container{max-width:80rem;margin:0 auto;padding:2rem;}
@@ -45,38 +40,7 @@
   .tb.plain{border-color:var(--slate200);color:var(--slate600);} .tb.plain:hover{background:var(--slate50);}
   .tb.ind-fill{border-color:var(--ind200);background:var(--ind50);color:var(--ind600);} .tb.ind-fill:hover{background:var(--ind100);}
   .tb.off{border-color:var(--slate200);background:var(--slate100);color:var(--slate400);cursor:not-allowed;}
-  .doc-cta{display:inline-flex;align-items:center;gap:8px;border-radius:10px;border:1px solid var(--ind600);background:var(--ind600);color:#fff;padding:9px 16px;font-size:13px;font-weight:650;cursor:pointer;}
-  .doc-cta:hover{background:var(--ind700);}
-  .doc-cta .badge{display:inline-flex;min-width:20px;justify-content:center;border-radius:999px;background:rgba(255,255,255,.22);color:#fff;font-size:11px;font-weight:700;padding:1px 7px;}
 
-  .cols{display:flex;flex-direction:column;gap:16px;}
-  @media(min-width:1024px){.cols{flex-direction:row;align-items:flex-start;}}
-  .main-col{min-width:0;flex:1;}
-  .aside{width:100%;flex:none;border:1px solid var(--slate200);background:var(--white);border-radius:1rem;overflow:hidden;}
-  @media(min-width:1024px){.aside{width:16rem;}}
-  .sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-  .sec-head h3{font-size:13px;font-weight:750;color:var(--slate800);margin:0;} .sec-head .sum{font-size:11px;color:var(--slate400);}
-  .acct-grid{display:grid;grid-template-columns:1fr;gap:12px;} @media(min-width:640px){.acct-grid{grid-template-columns:1fr 1fr;}}
-  .acard{display:flex;flex-direction:column;gap:12px;min-height:12rem;border-radius:1rem;border:1px solid var(--slate200);background:var(--white);padding:16px;}
-  .acard.wait{border-color:var(--amber400);background:var(--amber50);box-shadow:0 0 0 3px rgba(251,191,36,.15);}
-  .acard.cat{border-color:var(--blue200);background:var(--blue50);}
-  .acard .ah{display:flex;align-items:flex-start;gap:10px;}
-  .acard .ai{width:36px;height:36px;flex:none;border-radius:10px;display:grid;place-items:center;font-size:15px;}
-  .ai.g{background:var(--em50);color:var(--em600);} .ai.b{background:var(--ind50);color:var(--ind600);} .ai.a{background:var(--amber100);color:var(--amber600);}
-  .acard .anm{font-size:13px;font-weight:750;color:var(--slate800);} .acard.wait .anm{color:var(--amber800);}
-  .acard .asub{margin-top:2px;font-size:11px;color:var(--slate400);}
-  .tybadge{flex:none;border-radius:999px;padding:2px 7px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
-  .tybadge.checking{background:var(--ind50);color:var(--ind600);} .tybadge.credit{background:var(--vio50);color:var(--vio600);} .tybadge.savings{background:var(--em50);color:var(--em600);}
-  .statusrow{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:650;}
-  .dot{width:6px;height:6px;border-radius:50%;} .dot.a{background:var(--amber500);} .dot.b{background:var(--blue500);} .dot.g{background:var(--em500);}
-  .pulse{animation:pulse 1.6s infinite;} @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}} @media(prefers-reduced-motion:reduce){.pulse{animation:none;}}
-  .astats{display:flex;gap:20px;} .astats .k{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--slate400);} .astats .v{font-size:15px;font-weight:750;font-variant-numeric:tabular-nums;}
-  .arev{align-self:flex-start;margin-top:auto;display:inline-flex;border-radius:9px;border:1px solid var(--ind200);background:var(--ind50);color:var(--ind600);padding:6px 12px;font-size:11px;font-weight:650;cursor:pointer;}
-  .aside .cap{padding:14px 16px 4px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--slate400);}
-  .aside .body{padding:6px 16px 16px;}
-  .periodbox{border:1px solid var(--ind100);background:var(--ind50);border-radius:12px;padding:10px 12px;margin-bottom:10px;}
-  .periodbox .p{font-size:13px;font-weight:800;color:var(--ind600);} .periodbox .d{font-size:10px;color:var(--slate500);margin-top:1px;}
-  .prow{display:flex;align-items:baseline;justify-content:space-between;padding:3px 0;} .prow .k{font-size:11px;color:var(--slate500);} .prow .v{font-size:12px;font-weight:650;color:var(--slate700);} .prow .v.amber{color:var(--amber700);}
 
   .ws-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
   .ws-head h1{font-size:20px;font-weight:750;letter-spacing:-.02em;margin:0;}
@@ -111,9 +75,13 @@
   .rowbtn.plain{border-color:var(--slate200);background:var(--white);color:var(--slate600);} .rowbtn.plain:hover{background:var(--slate50);}
   .rowbtn.danger{border-color:var(--rose500);background:var(--white);color:var(--rose600);}
 
+  a.tb{text-decoration:none;} .crumb a.cur{color:var(--slate700);}
   .layout{display:none;} .layout.on{display:block;}
+  #layout-inbox{background:var(--white);border:1px solid var(--slate200);border-radius:16px;padding:22px 24px 10px;box-shadow:var(--shadow-sm);}
+  .empty{border:1px dashed var(--slate200);border-radius:11px;padding:13px 16px;font-size:12.5px;color:var(--slate400);}
+  .stbadge.rej{background:var(--slate100);color:var(--slate500);}
   .grp{margin-bottom:18px;}
-  .grp>h3{margin:0 0 9px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--slate400);}
+  .grp>h3{margin:0 0 10px;font-size:11.5px;font-weight:750;text-transform:uppercase;letter-spacing:.08em;color:var(--slate400);}
   .grp.pri-a>h3{color:var(--amber700);} .grp.pri-r>h3{color:var(--ind700);}
   .ilist{display:flex;flex-direction:column;gap:8px;}
   .irow{display:flex;align-items:center;gap:12px;border:1px solid var(--slate200);background:var(--white);border-radius:11px;padding:11px 15px;cursor:pointer;transition:border-color .12s,box-shadow .12s;}
@@ -162,52 +130,21 @@
 </head>
 <body>
 <div class="shell">
-  <!-- The shared left nav (assets/atlas-nav.js), same as every other bookkeeping mock. -->
-  <div data-atlas-nav data-active="bookkeeping/documents" data-client="bright-bloom"></div>
+  <!-- The shared left nav (assets/atlas-nav.js). This is a project's documents page, reached from the
+       project detail's "Documents" button (project-detail-v2.html), so Projects is highlighted. -->
+  <div data-atlas-nav data-active="bookkeeping/projects" data-client="bright-bloom"></div>
 
   <div class="mainwrap">
-    <header class="header">
-      <h2>Bookkeeping Projects</h2>
-      <div class="right"><span>🔔</span><span style="font-weight:700;color:var(--slate400)">AtlasAI</span><span class="userchip"><span class="av">C</span> Chethan A</span></div>
-    </header>
 
     <div class="content">
       <div class="container">
 
-        <!-- ═══ PROJECT DETAILS ═══ -->
-        <div class="stack" id="view-project">
-          <div class="toolbar">
-            <nav class="crumb"><a>Projects</a><span class="sl">/</span><span class="mid">Acme Holdings</span><span class="sl">/</span><span class="cur">Q1 2026</span></nav>
-            <div class="spacer"></div>
-            <button class="doc-cta" id="openDocs">🗂️ Documents <span class="badge" id="cta-badge">6</span></button>
-            <button class="tb plain">↻ Sync</button>
-            <a class="tb ind-fill">Review All Transactions</a>
-            <button class="tb off" title="Complete once all statements are ingested and transactions reviewed">Complete Project</button>
-          </div>
-          <div class="cols">
-            <div class="main-col">
-              <div class="sec-head"><h3>Data sources</h3><span class="sum">5 accounts · 2 ready · 1 waiting · 2 categorizing</span></div>
-              <div class="acct-grid" id="ds-grid"></div>
-            </div>
-            <aside class="aside">
-              <div class="cap">Project Period</div>
-              <div class="body">
-                <div class="periodbox"><div class="p">Jan 1 – Mar 31, 2026</div><div class="d">90 days</div></div>
-                <div class="prow"><span class="k">Client</span><span class="v">Acme Holdings</span></div>
-                <div class="prow"><span class="k">Opened</span><span class="v">Apr 2, 2026</span></div>
-                <div class="prow"><span class="k">Due</span><span class="v amber">Apr 15, 2026</span></div>
-                <div class="prow"><span class="k">Assigned to</span><span class="v">Priya N.</span></div>
-              </div>
-            </aside>
-          </div>
-        </div>
-
         <!-- ═══ DOCUMENTS PAGE ═══ -->
-        <div class="stack" id="view-docs" style="display:none;">
+        <div class="stack" id="view-docs">
           <div class="toolbar">
-            <nav class="crumb"><a>Projects</a><span class="sl">/</span><span class="mid">Acme Holdings</span><span class="sl">/</span><a id="crumbProj">Q1 2026</a><span class="sl">/</span><span class="cur">Documents</span></nav>
+            <nav class="crumb"><a href="projects-list.html">Projects</a><span class="sl">/</span><a href="clients-list.html">Bright &amp; Bloom LLC</a><span class="sl">/</span><a class="cur" href="project-detail-v2.html">Book Close — Q1 2025</a></nav>
             <div class="spacer"></div>
-            <button class="tb plain" id="backProj">← Back to project</button>
+            <a class="tb plain" href="project-detail-v2.html">← Back to project</a>
           </div>
           <div class="ws-head">
             <h1>Documents</h1>
@@ -216,9 +153,9 @@
               <button class="addbtn" id="uploadBtn">＋ Upload</button>
             </div>
           </div>
-          <div class="explain">📤 New uploads are <b>auto-classified</b> (type + account) and sent straight to <b>Needs review</b>. When we can't confidently tell the <b>type</b> (bank feed vs check) or match an <b>account</b>, the file stops in <b>Needs classification</b> — click <b>Classify</b> to set both. Nothing is routed until they're set.</div>
+          <div class="explain">New uploads are <b>classified automatically</b> — we work out the document type and the account, then send them straight to <b>Needs review</b>. Only files we can't confidently place stop and wait for you in <b>Needs classification</b>.</div>
           <div class="sumbar">
-            <span class="attn">⚠ <b id="s-attn">6</b> need you</span><span>◍ <b>2</b> processing</span><span>✓ <b>3</b> ingested</span><span class="fail">✗ <b>1</b> failed</span>
+            <span class="attn">⚠ <b id="s-attn"></b> need you</span><span>◍ <b id="s-proc"></b> processing</span><span>✓ <b id="s-done"></b> ingested</span><span>⊘ <b id="s-rej"></b> rejected</span><span class="fail">✗ <b id="s-fail"></b> failed</span>
           </div>
           <div class="layout on" id="layout-inbox"></div>
           <div class="layout" id="layout-table"></div>
@@ -237,21 +174,23 @@
 <div class="toast" id="toast"><span class="tk">✓</span> <span id="toast-msg"></span></div>
 
 <script>
-  const ACCOUNTS=["Chase Checking ••5521","Amex Platinum ••1008","Wells Fargo Ops ••2856","Stripe Payouts","Mercury ••7019","Silicon Valley Bank ••3390"];
-  const KINDL={feed:"Bank feed",check:"Check",payout:"Payout"};
-  // stage: setup | review | proc | done | fail.  In "setup", kind==="" means type unknown, acct==="" means account unmatched.
+  const WF="Wells Fargo Business Checking - 2201", AMEX="Amex Business Credit Card - 8344", BOFA="Bank of America Savings - 7823", CHASE="Chase Business Checking - 4951";
+  const ACCOUNTS=[WF,AMEX,BOFA,CHASE];
+  const KINDL={feed:"Bank Feed",check:"Check",payout:"Payout"};
+  // stage: setup | review | proc | done | rej | fail.  In "setup", kind==="" means type unknown, acct==="" means account unmatched.
   const DOCS=[
-    {name:"scan_march_batch.pdf",fmt:"pdf",kind:"",acct:"Chase Checking ••5521",stage:"setup",kindConf:"unclear — bank feed or check?",acctConf:"acct ••5521",cands:[]},
-    {name:"brex_4410_statement.pdf",fmt:"pdf",kind:"feed",acct:"",stage:"setup",kindConf:"",acctConf:"acct ••4410 — no match",cands:[]},
-    {name:"mystery_scan_11.pdf",fmt:"pdf",kind:"",acct:"",stage:"setup",kindConf:"unclear — bank feed or check?",acctConf:"no account detected",cands:["Chase Checking ••5521","Amex Platinum ••1008"]},
-    {name:"amex_platinum_q1.pdf",fmt:"pdf",kind:"feed",acct:"Amex Platinum ••1008",stage:"review",conf:"180 transactions parsed"},
-    {name:"chase_5521_jan.pdf",fmt:"pdf",kind:"feed",acct:"Chase Checking ••5521",stage:"review",conf:"96 transactions parsed"},
-    {name:"check_batch_042.pdf",fmt:"pdf",kind:"check",acct:"Amex Platinum ••1008",stage:"review",conf:"8 checks parsed"},
-    {name:"chase_5521_feb.pdf",fmt:"pdf",kind:"feed",acct:"Chase Checking ••5521",stage:"proc",conf:"parsing…"},
-    {name:"mercury_7019_q1.csv",fmt:"csv",kind:"feed",acct:"Mercury ••7019",stage:"proc",conf:"parsing…"},
-    {name:"wf_ops_2856_q1.pdf",fmt:"pdf",kind:"feed",acct:"Wells Fargo Ops ••2856",stage:"done",conf:"214 rows ingested"},
-    {name:"stripe_payouts_q1.csv",fmt:"csv",kind:"payout",acct:"Stripe Payouts",stage:"done",conf:"88 rows ingested"},
-    {name:"svb_march_stmt.pdf",fmt:"pdf",kind:"feed",acct:"Silicon Valley Bank ••3390",stage:"done",conf:"142 rows ingested"},
+    {name:"scan_0331_chase.pdf",fmt:"pdf",kind:"",acct:CHASE,stage:"setup",kindConf:"unclear — bank feed or check?",acctConf:"acct ••4951",cands:[]},
+    {name:"03-31-2025 - Wells Fargo - Statement.PDF",fmt:"pdf",kind:"feed",acct:WF,stage:"review",conf:"318 transactions parsed"},
+    {name:"02-28-2025 - Wells Fargo - Statement.PDF",fmt:"pdf",kind:"feed",acct:WF,stage:"review",conf:"287 transactions parsed"},
+    {name:"01-31-2025 - Wells Fargo - Statement.PDF",fmt:"pdf",kind:"feed",acct:WF,stage:"review",conf:"286 transactions parsed"},
+    {name:"03-31-2025 - American Express - Statement.PDF",fmt:"pdf",kind:"feed",acct:AMEX,stage:"review",conf:"214 transactions parsed"},
+    {name:"02-28-2025 - American Express - Statement.PDF",fmt:"pdf",kind:"feed",acct:AMEX,stage:"review",conf:"198 transactions parsed"},
+    {name:"Check images - March 2025.pdf",fmt:"pdf",kind:"check",acct:WF,stage:"review",conf:"8 checks parsed"},
+    {name:"01-31-2025 - American Express - Statement.PDF",fmt:"pdf",kind:"feed",acct:AMEX,stage:"done",conf:"202 rows ingested"},
+    {name:"01-31-2025 - Bank of America - Statement.PDF",fmt:"pdf",kind:"feed",acct:BOFA,stage:"done",conf:"112 rows ingested"},
+    {name:"02-28-2025 - Bank of America - Statement.PDF",fmt:"pdf",kind:"feed",acct:BOFA,stage:"done",conf:"109 rows ingested"},
+    {name:"03-31-2025 - Bank of America - Statement.PDF",fmt:"pdf",kind:"feed",acct:BOFA,stage:"done",conf:"121 rows ingested"},
+    {name:"01-31-2025 - Wells Fargo - Statement (1).PDF",fmt:"pdf",kind:"feed",acct:WF,stage:"rej",conf:"duplicate of 01-31-2025 - Wells Fargo - Statement.PDF"},
     {name:"q1_settlement_export.csv",fmt:"csv",kind:"payout",acct:"",stage:"fail",conf:"unrecognised columns"},
   ];
   const STAGE={
@@ -259,28 +198,13 @@
     review:{label:"Needs review",cls:"review",icon:"●"},
     proc:{label:"Processing",cls:"proc",icon:'<span class="spin"></span>'},
     done:{label:"Ingested",cls:"done",icon:"✓"},
+    rej:{label:"Rejected",cls:"rej",icon:"⊘"},
     fail:{label:"Failed",cls:"fail",icon:"✗"},
   };
-  const kindChip=(k,ro)=>k?`<span class="chip ${k}${ro?" ro":""}"><span class="cd"></span>${KINDL[k]}</span>`:"";
+  const kindChip=(k,ro)=>k?`<span class="chip ${k}${ro?" ro":""}">${KINDL[k]}</span>`:"";
   const stBadge=s=>`<span class="stbadge ${STAGE[s].cls}">${STAGE[s].icon} ${STAGE[s].label}</span>`;
   const ficon=d=>`<div class="ficon ${d.fmt}">${d.fmt.toUpperCase()}</div>`;
 
-  const DS=[
-    {n:"Chase Checking ••5521",sub:"••5521 · Operating",ty:"checking",st:"cat-done",ing:214,cat:214},
-    {n:"Amex Platinum ••1008",sub:"••1008 · Card",ty:"credit",st:"cat",ing:180,cat:96},
-    {n:"Stripe Payouts",sub:"Payout processor",ty:"savings",st:"cat-done",ing:88,cat:88},
-    {n:"Mercury ••7019",sub:"••7019 · Operating",ty:"checking",st:"cat",ing:132,cat:40},
-    {n:"Wells Fargo Ops ••2856",sub:"••2856 · Operating",ty:"checking",st:"wait",ing:0,cat:0},
-  ];
-  function dsCard(a){
-    if(a.st==="wait") return `<div class="acard wait"><div class="ah"><div class="ai a">🏦</div><div style="flex:1"><div class="anm">${a.n}</div><div class="asub">${a.sub}</div></div><span class="tybadge ${a.ty}">${a.ty}</span></div><div class="statusrow" style="color:var(--amber700)"><span class="dot a pulse"></span> Waiting for Statement</div></div>`;
-    const done=a.st==="cat-done";
-    return `<div class="acard ${done?"":"cat"}"><div class="ah"><div class="ai ${done?"g":"b"}">🏦</div><div style="flex:1"><div class="anm">${a.n}</div><div class="asub">${a.sub}</div></div><span class="tybadge ${a.ty}">${a.ty==="credit"?"Credit Card":a.ty}</span></div>
-      <div class="statusrow" style="color:${done?"var(--em700)":"var(--blue600)"}"><span class="dot ${done?"g":"b pulse"}"></span> ${done?"Categorized — ready for review":`Pending categorization — ${a.cat} of ${a.ing} done`}</div>
-      <div class="astats"><div><div class="v">${a.ing.toLocaleString()}</div><div class="k">Ingested</div></div><div><div class="v" style="color:${done?"var(--em600)":"var(--blue600)"}">${a.cat.toLocaleString()}</div><div class="k">Categorized</div></div></div>
-      <button class="arev">Review ${a.cat.toLocaleString()} transactions →</button></div>`;
-  }
-  document.getElementById("ds-grid").innerHTML=DS.map(dsCard).join("");
 
   function byStage(s){return DOCS.map((d,i)=>({d,i})).filter(x=>x.d.stage===s);}
   function typeSelect(i){return `<select class="inlinesel" data-setkind="${i}"><option value="" selected disabled>Type…</option><option value="feed">Bank feed</option><option value="check">Check</option><option value="payout">Payout</option></select>`;}
@@ -288,18 +212,19 @@
 
   function renderInbox(){
     const el=document.getElementById("layout-inbox");
-    const setups=byStage("setup"), revs=byStage("review"), procs=byStage("proc"), dones=byStage("done"), fails=byStage("fail");
+    const setups=byStage("setup"), revs=byStage("review"), procs=byStage("proc"), dones=byStage("done"), rejs=byStage("rej"), fails=byStage("fail");
     const setupRow=x=>{
       const d=x.d, need=[!d.kind?"type":null,!d.acct?"account":null].filter(Boolean).join(" & ");
       return `<div class="irow pa" data-i="${x.i}">${ficon(d)}<div class="meta"><div class="top"><span class="fname">${d.name}</span>${d.kind?kindChip(d.kind,true):""}</div><span class="fsub none">⚠ needs ${need}</span></div><span class="rowbtn">Classify →</span></div>`;
     };
-    const revRow=x=>`<div class="irow pr" data-i="${x.i}">${ficon(x.d)}<div class="meta"><div class="top"><span class="fname">${x.d.name}</span>${kindChip(x.d.kind)}</div><span class="fsub">${x.d.acct} · ${x.d.conf}</span></div><span class="rowbtn">Review →</span></div>`;
+    const revRow=x=>`<div class="irow pr" data-i="${x.i}">${ficon(x.d)}<div class="meta"><div class="top"><span class="fname">${x.d.name}</span>${kindChip(x.d.kind)}</div><span class="fsub">${x.d.acct}</span></div><span class="stbadge review">Needs review</span><span class="rowbtn">Review →</span></div>`;
     const plainRow=x=>{let act=x.d.stage==="done"?'<span class="rowbtn plain">View</span>':x.d.stage==="fail"?'<span class="rowbtn danger">Retry</span>':"";return `<div class="irow" data-i="${x.i}">${ficon(x.d)}<div class="meta"><div class="top"><span class="fname">${x.d.name}</span>${kindChip(x.d.kind)}</div><span class="fsub">${x.d.acct||"—"}</span></div>${stBadge(x.d.stage)}${act}</div>`;};
     el.innerHTML=`
-      ${setups.length?`<div class="grp pri-a"><h3>⚠ Needs classification (${setups.length})</h3><div class="ilist">${setups.map(setupRow).join("")}</div></div>`:""}
-      <div class="grp pri-r"><h3>● Needs review (${revs.length}) · auto-classified, ready</h3><div class="ilist">${revs.map(revRow).join("")}</div></div>
+      <div class="grp pri-a"><h3>Needs classification (${setups.length})</h3>${setups.length?`<div class="ilist">${setups.map(setupRow).join("")}</div>`:'<div class="empty">Nothing here.</div>'}</div>
+      <div class="grp pri-r"><h3>Needs review (${revs.length})</h3>${revs.length?`<div class="ilist">${revs.map(revRow).join("")}</div>`:'<div class="empty">Nothing here.</div>'}</div>
       <div class="grp"><div class="collapsed-head" data-toggle="proc"><span>▸</span> Processing <span class="cnt">${procs.length}</span></div><div class="ilist" id="c-proc" style="display:none">${procs.map(plainRow).join("")}</div></div>
       <div class="grp"><div class="collapsed-head" data-toggle="done"><span>▸</span> Ingested <span class="cnt">${dones.length}</span></div><div class="ilist" id="c-done" style="display:none">${dones.map(plainRow).join("")}</div></div>
+      <div class="grp"><div class="collapsed-head" data-toggle="rej"><span>▸</span> Rejected <span class="cnt">${rejs.length}</span></div><div class="ilist" id="c-rej" style="display:none">${rejs.map(plainRow).join("")}</div></div>
       <div class="grp"><div class="collapsed-head" data-toggle="fail"><span>▸</span> Failed <span class="cnt">${fails.length}</span></div><div class="ilist" id="c-fail" style="display:none">${fails.map(plainRow).join("")}</div></div>`;
   }
 
@@ -310,7 +235,7 @@
     const typeCell=d=>d.kind?kindChip(d.kind):`<span class="fsub none">⚠ needs type</span>`;
     const acctCell=d=>d.acct?`<span class="fsub" style="color:var(--slate600)">${d.acct}</span>`:`<span class="fsub none">⚠ needs account</span>`;
     el.innerHTML=`<div class="tbl-panel"><div class="tbl-head"><strong style="font-size:13px;color:var(--slate800)">All documents</strong>
-      <div class="filter"><select id="tfilter"><option value="all">All stages</option><option value="setup">Needs classification</option><option value="review">Needs review</option><option value="proc">Processing</option><option value="done">Ingested</option><option value="fail">Failed</option></select></div></div>
+      <div class="filter"><select id="tfilter"><option value="all">All stages</option><option value="setup">Needs classification</option><option value="review">Needs review</option><option value="proc">Processing</option><option value="done">Ingested</option><option value="rej">Rejected</option><option value="fail">Failed</option></select></div></div>
       <div class="twrap"><table><thead><tr><th>File</th><th>Type</th><th>Account</th><th>Stage</th></tr></thead><tbody>
       ${rows.map(x=>`<tr data-i="${x.i}"><td><div style="display:flex;align-items:center;gap:10px">${ficon(x.d)}<span class="fname">${x.d.name}</span></div></td><td>${typeCell(x.d)}</td><td>${acctCell(x.d)}</td><td>${stBadge(x.d.stage)}</td></tr>`).join("")}
       </tbody></table></div></div>`;
@@ -351,6 +276,9 @@
     } else if(d.stage==="done"){
       body=`<div class="preview">📄 ${d.name}</div><div class="dnote"><b>${d.acct}</b> · ${d.conf}.</div>`;
       foot=`<button class="dbtn" id="dclose2">Close</button><button class="dbtn primary" id="dclose">Open in transactions →</button>`;
+    } else if(d.stage==="rej"){
+      body=`<div class="preview">📄 ${d.name}</div><div class="dnote">Rejected — ${d.conf}. Nothing from this file was ingested.</div>`;
+      foot=`<button class="dbtn" id="dclose">Close</button>`;
     } else {
       body=`<div class="errbox"><b>Couldn't process this file.</b><br>${d.conf}. The CSV columns didn't match a bank statement or payout export.</div><div class="dlabel">Re-classify as</div><select class="dsel"><option>Payout</option><option>Bank feed</option></select>`;
       foot=`<button class="dbtn" id="dclose2">Remove</button><button class="dbtn danger" id="dclose">Retry</button>`;
@@ -384,7 +312,7 @@
 
   function finalize(i){const d=DOCS[i]; if(d.kind&&d.acct){d.stage="review";d.conf="just set — sent to review";toast(`${d.name} → ${KINDL[d.kind]} · ${d.acct} · sent to review`);} else {toast(`Saved — still needs ${!d.kind?"a type":"an account"}`);} renderAll();}
 
-  function updateCounts(){const attn=byStage("setup").length+byStage("review").length;document.getElementById("s-attn").textContent=attn;document.getElementById("cta-badge").textContent=attn;}
+  function updateCounts(){const n=st=>byStage(st).length;document.getElementById("s-attn").textContent=n("setup")+n("review");[["s-proc","proc"],["s-done","done"],["s-rej","rej"],["s-fail","fail"]].forEach(([id,st])=>{document.getElementById(id).textContent=n(st);});}
 
   function bindRows(){
     document.querySelectorAll("[data-i]").forEach(el=>el.addEventListener("click",e=>{ if(e.target.closest("[data-setkind]")||e.target.closest("[data-setacct]")||e.target.closest("[data-toggle]"))return; openDrawer(+el.dataset.i); }));
@@ -395,7 +323,6 @@
   function renderAll(){renderInbox();renderTable();updateCounts();bindRows();}
 
   function showView(v){
-    document.getElementById("view-project").style.display=v==="project"?"":"none";
     document.getElementById("view-docs").style.display=v==="docs"?"":"none";
     document.getElementById("view-review").style.display=v==="review"?"":"none";
     document.querySelector(".content").scrollTo({top:0,behavior:"smooth"});
@@ -418,14 +345,11 @@
     el.querySelector("#rn-commit").addEventListener("click",()=>{ d.stage="done"; d.conf=`${rows.length} rows ingested`; toast(`Committed · ${d.name} → ${d.acct}`); renderAll(); showView("docs"); });
     showView("review");
   }
-  document.getElementById("openDocs").addEventListener("click",()=>showView("docs"));
-  document.getElementById("backProj").addEventListener("click",()=>showView("project"));
-  document.getElementById("crumbProj").addEventListener("click",()=>showView("project"));
   document.getElementById("uploadBtn").addEventListener("click",()=>toast("Uploading… files will be auto-classified and appear in review"));
   document.getElementById("switch").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;document.querySelectorAll("#switch button").forEach(x=>x.classList.remove("on"));b.classList.add("on");document.querySelectorAll(".layout").forEach(l=>l.classList.remove("on"));document.getElementById("layout-"+b.dataset.l).classList.add("on");});
 
   let toastT;function toast(m){const t=document.getElementById("toast");document.getElementById("toast-msg").textContent=m;t.style.display="flex";clearTimeout(toastT);toastT=setTimeout(()=>t.style.display="none",3200);}
-  renderAll();showView("project");
+  renderAll();showView("docs");
 </script>
 
 <script src="assets/atlas-nav.js"></script>
