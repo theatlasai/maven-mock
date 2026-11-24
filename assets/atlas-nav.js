@@ -18,7 +18,7 @@
      });
 
    Structure (per product spec):
-     Home → Dashboard (across clients)
+     Home → Bookkeeping project dashboard (across clients; the app's ProjectDashboard)
      Client dropdown (sections below are client-scoped)
        Bookkeeping → Projects · Recipes · Incoming Documents · Feeds
        (Data -- bookkeeping-data.html -- is parked off the nav; reachable from index.html)
@@ -107,7 +107,7 @@
 
   // Default destinations. Pages that don't exist yet resolve to '#'.
   var DEFAULT_HREFS = {
-    home: "dashboard.html",
+    home: "bookkeeping-project-dashboard.html",
     "bookkeeping/projects": "projects-list.html",
     "bookkeeping/recipes": "rules-manager.html",
     "bookkeeping/documents": "bookkeeping-documents.html",
@@ -122,7 +122,7 @@
 
   // Declarative menu model. `scoped: true` marks client-scoped sections.
   var MENU = [
-    { key: "home", label: "Dashboard", icon: "home", section: "top" },
+    { key: "home", label: "Home", icon: "home", section: "top" },
     {
       key: "bookkeeping",
       label: "Bookkeeping",

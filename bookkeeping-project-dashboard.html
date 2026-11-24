@@ -47,8 +47,11 @@
   }
 
   * { box-sizing: border-box; }
-  body { margin: 0; }
-  .app { font-family: var(--sans); background: var(--bg); color: var(--ink); min-height: 100vh; padding: 28px clamp(16px,4vw,40px) 56px; -webkit-font-smoothing: antialiased; }
+  body { margin: 0; background: var(--bg); }
+  /* Shared left nav (assets/atlas-nav.js) beside the page; nav stays put while the board scrolls. */
+  .shell { display: flex; align-items: flex-start; }
+  .shell .anav { position: sticky; top: 0; }
+  .app { flex: 1; min-width: 0; font-family: var(--sans); background: var(--bg); color: var(--ink); min-height: 100vh; padding: 28px clamp(16px,4vw,40px) 56px; -webkit-font-smoothing: antialiased; }
   .wrap { max-width: 1280px; margin: 0 auto; }
 
   .head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px; }
@@ -88,7 +91,7 @@
   .bar { height: 5px; border-radius: 3px; background: var(--line-2); overflow: hidden; margin-top: 9px; }
   .bar > i { display: block; height: 100%; border-radius: 3px; background: var(--col,var(--accent)); }
   .card-foot { display: flex; align-items: center; margin-top: 12px; }
-  .btn { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 620; padding: 7px 12px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); border: 1px solid transparent; cursor: pointer; }
+  .btn { text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 620; padding: 7px 12px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); border: 1px solid transparent; cursor: pointer; }
   .btn.ghost { background: transparent; color: var(--ink-3); }
   .btn.ghost:hover { color: var(--ink-2); }
   .card-foot .btn { margin-left: auto; }
@@ -109,6 +112,8 @@
 </style>
 </head>
 <body>
+<div class="shell">
+<div data-atlas-nav data-active="home" data-client="bright-bloom"></div>
 <div class="app">
   <div class="wrap">
 
@@ -162,14 +167,14 @@
               <div class="card-client">Globex</div>
               <div class="card-period">April 2026</div>
               <div class="metric"><span class="docs">1 document</span> pending review</div>
-              <div class="card-foot"><button class="btn">Review Documents →</button></div>
+              <div class="card-foot"><a class="btn" href="bookkeeping-documents.html">Review Documents →</a></div>
             </article>
 
             <article class="card">
               <div class="card-client">Acme Corp</div>
               <div class="card-period">Q1 2026</div>
               <div class="metric"><span class="docs">3 documents</span> pending review</div>
-              <div class="card-foot"><button class="btn">Review Documents →</button></div>
+              <div class="card-foot"><a class="btn" href="bookkeeping-documents.html">Review Documents →</a></div>
             </article>
 
             <article class="card">
@@ -177,7 +182,7 @@
               <div class="card-period">Q2 2026</div>
               <div class="metric"><span class="n">60/95</span> transactions reviewed</div>
               <div class="bar"><i style="width:63%"></i></div>
-              <div class="card-foot"><button class="btn">Review Transactions →</button></div>
+              <div class="card-foot"><a class="btn" href="bookkeeping-project-v3.html">Review Transactions →</a></div>
             </article>
 
             <article class="card">
@@ -185,7 +190,7 @@
               <div class="card-period">March 2026</div>
               <div class="metric"><span class="n">12/40</span> transactions reviewed</div>
               <div class="bar"><i style="width:30%"></i></div>
-              <div class="card-foot"><button class="btn">Review Transactions →</button></div>
+              <div class="card-foot"><a class="btn" href="bookkeeping-project-v3.html">Review Transactions →</a></div>
             </article>
 
           </div>
@@ -201,7 +206,7 @@
               <div class="card-period">March 2026</div>
               <div class="metric"><span class="n">88/88</span> transactions reviewed</div>
               <div class="bar"><i style="width:100%"></i></div>
-              <div class="card-foot"><button class="btn ghost">Open →</button></div>
+              <div class="card-foot"><a class="btn ghost" href="project-detail-v2.html">Open →</a></div>
             </article>
 
             <article class="card">
@@ -209,7 +214,7 @@
               <div class="card-period">Q4 2025</div>
               <div class="metric"><span class="n">212/212</span> transactions reviewed</div>
               <div class="bar"><i style="width:100%"></i></div>
-              <div class="card-foot"><button class="btn ghost">Open →</button></div>
+              <div class="card-foot"><a class="btn ghost" href="project-detail-v2.html">Open →</a></div>
             </article>
 
           </div>
@@ -228,21 +233,23 @@
       <article class="card">
         <div class="card-client">Initech</div>
         <div class="note">No active project</div>
-        <div class="card-foot"><button class="btn">Create Project →</button></div>
+        <div class="card-foot"><a class="btn" href="projects-list.html">Create Project →</a></div>
       </article>
       <article class="card">
         <div class="card-client">Umbrella Co</div>
         <div class="note">No active project</div>
-        <div class="card-foot"><button class="btn">Create Project →</button></div>
+        <div class="card-foot"><a class="btn" href="projects-list.html">Create Project →</a></div>
       </article>
       <article class="card">
         <div class="card-client">Soylent Corp</div>
         <div class="note">No active project</div>
-        <div class="card-foot"><button class="btn">Create Project →</button></div>
+        <div class="card-foot"><a class="btn" href="projects-list.html">Create Project →</a></div>
       </article>
     </div>
 
   </div>
 </div>
+</div>
+<script src="assets/atlas-nav.js"></script>
 </body>
 </html>
