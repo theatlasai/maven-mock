@@ -597,6 +597,10 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
           <span class="filter-note" id="fnote"></span>
         </div>
 
+        <!-- Said once, above the sets. It is a fact about the role, not about any one set, so
+             repeating it per set is noise the reader has to skip nine times. -->
+        <p class="note" id="dupeGate" hidden style="margin:12px 14px 0"></p>
+
         <div class="tw" id="panel" role="tabpanel" aria-labelledby="tab-bank">
           <table id="tbl">
             <thead id="thead"></thead>
@@ -1484,6 +1488,14 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
      whether anything downstream already depends on it. */
   function renderDupes(){
     var sets = duplicateSets(filtered());
+    var gate = $("dupeGate");
+    gate.hidden = isAdmin;
+    if (!isAdmin){
+      gate.innerHTML = "Resolving a duplicate is limited to admins. Excluding a copy discards the " +
+        "project transaction built on it, its matches and its ledger history, the same teardown a " +
+        "correction runs, so it takes the same gate. The sets are shown here because noticing one " +
+        "and fixing it are different jobs.";
+    }
     var cols = [
       { k:"Keep", cls:"" }, { k:"Committed", cls:"" }, { k:"Source file", cls:"" },
       { k:"Reviewed by", cls:"" }, { k:"Amount", cls:"num" }, { k:"Project", cls:"" },
@@ -1569,6 +1581,8 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
           "</b>. Nothing downstream depends on " +
           dropping.map(function(r){ return r.id; }).join(", ") + " yet, so this is a clean resolve.";
 
+      /* Without the action there is only the guard left to say, and a set with no routed copy has
+         nothing set-specific at all, so it gets no footer rather than an empty one. */
       var act = isAdmin
         ? '<tr class="dup-act"><td colspan="' + cols.length + '">' + warn +
           '<div class="dup-act-in"><div class="dup-says">' + says + "</div>" +
@@ -1576,11 +1590,9 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
             si + '">' +
             (routed.length ? "Exclude and flag the transaction" : "Exclude the copy, keep " + kept) +
           "</button></div></td></tr>"
-        : '<tr class="dup-act"><td colspan="' + cols.length + '">' + warn +
-          '<div class="note" style="margin:0">Resolving a duplicate is limited to admins. Excluding a ' +
-          "copy discards the project transaction built on it, its matches and its ledger history, the " +
-          "same teardown a correction runs, so it takes the same gate. The set is shown here because " +
-          "noticing one and fixing it are different jobs.</div></td></tr>";
+        : warn
+          ? '<tr class="dup-act"><td colspan="' + cols.length + '">' + warn + "</td></tr>"
+          : "";
 
       return head + body + act;
     }).join("");
@@ -1597,6 +1609,7 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
 
   function renderTable(){
     if (dupesApply()) return renderDupes();
+    $("dupeGate").hidden = true;
     var cols = COLS[view], rows = filtered();
     var pages = Math.max(1, Math.ceil(rows.length / per));
     if (page > pages) page = pages;
