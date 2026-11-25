@@ -1163,7 +1163,12 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
       return String(editForm[k]) !== String(now)
         ? '<span class="ed-was">was <b>' + esc(String(now)) + "</b></span>" : "";
     };
-    var current = { date: r.date, text: r.kind === "check" ? (r.payee || "") : (r.desc || ""), amount: r.amount };
+    var current = {
+      date: r.date,
+      text: r.kind === "check" ? (r.payee || "") : (r.desc || ""),
+      amount: r.amount,
+      checkNo: r.checkNo || ""
+    };
 
     var steps = teardownOf(r);
     var td = steps.length
@@ -1182,6 +1187,17 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
       '<div class="ed-f' + dirty("date", current.date) + '"><label for="ed-date">Date</label>' +
         '<input id="ed-date" class="mono" type="text" value="' + esc(editForm.date) + '" data-ed="date">' +
         was("date", current.date) + "</div>" +
+      /* An absent cheque number is a real state, not a blank waiting to be filled: the bank prints
+         nothing on 14 of every 100. The placeholder says so rather than leaving the field looking
+         unanswered, and clearing it back to empty is a legitimate correction. */
+      (r.kind === "check"
+        ? '<div class="ed-f' + dirty("checkNo", current.checkNo) + '"><label for="ed-no">Check number</label>' +
+          '<input id="ed-no" class="mono" type="text" placeholder="none printed" value="' +
+          esc(editForm.checkNo) + '" data-ed="checkNo">' +
+          (String(editForm.checkNo) !== String(current.checkNo)
+            ? '<span class="ed-was">was <b>' + (current.checkNo ? esc(current.checkNo) : "none printed") + "</b></span>"
+            : "") + "</div>"
+        : "") +
       '<div class="ed-f' + dirty("text", current.text) + '"><label for="ed-text">' + textLabel + "</label>" +
         '<input id="ed-text" type="text" value="' + esc(editForm.text) + '" data-ed="text">' +
         was("text", current.text) + "</div>" +
@@ -1206,7 +1222,8 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
     var text = r.kind === "check" ? (r.payee || "") : (r.desc || "");
     return String(editForm.date) !== String(r.date) ||
            String(editForm.text) !== String(text) ||
-           String(editForm.amount) !== String(r.amount);
+           String(editForm.amount) !== String(r.amount) ||
+           (r.kind === "check" && String(editForm.checkNo) !== String(r.checkNo || ""));
   }
 
   /* ---------- admin correction (ATLS-376) ----------
@@ -1245,11 +1262,16 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
     r.corrections = r.corrections || [];
     r.corrections.push({
       at: "2026-12-29", by: pick(PEOPLE).name, reason: next.reason,
-      before: { date: r.date, desc: r.desc, payee: r.payee, amount: r.amount },
+      before: { date: r.date, desc: r.desc, payee: r.payee, amount: r.amount, checkNo: r.checkNo },
       undone: teardownOf(r)
     });
     r.date = next.date;
-    if (r.kind === "check") r.payee = next.text; else r.desc = next.text;
+    if (r.kind === "check"){
+      r.payee = next.text;
+      r.checkNo = next.checkNo;
+    } else {
+      r.desc = next.text;
+    }
     r.amount = next.amount;
 
     /* The teardown. The row stays ACTIVE \u2014 that is the only difference from an exclusion. */
@@ -1821,7 +1843,10 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
       if (c.before.date !== r.date) changedBits.push("date " + c.before.date + " \u2192 " + r.date);
       var beforeText = r.kind === "check" ? c.before.payee : c.before.desc;
       var nowText = r.kind === "check" ? r.payee : r.desc;
-      if (beforeText !== nowText) changedBits.push("text rewritten");
+      if (beforeText !== nowText) changedBits.push(r.kind === "check" ? "payee rewritten" : "description rewritten");
+      if (r.kind === "check" && (c.before.checkNo || "") !== (r.checkNo || "")){
+        changedBits.push("number " + (c.before.checkNo || "none") + " \u2192 " + (r.checkNo || "none"));
+      }
       if (c.before.amount !== r.amount) changedBits.push(money(c.before.amount) + " \u2192 " + money(r.amount));
       steps.push({
         t: "Corrected by " + esc(c.by),
@@ -2017,6 +2042,7 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
       editForm = {
         date: r.date,
         text: r.kind === "check" ? (r.payee || "") : (r.desc || ""),
+        checkNo: r.checkNo || "",
         amount: String(r.amount),
         reason: ""
       };
@@ -2041,6 +2067,7 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
       applyCorrection(row, {
         date: editForm.date,
         text: editForm.text,
+        checkNo: editForm.checkNo.trim(),
         amount: Math.round(parseFloat(editForm.amount) * 100) / 100 || row.amount,
         reason: editForm.reason.trim()
       });
