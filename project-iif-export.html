@@ -284,7 +284,7 @@
   <button data-s="start">1 · Exports card</button>
   <button data-s="running">2 · Exporting</button>
   <button data-s="failed">3 · Export failed: errors</button>
-  <button data-s="done">4 · File ready: warnings</button>
+  <button data-s="done">4 · File ready: a warning</button>
   <button data-s="ready">5 · Exports list after</button>
   <button data-s="crashed">6 · Export crashed</button>
   <button data-s="txn">7 · Open transaction</button>
@@ -383,14 +383,14 @@
 
   const NOTES = {
     start: "<b>Step 1.</b> The project page's Exports card, as today, plus one new <b>Export IIF</b> button. There is no separate check step: one click starts one run that builds, checks and (if it can) writes the file.",
-    running: "<b>Step 2: one run, no pop-up.</b> Like today's CSV export, the click just adds a row to the Exports list that says <b>Exporting</b>. In the background: <b>build_journal</b> → <b>check_iif</b> → <b>write_iif</b> → <b>save_document</b>. When it ends, the row shows the result.",
-    failed: "<b>Step 3: accounting error → Export failed.</b> Row 4596's bank account isn't linked, so the run stopped after the checks: <b>no file</b>. This is the dialog <b>View issues</b> opens from the failed row: every issue from the run (errors and warnings) with <b>Open transaction</b>. The user fixes the row in Atlas and clicks <b>Export IIF again</b>: a brand-new run on fresh data.",
-    done: "<b>Step 4: no errors → file made.</b> The dialog <b>View issues</b> opens from a finished row: warnings (QuickBooks-only problems and exceptions) never block the file, and the <b>Download</b> button sits right next to them.",
-    ready: "<b>Step 5.</b> When a run ends, its row shows the result: the failed try (<span style='color:#f87171'>Failed</span>, '1 error · 2 warnings · no file') and the good one (Download, '2 warnings'). <b>View issues</b> on either opens its list. The help text explains a safe import.",
+    running: "<b>Step 2: one run, no pop-up.</b> Like today's CSV export, the click just adds a row to the Exports list that says <b>Exporting</b>. In the background: <b>Source</b> (filled by the button, so it doesn't stop) → <b>Build Journal</b> → <b>Check</b> → <b>Write IIF</b>. When it ends, the row shows the result.",
+    failed: "<b>Step 3: errors → Export failed.</b> Row 4596's bank account isn't linked (an accounting error) and row 4521's counterparty name is too long for QuickBooks (a QuickBooks error: every QuickBooks problem is an error now). The run stopped after the checks: <b>no file</b>. This is the dialog <b>View issues</b> opens from the failed row: every issue from the run, errors first, with <b>Open transaction</b>. The user fixes both rows in Atlas and clicks <b>Export IIF again</b>: a brand-new run on fresh data.",
+    done: "<b>Step 4: no errors → file made.</b> The dialog <b>View issues</b> opens from a finished row. The only warning left is a row posted with an exception: it never blocks the file, and the <b>Download</b> button sits right next to it. QuickBooks problems never reach this screen: they are errors (step 3).",
+    ready: "<b>Step 5.</b> When a run ends, its row shows the result: the failed try (<span style='color:#f87171'>Failed</span>, '2 errors · 1 warning · no file') and the good one (Download, '1 warning'). <b>View issues</b> on either opens its list. The help text explains a safe import.",
     crashed: "<b>Step 6 (rare): a real crash.</b> Not a data problem but a bug or an outage. The run itself fails, the export row says so, and the fix is simply to try again. Users see 'Export failed' in both cases; only the message differs.",
-    "start-failed": "<b>Step 3, in the list.</b> The run ended with an error: the row says <b>Failed</b> with '1 error · 2 warnings · no file'. Click <b>View issues</b> to see them.",
-    "run-ok": "<b>Step 10: the run page (for the team, not the accountant).</b> Same layout as today's v2 runner. All 4 nodes ran; the <b>Download</b> banner is the run's main download (<code>project-39.iif</code>). Click a node to see its outputs on the right, and the <b>Artifacts</b> tab to download <code>0_journal.json</code>, <code>issues.json</code> or the file.",
-    "run-errors": "<b>Step 11: run page of an export that failed on an accounting error.</b> The run is <b>Completed</b>, not Failed: nothing broke. Build Journal and Check IIF ran; Check IIF said <code>can_write: false</code>, so the guard skipped Write IIF and Save Document. No download banner. The journal and the issues are still downloadable from Artifacts. The export record shows 'Failed: 1 error' to the accountant.",
+    "start-failed": "<b>Step 3, in the list.</b> The run ended with errors: the row says <b>Failed</b> with '2 errors · 1 warning · no file'. Click <b>View issues</b> to see them.",
+    "run-ok": "<b>Step 10: the run page (for the team, not the accountant).</b> Same layout as today's v2 runner. The <b>Source</b> form (filled by the Export IIF button) and the 3 steps ran: Build Journal got the rows from bookkeeping over gRPC, Check found no error, Write IIF wrote the file and filed it in the document library. The <b>Download</b> banner is the run's main download (<code>transactions.iif</code>). Click a step to see its outputs on the right, and the <b>Artifacts</b> tab to download <code>journal.json</code>, <code>issues.json</code> or <code>iif_file.iif</code>.",
+    "run-errors": "<b>Step 11: run page of an export that failed on an accounting error.</b> The run is <b>Failed</b> at Check: any error means no file. Check names the rows to fix ('2 rows to fix in Atlas, then export again.'), and Write IIF is <b>Skipped</b>. No download banner. The journal and the issues are still downloadable from Artifacts. The export record shows 'Failed' with the issues behind View issues.",
     "run-crashed": "<b>Step 12: run page of a real crash.</b> Here the run itself is <b>Failed</b>: today's red failure banner names the node and the error, and Retry is offered. The export record shows 'Something went wrong, try again'.",
     "txn-loading": "<b>Step 7: Open transaction (new tab).</b> The link carries only <code>?transactionId=…</code>. The page first asks the backend for that row to learn its bank account…",
     txn: "<b>Step 7.</b> …then fills the URL in: the row's <b>account</b>, the <b>All</b> tab with no group filter and <b>Table</b> view, plus a <b>Transaction #… ×</b> chip. Only that row is listed and it's opened; the user decides the fix. Then back in the first tab (click <b>Acme Ltd · Exports</b> above) they click <b>Export IIF again</b>.",
@@ -428,9 +428,9 @@
     error: { id: 4596, date: "Nov 19", amount: "+500.00", acct: "BofA Savings", party: "Acme Ltd",
       msg: "BofA Savings isn't linked to a chart-of-accounts account, so QuickBooks wouldn't know which account this is.",
       what: "No file until fixed" },
-    warning: { id: 4521, date: "Nov 16", amount: "−108.00", acct: "Chase Checking", party: "Office Depot Business…",
-      msg: "Counterparty name 'Office Depot Business Solutions Division NY' is 43 characters; QuickBooks allows 41. Shorten it in QuickBooks after import, or in Atlas.",
-      what: "In the file · please check" },
+    quickbooks: { id: 4521, date: "Nov 16", amount: "−108.00", acct: "Chase Checking", party: "Office Depot Business…",
+      msg: "Counterparty name 'Office Depot Business Solutions Division NY' is 43 characters; QuickBooks allows 41. Shorten it in Atlas, then export again.",
+      what: "No file until fixed" },
     exception: { id: 4595, date: "Nov 18", amount: "−45.00", acct: "HDFC Credit Card", party: "Uber",
       msg: "Posted with an exception: the posting check \"Counterparty type doesn't match the account\" was skipped by Priya on Nov 18.",
       what: "In the file · please check" },
@@ -438,7 +438,7 @@
 
   const $ = (id) => document.getElementById(id);
   let state = "start";
-  let fixed = false;     // mock: the user opened row 4596 and fixed it elsewhere
+  let fixed = false;     // mock: the user opened rows 4596 and 4521 and fixed them elsewhere
 
   function runRow(r) {
     const badge = `<span class="fmt ${r.fmt}">${r.fmt.toUpperCase()}</span>`;
@@ -453,9 +453,9 @@
   }
 
   const FAILED_RUN = { fmt: "iif", when: "Nov 19, 2026 · 14:20", who: "Ramesh K.", status: "failed", view: "failed",
-    receipt: '<span style="color:var(--red)">1 error</span> · <span class="warn">2 warnings</span> · no file' };
+    receipt: '<span style="color:var(--red)">2 errors</span> · <span class="warn">1 warning</span> · no file' };
   const OK_RUN = { fmt: "iif", when: "Nov 19, 2026 · 14:31", who: "Ramesh K.", status: "ok", view: "done",
-    receipt: '5 transactions · <span class="warn">2 warnings</span>' };
+    receipt: '5 transactions · <span class="warn">1 warning</span>' };
 
   function renderRuns() {
     const runs = [...OLD_RUNS];
@@ -510,12 +510,12 @@ ENDTRNS
     const body = $("d-body"), foot = $("d-foot");
 
     const failed = state === "failed";
-    $("d-sub").textContent = failed ? "Acme Ltd · Nov 2026 · no file was made" : "Acme Ltd · Nov 2026 · project-39.iif · 5 transactions";
+    $("d-sub").textContent = failed ? "Acme Ltd · Nov 2026 · no file was made" : "Acme Ltd · Nov 2026 · project-39-transactions-2026-11-19-143102.iif · 5 transactions";
     body.innerHTML = `
-      ${failed ? `<div class="banner fail">✖ Export failed: fix 1 row in Atlas, then export again.</div>`
-               : `<div class="banner ok">✓ File ready. Check the 2 warnings before importing.</div>`}
-      ${failed ? `<div class="group"><h4>Errors · no file until fixed</h4>${issueCard("error", ISSUES.error)}</div>` : ""}
-      <div class="group"><h4>Warnings · in the file, check them</h4>${issueCard("warning", ISSUES.warning)}${issueCard("warning", ISSUES.exception)}</div>`;
+      ${failed ? `<div class="banner fail">✖ Export failed: fix 2 rows in Atlas, then export again.</div>`
+               : `<div class="banner ok">✓ File ready. Check the 1 warning before importing.</div>`}
+      ${failed ? `<div class="group"><h4>Errors · no file until fixed</h4>${issueCard("error", ISSUES.error)}${issueCard("error", ISSUES.quickbooks)}</div>` : ""}
+      <div class="group"><h4>Warnings · in the file, check them</h4>${issueCard("warning", ISSUES.exception)}</div>`;
 
     foot.innerHTML = failed
       ? `<span class="why lock">No file was made</span><span class="grow"></span>
@@ -597,31 +597,31 @@ ENDTRNS
   let runNode = "check_iif", runTab = "timeline";
   const RUNS = {
     "run-ok": { id: 1204, state: ["Completed", "ok"], started: "19/11/2026, 14:31:02", dur: "3.8s",
-      nodes: { build_journal: "ok", check_iif: "ok", write_iif: "ok", save_document: "ok" },
-      durs: { build_journal: "2.9s", check_iif: "120ms", write_iif: "340ms", save_document: "410ms" } },
-    "run-errors": { id: 1198, state: ["Completed", "ok"], started: "19/11/2026, 14:20:11", dur: "3.1s",
-      nodes: { build_journal: "ok", check_iif: "ok", write_iif: "skip", save_document: "skip" },
-      durs: { build_journal: "2.9s", check_iif: "110ms", write_iif: "—", save_document: "—" } },
-    "run-crashed": { id: 1191, state: ["Failed", "bad"], started: "19/11/2026, 13:58:40", dur: "31.0s",
-      nodes: { build_journal: "bad", check_iif: "skip", write_iif: "skip", save_document: "skip" },
-      durs: { build_journal: "31.0s", check_iif: "—", write_iif: "—", save_document: "—" } },
+      nodes: { intake: "ok", build_journal: "ok", check_iif: "ok", write_iif: "ok" },
+      durs: { intake: "—", build_journal: "2.9s", check_iif: "120ms", write_iif: "750ms" } },
+    "run-errors": { id: 1198, state: ["Failed", "bad"], started: "19/11/2026, 14:20:11", dur: "3.1s", err: "RowsToFix: 2 rows to fix in Atlas, then export again.",
+      nodes: { intake: "ok", build_journal: "ok", check_iif: "bad", write_iif: "skip" },
+      durs: { intake: "—", build_journal: "2.9s", check_iif: "110ms", write_iif: "—" } },
+    "run-crashed": { id: 1191, state: ["Failed", "bad"], started: "19/11/2026, 13:58:40", dur: "31.0s", err: "OperationalError: could not connect to server",
+      nodes: { intake: "ok", build_journal: "bad", check_iif: "skip", write_iif: "skip" },
+      durs: { intake: "—", build_journal: "31.0s", check_iif: "—", write_iif: "—" } },
   };
   const NODE_INFO = {
-    build_journal: { title: "Build Journal", desc: "Load the project's posted rows, build journal entries, run the accounting checks.", type: "Task · ASYNC", timeout: "900s",
-      out: { "run-ok": "journal: 0_journal.json (artifact)\nerror_count: 0", "run-errors": "journal: 0_journal.json (artifact)\nerror_count: 1",
+    intake: { title: "Source", desc: "The project's posted rows, or uploaded bank and transfer CSVs. The Export IIF button fills it (source: project), so it never stops.", type: "Input", timeout: "300s",
+      out: { "run-ok": "source: project", "run-errors": "source: project", "run-crashed": "source: project" } },
+    build_journal: { title: "Build Journal", desc: "Get the rows (the project's, from bookkeeping over gRPC, or the uploaded CSVs), build journal entries, run the accounting checks.", type: "Task · ASYNC", timeout: "900s",
+      out: { "run-ok": "journal: journal.json (artifact)\nentry_count: 5", "run-errors": "journal: journal.json (artifact)\nentry_count: 4",
              "run-crashed": null } },
-    check_iif: { title: "Check IIF", desc: "QuickBooks Desktop rules on every entry; joins all issues into one list.", type: "Task", timeout: "300s",
-      out: { "run-ok": "issues: issues.json (artifact) · 0 errors, 2 warnings\ncan_write: true", "run-errors": "issues: issues.json (artifact) · 1 error, 2 warnings\ncan_write: false" } },
-    write_iif: { title: "Write IIF", desc: "Map entries to TRNS/SPL lines and write the .iif file.", type: "Task", timeout: "300s",
-      out: { "run-ok": "iif_file: project-39.iif (artifact)\nentry_count: 5" } },
-    save_document: { title: "Save Document", desc: "Save the file to the document library and mark the export record.", type: "Task", timeout: "300s",
-      out: { "run-ok": "document_id: 9120" } },
+    check_iif: { title: "Check", desc: "QuickBooks Desktop rules on every entry (all errors); joins all issues into one list. Any error fails the run: no file.", type: "Task", timeout: "300s",
+      out: { "run-ok": "issues: issues.json (artifact) · 0 errors, 1 warning", "run-errors": "None: the run fails here (issues.json is kept · 2 errors, 1 warning)" } },
+    write_iif: { title: "Write IIF", desc: "Map entries to TRNS/SPL lines and write the .iif file; a project's is also filed in the document library and the export record marked done.", type: "Task", timeout: "300s",
+      out: { "run-ok": "iif_file: iif_file.iif (artifact)\nfilename: project-39-transactions-2026-11-19-143102.iif\ntransactions: 5\ndocument_id: 9120" } },
   };
   const ARTIFACTS = {
-    build_journal: [["0_journal.json", "application/json · 18.4 KB"]],
+    intake: [],
+    build_journal: [["journal.json", "application/json · 18.4 KB"]],
     check_iif: [["issues.json", "application/json · 1.9 KB"]],
-    write_iif: [["project-39.iif", "text/plain · 4.2 KB"]],
-    save_document: [],
+    write_iif: [["iif_file.iif", "application/x-iif · 4.2 KB"]],
   };
 
   function renderRunPage() {
@@ -631,7 +631,7 @@ ENDTRNS
     $("export-view").hidden = true; $("txn-view").hidden = true; $("scrim").hidden = true;
     const r = RUNS[state];
     if (r.nodes[runNode] === "skip" && state === "run-crashed") runNode = "build_journal";
-    const order = ["build_journal", "check_iif", "write_iif", "save_document"];
+    const order = ["intake", "build_journal", "check_iif", "write_iif"];
     const stTxt = { ok: "Completed", skip: "Skipped", bad: "Failed" };
     const mark = { ok: '<span class="ok">✓</span>', skip: '<span class="no">–</span>', bad: '<span class="x">✕</span>' };
     const graph = order.map((n, i) => {
@@ -642,17 +642,17 @@ ENDTRNS
     }).join("");
 
     const banner = state === "run-ok"
-      ? `<div class="rv-banner"><span>⤓ <b style="color:var(--ink)">project-39.iif</b> <span style="color:var(--faint)">· 4.2 KB</span></span><button class="btn solid" type="button">${ICON_DL} Download</button></div>`
+      ? `<div class="rv-banner"><span>⤓ <b style="color:var(--ink)">transactions.iif</b> <span style="color:var(--faint)">· 4.2 KB</span></span><button class="btn solid" type="button">${ICON_DL} Download</button></div>`
       : state === "run-crashed"
       ? `<div class="rv-banner fail"><span>⚠</span><span><b>Run failed</b> · Build Journal<div class="small">OperationalError: could not connect to server (timed out after 30s)</div></span></div>`
       : "";
 
     const tl = `<table class="tl"><thead><tr><th>STEP</th><th>NODE</th><th>TYPE</th><th>STATUS</th><th>DURATION</th></tr></thead><tbody>${
       order.map((n, i) => { const st = r.nodes[n];
-        return `<tr><td>${i + 1}</td><td>${NODE_INFO[n].title}</td><td>Task</td><td><span class="sp ${st}">${st === "ok" ? "✓ Success" : st === "skip" ? "Skipped" : "✕ Failed"}</span></td><td>${r.durs[n]}</td></tr>`; }).join("")}</tbody></table>`;
+        return `<tr><td>${i + 1}</td><td>${NODE_INFO[n].title}</td><td>${n === "intake" ? "Input" : "Task"}</td><td><span class="sp ${st}">${st === "ok" ? "✓ Success" : st === "skip" ? "Skipped" : "✕ Failed"}</span></td><td>${r.durs[n]}</td></tr>`; }).join("")}</tbody></table>`;
     const af = order.filter(n => r.nodes[n] === "ok").map(n => `<div class="af-g"><div class="gh">▸ ${NODE_INFO[n].title} <span class="c">${ARTIFACTS[n].length}</span></div>${
       ARTIFACTS[n].length ? ARTIFACTS[n].map(([f, m]) => `<div class="af-f"><span><div class="n">${f}</div><div class="m">${m}</div></span><a>⤓ Download</a></div>`).join("")
-                          : `<div class="af-none">No files (document_id is a value)</div>`}</div>`).join("") || `<div class="af-none" style="padding:30px;text-align:center">No artifacts produced yet.</div>`;
+                          : `<div class="af-none">No files (the source came from the button; a CSV run shows its uploads here)</div>`}</div>`).join("") || `<div class="af-none" style="padding:30px;text-align:center">No artifacts produced yet.</div>`;
 
     const info = NODE_INFO[runNode], st = r.nodes[runNode];
     const out = (info.out || {})[state];
@@ -660,8 +660,8 @@ ENDTRNS
       <div><b style="color:var(--ink)">${info.title}</b><div style="color:var(--muted);margin-top:2px">${info.desc}</div></div>
       <div class="kv">Duration <b>${r.durs[runNode]}</b></div><div class="kv">Type <b>${info.type}</b></div>
       <div class="kv">Attempt <b>${st === "skip" ? "—" : "1 of 1"}</b></div><div class="kv">Timeout in <b>${info.timeout}</b></div>
-      <div class="cap">OUTPUTS</div>${out ? `<pre>${out}</pre>` : `<div style="color:var(--faint)">${st === "skip" ? "Skipped: the guard on Check IIF → Write IIF was false (can_write)." : "None"}</div>`}
-      ${st === "bad" ? `<div class="badbox">OperationalError: could not connect to server</div>` : st === "ok" ? `<div class="okbox">No errors</div>` : ""}</div>`;
+      <div class="cap">OUTPUTS</div>${out ? `<pre>${out}</pre>` : `<div style="color:var(--faint)">${st === "skip" ? "Skipped: an earlier step failed." : "None"}</div>`}
+      ${st === "bad" ? `<div class="badbox">${r.err}</div>` : st === "ok" ? `<div class="okbox">No errors</div>` : ""}</div>`;
 
     $("rv-content").innerHTML = `
       <div class="rv-top"><span class="back">←</span><span class="wico">⑂</span>
