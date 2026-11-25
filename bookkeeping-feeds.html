@@ -995,7 +995,7 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
   /* ---------- column specs ---------- */
   var COLS = {
     bank: [
-      { k:"Date",        cls:"", get:function(r){ return '<span class="mono t-strong">' + r.date + "</span>"; } },
+      { k:"Date",        cls:"", get:function(r){ return '<span class="mono t-strong">' + esc(r.date) + "</span>"; } },
       { k:"Description", cls:"", get:function(r){ return '<span class="desc t-strong" title="' + esc(r.desc) + '">' + esc(r.desc) + "</span>"; } },
       { k:"Account",     cls:"", get:function(r){ return acctCell(r.account); } },
       { k:"Amount",      cls:"num", get:function(r){ return '<span class="amt mono ' + (r.amount < 0 ? "out" : "in") + '">' + money(r.amount) + "</span>"; } },
@@ -1005,9 +1005,9 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
     ],
     check: [
       { k:"Feed date", cls:"", get:function(r){
-          return '<span class="mono t-strong">' + r.date + '</span><span class="date-src">' + r.dateSrc + "</span>"; } },
+          return '<span class="mono t-strong">' + esc(r.date) + '</span><span class="date-src">' + esc(r.dateSrc) + "</span>"; } },
       { k:"Check no.", cls:"", get:function(r){
-          return r.checkNo ? '<span class="mono t-strong">#' + r.checkNo + "</span>"
+          return r.checkNo ? '<span class="mono t-strong">#' + esc(r.checkNo) + "</span>"
                            : '<span class="t-dim">no number</span>'; } },
       { k:"Payee",     cls:"", get:function(r){ return '<span class="t-strong">' + esc(r.payee) + "</span>"; } },
       { k:"Account",   cls:"", get:function(r){ return acctCell(r.account); } },
@@ -1021,7 +1021,7 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
           return '<button class="exp-btn" type="button" tabindex="-1" aria-hidden="true">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" ' +
             'stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>'; } },
-      { k:"Invoice date", cls:"", get:function(r){ return '<span class="mono t-strong">' + r.date + "</span>"; } },
+      { k:"Invoice date", cls:"", get:function(r){ return '<span class="mono t-strong">' + esc(r.date) + "</span>"; } },
       { k:"Vendor", cls:"", get:function(r){
           return '<span class="desc t-strong" title="' + esc(r.vendor) + '">' + esc(r.vendor) + "</span>"; } },
       { k:"Invoice no.", cls:"", get:function(r){
@@ -1402,11 +1402,6 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
     var all = bank.concat(check);
     var claimed = all.filter(function(r){ return r.claim !== "unclaimed"; }).length;
     var uncl = all.length - claimed;
-    /* Claimed but not yet turned into a project transaction -- the one thing on this
-       screen a person can actually act on. A short pack cannot be worked here at all: its
-       review gate is resolved and its run is terminal, so the shortfall is provenance, and it
-       reaches a person through the source file on each feed row's drawer. */
-    var pendingRouting = all.filter(function(r){ return r.claim === "pending"; }).length;
     /* Computed here the same way the view computes it, from the same function, so the tile and
        the table can never disagree about how many there are. */
     var dupB = duplicateSets(bank), dupC = duplicateSets(check);
@@ -1420,8 +1415,6 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
         n:"across <b>" + PROJECTS.length + "</b> open closes &middot; bank + check only", tone:"var(--ok)" },
       { k:"Unclaimed", v:uncl.toLocaleString(),
         n:"outside every project window &middot; invoices are not claimed", tone:"var(--warn)" },
-      { k:"Pending routing", v:pendingRouting.toLocaleString(),
-        n:"claimed, not yet a transaction", tone:"var(--accent)" },
       /* Surplus, not copies: a transaction that genuinely happened twice has two rows and
          nothing to resolve, and counting those would invent a backlog. Bank + check only;
          invoice duplicates are v2. */
@@ -1579,7 +1572,7 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
       var routed = dropping.filter(function(r){ return r.claim === "routed" || r.claim === "matched"; });
 
       var head = '<tr class="grp"><td colspan="' + cols.length + '"><div class="grp-in">' +
-        '<span class="dup-what">' + first.date + " &middot; " + money(first.amount) + " &middot; " +
+        '<span class="dup-what">' + esc(first.date) + " &middot; " + money(first.amount) + " &middot; " +
           esc(first.kind === "check" ? first.payee : first.desc) + "</span>" +
         '<span class="grp-n">' + (first.account ? esc(first.account.label) : "") + "</span>" +
         '<span class="dup-why">' + s.rows.length + " copies &middot; " + s.genuine +
@@ -1770,7 +1763,7 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
         "<dt>Feed id</dt><dd class='mono'>" + r.id + "</dd>" +
         "<dt>Vendor</dt><dd>" + esc(r.vendor) + "</dd>" +
         "<dt>Invoice no.</dt><dd class='mono'>" + (r.no || "&mdash; none printed") + "</dd>" +
-        "<dt>Invoice date</dt><dd class='mono'>" + r.date + "</dd>" +
+        "<dt>Invoice date</dt><dd class='mono'>" + esc(r.date) + "</dd>" +
         "<dt>Currency</dt><dd class='mono'>" + r.ccy + "</dd>" +
         "<dt>Net</dt><dd>" + amt(r.subtotal, r.ccy) + "</dd>" +
         "<dt>Tax</dt><dd>" + (r.tax ? amt(r.tax, r.ccy) : "<span class='t-dim'>none printed</span>") + "</dd>" +
@@ -1792,10 +1785,10 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
       facts += '<dl class="kv">' +
         "<dt>Feed id</dt><dd class='mono'>" + r.id + "</dd>" +
         (r.kind === "bank"
-          ? "<dt>Date</dt><dd class='mono'>" + r.date + "</dd>"
-          : "<dt>Feed date</dt><dd class='mono'>" + r.date + " <span class='t-dim'>(" + r.dateSrc + ")</span></dd>" +
-            "<dt>Written on face</dt><dd class='mono'>" + r.written + "</dd>" +
-            "<dt>Bank footer</dt><dd class='mono'>" + (r.posted || "&mdash; none printed") + "</dd>") +
+          ? "<dt>Date</dt><dd class='mono'>" + esc(r.date) + "</dd>"
+          : "<dt>Feed date</dt><dd class='mono'>" + esc(r.date) + " <span class='t-dim'>(" + esc(r.dateSrc) + ")</span></dd>" +
+            "<dt>Written on face</dt><dd class='mono'>" + esc(r.written) + "</dd>" +
+            "<dt>Bank footer</dt><dd class='mono'>" + (r.posted ? esc(r.posted) : "&mdash; none printed") + "</dd>") +
         "<dt>Amount</dt><dd class='mono'>" + money(r.amount) + "</dd>" +
         "<dt>Account</dt><dd>" + acctCell(r.account) + "</dd>" +
         "<dt>Status</dt><dd>" + (r.status === "active" ? "Active" : "Excluded from lists") +
@@ -1817,12 +1810,12 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
          Saying the wrong one of those sends someone looking for a close that already exists. */
       claimHtml = '<div class="note">A correction discarded this row\u2019s claim along with the ' +
         "transaction built on it. The row is still active, so the first close whose period covers " +
-        '<span class="mono">' + r.date + "</span> claims it again on its next pipeline run and the " +
+        '<span class="mono">' + esc(r.date) + "</span> claims it again on its next pipeline run and the " +
         "transaction is rebuilt from the corrected figures.</div>";
     } else {
       claimHtml = '<div class="note">This feed sits outside every open project window, so no project has claimed it. ' +
         "It will be claimed automatically by the first close whose period covers " +
-        '<span class="mono">' + r.date + "</span>.</div>";
+        '<span class="mono">' + esc(r.date) + "</span>.</div>";
     }
 
     var steps = [
@@ -1840,12 +1833,12 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
        not what the statement reported. */
     (r.corrections || []).forEach(function(c){
       var changedBits = [];
-      if (c.before.date !== r.date) changedBits.push("date " + c.before.date + " \u2192 " + r.date);
+      if (c.before.date !== r.date) changedBits.push("date " + esc(c.before.date) + " \u2192 " + esc(r.date));
       var beforeText = r.kind === "check" ? c.before.payee : c.before.desc;
       var nowText = r.kind === "check" ? r.payee : r.desc;
       if (beforeText !== nowText) changedBits.push(r.kind === "check" ? "payee rewritten" : "description rewritten");
       if (r.kind === "check" && (c.before.checkNo || "") !== (r.checkNo || "")){
-        changedBits.push("number " + (c.before.checkNo || "none") + " \u2192 " + (r.checkNo || "none"));
+        changedBits.push("number " + esc(c.before.checkNo || "none") + " \u2192 " + esc(r.checkNo || "none"));
       }
       if (c.before.amount !== r.amount) changedBits.push(money(c.before.amount) + " \u2192 " + money(r.amount));
       steps.push({
