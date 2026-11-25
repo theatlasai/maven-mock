@@ -432,6 +432,19 @@ tr.excl .amt{text-decoration:line-through}
 .td-after b{color:var(--ink)}
 .pill-rebuild{background:var(--accent-weak); color:var(--accent-ink); border-color:color-mix(in srgb, var(--accent) 30%, transparent)}
 
+/* The inline look at the source document. Deliberately plain: the real one renders every page
+   through the shared pdf viewer, and a mock that imitates its chrome would misrepresent it. */
+.filev{margin-top:10px; border:1px solid var(--border); border-radius:9px; overflow:hidden; background:var(--surface-2)}
+.filev-h{padding:7px 10px; font-size:11px; color:var(--ink-3); border-bottom:1px solid var(--border); background:var(--surface)}
+.filev-p{
+  height:190px; margin:10px; border-radius:5px; border:1px solid var(--border-strong);
+  background:
+    repeating-linear-gradient(180deg, transparent 0 11px, var(--border) 11px 12px) 10px 26px/calc(100% - 20px) calc(100% - 50px) no-repeat,
+    var(--surface);
+  display:flex; align-items:flex-end; justify-content:center; padding-bottom:7px;
+}
+.filev-p span{font-size:10.5px; color:var(--ink-3)}
+
 /* ---------- duplicate sets (ATLS-376) ----------
    Reuses .grp for the header: a duplicate set is the same shape of thing as a source-document
    group, a band of rows read against one shared fact. */
@@ -1113,6 +1126,37 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
     }
   }
 
+  /* Opening the source document, and a cheque's own crop where one was cut. Both were rows naming
+     a file, which is the least useful thing to do with a file: the name answers "which one" and
+     nothing else, while the page answers whether the figures above are what it actually says. */
+  function fileBlock(r){
+    var doc = r.id + "#doc", crop = r.id + "#crop";
+    var hasCrop = r.kind === "check" && r.image;
+    var acts = '<div class="ed-acts" style="padding-top:0">' +
+      '<button class="btn" type="button" data-viewfile="' + doc + '" title="' + esc(r.upload.file) + '">' +
+        (viewingFile === doc ? "Hide File" : "View File") + "</button>" +
+      (hasCrop
+        ? '<button class="btn" type="button" data-viewfile="' + crop + '">' +
+          (viewingFile === crop ? "Hide Check Image" : "View Check Image") + "</button>"
+        : "") +
+      "</div>";
+    if (viewingFile !== doc && viewingFile !== crop) return acts;
+
+    /* Two different artifacts, so two different frames. The crop is the item cut from its own
+       sheet, which for a cheque is the thing worth looking at; the pack is 40 sheets of other
+       people's cheques. */
+    var isCrop = viewingFile === crop;
+    return acts +
+      '<div class="filev"><div class="filev-h mono">' +
+        (isCrop ? esc(r.id) + " &middot; cut from sheet " + (1 + (parseInt(r.id.slice(-2), 10) % 9))
+                : esc(r.upload.file)) + "</div>" +
+      '<div class="filev-p"' + (isCrop ? ' style="height:110px"' : "") + "><span>" +
+        (isCrop ? "the cheque itself"
+         : r.kind === "check" ? "sheet " + (1 + (parseInt(r.id.slice(-2), 10) % 9)) + " of the pack"
+         : "page " + (1 + (parseInt(r.id.slice(-2), 10) % 9))) +
+      "</span></div></div>";
+  }
+
   /* The form, or the button that opens it, or the reason there is neither. Admin only, and the
      restriction is stated rather than implied by an absent control: a correction discards a
      categorisation someone may have set by hand, un-books a match in another account, and leaves a
@@ -1310,6 +1354,9 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
   var isAdmin = true;
   var editing = null;
   var editForm = null;
+  /* Which row has its file open. Reading a document is not an admin matter, so this is the one
+     drawer control that does not check the role. */
+  var viewingFile = null;
 
   var showDupes = false;
   var keep = Object.create(null);
@@ -1745,8 +1792,8 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
         "<dt>Account</dt><dd>" + acctCell(r.account) + "</dd>" +
         "<dt>Status</dt><dd>" + (r.status === "active" ? "Active" : "Excluded from lists") +
           (r.awaitingRebuild ? ' <span class="pill pill-rebuild"><i></i>awaiting rebuild</span>' : "") + "</dd>" +
-        (r.kind === "check" ? "<dt>Check image</dt><dd>" + (r.image ? "In the library" : "None cut") + "</dd>" : "") +
-        "</dl>" + editBlock(r);
+        (r.kind === "check" && !r.image ? "<dt>Check image</dt><dd>None cut</dd>" : "") +
+        "</dl>" + fileBlock(r) + editBlock(r);
     }
 
     var claimHtml;
@@ -1831,7 +1878,6 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
       '<section><div class="dsec-k">People</div><dl class="kv">' +
         "<dt>Uploaded by</dt><dd>" + whoCell(up.uploader, "System") + "</dd>" +
         "<dt>Reviewed by</dt><dd>" + whoCell(up.reviewer, "Auto-approved") + "</dd>" +
-        '<dt>Source file</dt><dd class="mono">' + esc(up.file) + "</dd>" +
       "</dl></section>" +
       '<section><div class="dsec-k">' + "Project" + "</div>" + claimHtml + "</section>" +
       '<section><div class="dsec-k">Provenance</div><ul class="tl">' +
@@ -1852,7 +1898,7 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
     $("closeBtn").focus();
   }
   function closeDrawer(){
-    editing = null; editForm = null; drawerRow = null;
+    editing = null; editForm = null; drawerRow = null; viewingFile = null;
     $("drawer").classList.remove("open");
     $("drawer").setAttribute("aria-hidden", "true");
     $("scrim").classList.remove("open");
@@ -1982,6 +2028,12 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
       };
       openDrawerFor(r);
       var f = $("ed-date"); if (f) f.focus();
+      return;
+    }
+    var vf = e.target.closest("[data-viewfile]");
+    if (vf){
+      viewingFile = viewingFile === vf.dataset.viewfile ? null : vf.dataset.viewfile;
+      openDrawerFor(drawerRow);
       return;
     }
     if (e.target.closest("[data-edcancel]")){
