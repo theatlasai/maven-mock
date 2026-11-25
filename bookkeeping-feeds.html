@@ -405,6 +405,10 @@ tr.excl .amt{text-decoration:line-through}
 .ed-was{font-size:11px; color:var(--ink-3)}
 .ed-was b{color:var(--warn); font-weight:600}
 .ed-lock{font-size:11px; color:var(--ink-3)}
+.ed-bad{
+  margin:0; padding:9px 11px; border-radius:8px; font-size:12.5px; color:var(--bad);
+  background:var(--bad-weak); border:1px solid color-mix(in srgb, var(--bad) 26%, transparent);
+}
 .ed-acts{display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding-top:2px}
 .ed-acts .btn-dup{margin-left:auto}
 /* The teardown, listed before the save rather than reported after it. */
@@ -1170,6 +1174,7 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
       checkNo: r.checkNo || ""
     };
 
+    var problem = fieldProblem(r);
     var steps = teardownOf(r);
     var td = steps.length
       ? '<div class="td"><div class="td-k">Saving discards</div><ul>' +
@@ -1212,10 +1217,28 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
         '<input id="ed-reason" type="text" placeholder="e.g. decimal misread from the scan" value="' +
         esc(editForm.reason) + '" data-ed="reason"></div>' +
       td +
+      (problem ? '<p class="ed-bad">' + esc(problem) + "</p>" : "") +
       '<div class="ed-acts"><button class="btn" type="button" data-edcancel="1">Cancel</button>' +
         '<button class="btn-dup" type="button" data-edsave="' + r.id + '"' +
-        (editDirty(r) && editForm.reason.trim() ? "" : " disabled") + ">Save correction</button></div>" +
+        (editDirty(r) && editForm.reason.trim() && !problem ? "" : " disabled") +
+        ">Save correction</button></div>" +
       "</div>";
+  }
+
+  /* `""` is allowed for the cheque number and means "none printed"; see the field's own note. */
+  function fieldProblem(r){
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(editForm.date)) return "The date must look like 2026-08-24.";
+    var d = new Date(editForm.date + "T00:00:00Z");
+    if (isNaN(d.getTime()) || editForm.date !== d.toISOString().slice(0, 10)){
+      return "That date does not exist.";
+    }
+    if (!/^-?\d+(\.\d{1,2})?$/.test(String(editForm.amount).trim())){
+      return "The amount must be a number, like -128.40.";
+    }
+    if (r.kind === "check" && editForm.checkNo && !/^[0-9]{1,12}$/.test(editForm.checkNo.trim())){
+      return "A cheque number is digits only. Leave it empty for none printed.";
+    }
+    return "";
   }
 
   function editDirty(r){
@@ -2057,6 +2080,7 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
     var save = e.target.closest("[data-edsave]");
     if (save && !save.disabled){
       var row = drawerRow;
+      if (fieldProblem(row)) return;
       applyCorrection(row, {
         date: editForm.date,
         text: editForm.text,
