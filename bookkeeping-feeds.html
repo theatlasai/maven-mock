@@ -292,26 +292,6 @@ tbody tr:last-child td{border-bottom:0}
 .proj-name{font-size:12.5px; font-weight:600; color:var(--ink)}
 .proj-none{font-size:12.5px; color:var(--ink-3)}
 
-/* scan thumb */
-.scan{
-  width:42px; height:24px; border-radius:4px; border:1px solid var(--border-strong);
-  background:
-    linear-gradient(var(--border-strong),var(--border-strong)) 6px 15px/30px 1px no-repeat,
-    linear-gradient(var(--border-strong),var(--border-strong)) 6px 8px/18px 1px no-repeat,
-    var(--surface-2);
-  display:block;
-}
-.scan.missing{background:var(--surface-2); position:relative}
-.scan.missing::after{
-  content:"—"; position:absolute; inset:0; display:grid; place-items:center;
-  font-size:11px; color:var(--ink-3);
-}
-
-/* sheets meter */
-.sheets{display:flex; align-items:center; gap:8px; white-space:nowrap}
-.meter{width:52px; height:5px; border-radius:3px; background:var(--surface-3); overflow:hidden}
-.meter i{display:block; height:100%; background:var(--ok); border-radius:3px}
-
 /* ---------- pagination ---------- */
 .pager{
   display:flex; align-items:center; gap:14px; flex-wrap:wrap;
@@ -392,7 +372,6 @@ tr[aria-expanded="true"] > td{background:var(--surface-2)}
   padding:18px 20px 22px; border-left:3px solid var(--accent);
 }
 .exp-in > section{display:flex; flex-direction:column; gap:9px}
-.exp-cols{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px; align-items:start}
 /* ---------- source-document grouping ---------- */
 .grp > td{
   padding:9px 14px !important; background:var(--surface-3);
@@ -403,6 +382,14 @@ tr[aria-expanded="true"] > td{background:var(--surface-2)}
 .grp-n{color:var(--ink-3)}
 tr.excl > td{opacity:.55}
 tr.excl .amt{text-decoration:line-through}
+/* ---------- the drawer's action bar ---------- */
+.d-acts{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  padding:11px 18px; border-bottom:1px solid var(--border); background:var(--surface-2);
+}
+.d-acts:empty{display:none}
+.d-acts .spacer{margin-left:auto}
+
 /* ---------- admin correction (ATLS-376) ---------- */
 .ed{display:flex; flex-direction:column; gap:10px}
 .ed-f{display:flex; flex-direction:column; gap:4px}
@@ -653,6 +640,9 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
   </div>
+  <!-- What you can DO to this row, in one place and above the facts. Trailing after the
+       definition list, View File read as part of Status and Correct this row floated alone. -->
+  <div class="d-acts" id="d-acts"></div>
   <div class="db" id="d-body"></div>
 </aside>
 
@@ -1009,7 +999,6 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
       { k:"Description", cls:"", get:function(r){ return '<span class="desc t-strong" title="' + esc(r.desc) + '">' + esc(r.desc) + "</span>"; } },
       { k:"Account",     cls:"", get:function(r){ return acctCell(r.account); } },
       { k:"Amount",      cls:"num", get:function(r){ return '<span class="amt mono ' + (r.amount < 0 ? "out" : "in") + '">' + money(r.amount) + "</span>"; } },
-      { k:"Source file", cls:"", get:function(r){ return '<span class="t-dim mono">' + esc(r.upload.file) + "</span>"; } },
       { k:"Uploaded by", cls:"", get:function(r){ return whoCell(r.upload.uploader, "System"); } },
       { k:"Reviewed by", cls:"", get:function(r){ return whoCell(r.upload.reviewer, "Auto-approved"); } },
       { k:"Project",     cls:"", get:projCell }
@@ -1023,8 +1012,6 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
       { k:"Payee",     cls:"", get:function(r){ return '<span class="t-strong">' + esc(r.payee) + "</span>"; } },
       { k:"Account",   cls:"", get:function(r){ return acctCell(r.account); } },
       { k:"Amount",    cls:"num", get:function(r){ return '<span class="amt mono out">' + money(r.amount) + "</span>"; } },
-      { k:"Scan",      cls:"", get:function(r){ return '<span class="scan' + (r.image ? "" : " missing") + '" role="img" aria-label="' + (r.image ? "Check image available" : "No check image") + '"></span>'; } },
-      { k:"Source pack", cls:"", get:function(r){ return '<span class="t-dim mono">' + esc(r.upload.file) + "</span>"; } },
       { k:"Uploaded by", cls:"", get:function(r){ return whoCell(r.upload.uploader, "System"); } },
       { k:"Reviewed by", cls:"", get:function(r){ return whoCell(r.upload.reviewer, "Auto-approved"); } },
       { k:"Project",     cls:"", get:projCell }
@@ -1129,32 +1116,38 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
   /* Opening the source document, and a cheque's own crop where one was cut. Both were rows naming
      a file, which is the least useful thing to do with a file: the name answers "which one" and
      nothing else, while the page answers whether the figures above are what it actually says. */
-  function fileBlock(r){
+  /* The row's actions, in the bar under the header. Opening the document and correcting the row
+     are the two things a person does to a feed line, so they sit together and above the facts. */
+  function actionBar(r){
     var doc = r.id + "#doc", crop = r.id + "#crop";
-    var hasCrop = r.kind === "check" && r.image;
-    var acts = '<div class="ed-acts" style="padding-top:0">' +
-      '<button class="btn" type="button" data-viewfile="' + doc + '" title="' + esc(r.upload.file) + '">' +
-        (viewingFile === doc ? "Hide File" : "View File") + "</button>" +
-      (hasCrop
-        ? '<button class="btn" type="button" data-viewfile="' + crop + '">' +
-          (viewingFile === crop ? "Hide Check Image" : "View Check Image") + "</button>"
-        : "") +
-      "</div>";
-    if (viewingFile !== doc && viewingFile !== crop) return acts;
+    var out = '<button class="btn" type="button" data-viewfile="' + doc + '" title="' +
+      esc(r.upload.file) + '">' + (viewingFile === doc ? "Hide file" : "View file") + "</button>";
+    if (r.kind === "check" && r.image){
+      out += '<button class="btn" type="button" data-viewfile="' + crop + '">' +
+        (viewingFile === crop ? "Hide scan" : "View scan") + "</button>";
+    }
+    out += '<span class="spacer"></span>';
+    /* While the form is open it owns Cancel and Save, so the bar does not offer a second way in. */
+    if (isAdmin && editing !== r.id){
+      out += '<button class="btn-dup" type="button" data-edit="' + r.id + '">Correct this row</button>';
+    }
+    return out;
+  }
 
-    /* Two different artifacts, so two different frames. The crop is the item cut from its own
-       sheet, which for a cheque is the thing worth looking at; the pack is 40 sheets of other
-       people's cheques. */
+  /* Two different artifacts, so two different frames. The scan is the item cut from its own sheet,
+     which for a cheque is the thing worth looking at; the pack is forty sheets of other people's
+     cheques. */
+  function filePreview(r){
+    var doc = r.id + "#doc", crop = r.id + "#crop";
+    if (viewingFile !== doc && viewingFile !== crop) return "";
     var isCrop = viewingFile === crop;
-    return acts +
-      '<div class="filev"><div class="filev-h mono">' +
-        (isCrop ? esc(r.id) + " &middot; cut from sheet " + (1 + (parseInt(r.id.slice(-2), 10) % 9))
-                : esc(r.upload.file)) + "</div>" +
+    var sheet = 1 + (parseInt(r.id.slice(-2), 10) % 9);
+    return '<section><div class="filev"><div class="filev-h mono">' +
+        (isCrop ? esc(r.id) + " &middot; cut from sheet " + sheet : esc(r.upload.file)) + "</div>" +
       '<div class="filev-p"' + (isCrop ? ' style="height:110px"' : "") + "><span>" +
         (isCrop ? "the cheque itself"
-         : r.kind === "check" ? "sheet " + (1 + (parseInt(r.id.slice(-2), 10) % 9)) + " of the pack"
-         : "page " + (1 + (parseInt(r.id.slice(-2), 10) % 9))) +
-      "</span></div></div>";
+         : r.kind === "check" ? "sheet " + sheet + " of the pack" : "page " + sheet) +
+      "</span></div></div></section>";
   }
 
   /* The form, or the button that opens it, or the reason there is neither. Admin only, and the
@@ -1162,14 +1155,7 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
      categorisation someone may have set by hand, un-books a match in another account, and leaves a
      close short a transaction until the next pipeline run. */
   function editBlock(r){
-    if (editing !== r.id){
-      if (!isAdmin){
-        return '<div class="note">Correcting a feed row is limited to admins. Its values are what ' +
-          "the statement reported; changing them discards the project transaction built on them.</div>";
-      }
-      return '<div class="ed-acts"><button class="btn-dup" type="button" data-edit="' + r.id +
-        '">Correct this row</button></div>';
-    }
+    if (editing !== r.id) return "";
 
     var textLabel = r.kind === "check" ? "Payee" : "Description";
     var dirty = function(k, now){ return String(editForm[k]) !== String(now) ? " dirty" : ""; };
@@ -1793,7 +1779,7 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
         "<dt>Status</dt><dd>" + (r.status === "active" ? "Active" : "Excluded from lists") +
           (r.awaitingRebuild ? ' <span class="pill pill-rebuild"><i></i>awaiting rebuild</span>' : "") + "</dd>" +
         (r.kind === "check" && !r.image ? "<dt>Check image</dt><dd>None cut</dd>" : "") +
-        "</dl>" + fileBlock(r) + editBlock(r);
+        "</dl>";
     }
 
     var claimHtml;
@@ -1872,7 +1858,12 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
             "statement accounts for. Resolve it from <b>Duplicates</b>.") + "</div></section>";
     }
 
+    $("d-acts").innerHTML = r.kind === "invoice" ? "" : actionBar(r);
+
+    var formHtml = editBlock(r);
     $("d-body").innerHTML =
+      filePreview(r) +
+      (formHtml ? '<section><div class="dsec-k">Correcting this row</div>' + formHtml + "</section>" : "") +
       '<section><div class="dsec-k">' + "The feed as reported" + "</div>" + facts + "</section>" +
       copiesHtml +
       '<section><div class="dsec-k">People</div><dl class="kv">' +
@@ -1886,6 +1877,9 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
             '</div><div class="tl-m">' + s.m + "</div></div></li>";
         }).join("") +
       "</ul></section>" +
+      (isAdmin ? "" : '<div class="note">Correcting or excluding a feed row is limited to admins. ' +
+        "Its values are what the statement reported, and changing them discards the project " +
+        "transaction built on them.</div>") +
       ('<div class="note">Excluding a row changes nothing but whether lists count it, and ' +
         "<b>Show excluded</b> brings it back. Its values are separately correctable by an admin, " +
         "recorded as its own event rather than as a silent rewrite, so what the statement " +
@@ -2015,7 +2009,7 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
     if (drawerRow) openDrawerFor(drawerRow);
   });
 
-  $("d-body").addEventListener("click", function(e){
+  $("drawer").addEventListener("click", function(e){
     var open = e.target.closest("[data-edit]");
     if (open){
       var r = drawerRow;
@@ -2056,7 +2050,7 @@ tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
   });
   /* Typed values are held in `editForm` and the block is rebuilt, so the caret is restored by
      hand rather than lost on every keystroke. */
-  $("d-body").addEventListener("input", function(e){
+  $("drawer").addEventListener("input", function(e){
     var input = e.target.closest("[data-ed]");
     if (!input || !editForm) return;
     editForm[input.dataset.ed] = input.value;
