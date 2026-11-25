@@ -185,7 +185,6 @@ body{
 .ph{display:flex; align-items:flex-start; gap:16px; flex-wrap:wrap}
 h1{font-size:24px; font-weight:800; letter-spacing:-.025em; margin:0; text-wrap:balance}
 .ph p{margin:6px 0 0; font-size:13px; color:var(--ink-3); max-width:64ch}
-.ph-actions{margin-left:auto; display:flex; gap:8px; flex-wrap:wrap}
 .btn{
   display:inline-flex; align-items:center; gap:7px; height:34px; padding:0 13px;
   border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;
@@ -293,26 +292,6 @@ tbody tr:last-child td{border-bottom:0}
 .proj-name{font-size:12.5px; font-weight:600; color:var(--ink)}
 .proj-none{font-size:12.5px; color:var(--ink-3)}
 
-/* scan thumb */
-.scan{
-  width:42px; height:24px; border-radius:4px; border:1px solid var(--border-strong);
-  background:
-    linear-gradient(var(--border-strong),var(--border-strong)) 6px 15px/30px 1px no-repeat,
-    linear-gradient(var(--border-strong),var(--border-strong)) 6px 8px/18px 1px no-repeat,
-    var(--surface-2);
-  display:block;
-}
-.scan.missing{background:var(--surface-2); position:relative}
-.scan.missing::after{
-  content:"—"; position:absolute; inset:0; display:grid; place-items:center;
-  font-size:11px; color:var(--ink-3);
-}
-
-/* sheets meter */
-.sheets{display:flex; align-items:center; gap:8px; white-space:nowrap}
-.meter{width:52px; height:5px; border-radius:3px; background:var(--surface-3); overflow:hidden}
-.meter i{display:block; height:100%; background:var(--ok); border-radius:3px}
-
 /* ---------- pagination ---------- */
 .pager{
   display:flex; align-items:center; gap:14px; flex-wrap:wrap;
@@ -393,7 +372,6 @@ tr[aria-expanded="true"] > td{background:var(--surface-2)}
   padding:18px 20px 22px; border-left:3px solid var(--accent);
 }
 .exp-in > section{display:flex; flex-direction:column; gap:9px}
-.exp-cols{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px; align-items:start}
 /* ---------- source-document grouping ---------- */
 .grp > td{
   padding:9px 14px !important; background:var(--surface-3);
@@ -404,6 +382,92 @@ tr[aria-expanded="true"] > td{background:var(--surface-2)}
 .grp-n{color:var(--ink-3)}
 tr.excl > td{opacity:.55}
 tr.excl .amt{text-decoration:line-through}
+/* ---------- the drawer's action bar ---------- */
+.d-acts{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  padding:11px 18px; border-bottom:1px solid var(--border); background:var(--surface-2);
+}
+.d-acts:empty{display:none}
+.d-acts .spacer{margin-left:auto}
+
+/* ---------- admin correction (ATLS-376) ---------- */
+.ed{display:flex; flex-direction:column; gap:10px}
+.ed-f{display:flex; flex-direction:column; gap:4px}
+.ed-f label{font-size:11.5px; font-weight:600; color:var(--ink-2)}
+.ed-f input{
+  font:inherit; font-size:13px; color:var(--ink); background:var(--surface);
+  border:1px solid var(--border-strong); border-radius:8px; padding:7px 9px; width:100%;
+}
+.ed-f input.mono{font-family:'Spline Sans Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums}
+.ed-f input:focus-visible{outline:2px solid var(--ring); outline-offset:1px; border-color:var(--accent)}
+.ed-f input:disabled{background:var(--surface-2); color:var(--ink-3); cursor:not-allowed}
+.ed-f.dirty input{border-color:var(--warn); background:var(--warn-weak)}
+.ed-was{font-size:11px; color:var(--ink-3)}
+.ed-was b{color:var(--warn); font-weight:600}
+.ed-lock{font-size:11px; color:var(--ink-3)}
+.ed-acts{display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding-top:2px}
+.ed-acts .btn-dup{margin-left:auto}
+/* The teardown, listed before the save rather than reported after it. */
+.td{
+  margin:0; padding:11px 12px; border-radius:9px; background:var(--bad-weak);
+  border:1px solid color-mix(in srgb, var(--bad) 26%, transparent);
+}
+.td-k{font-size:10.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--bad); margin-bottom:6px}
+.td ul{margin:0; padding-left:17px; font-size:12.5px; color:var(--ink-2); display:flex; flex-direction:column; gap:3px}
+.td ul .mono{font-weight:600}
+.td-after{margin:8px 0 0; font-size:12.5px; color:var(--ink-2)}
+.td-after b{color:var(--ink)}
+.pill-rebuild{background:var(--accent-weak); color:var(--accent-ink); border-color:color-mix(in srgb, var(--accent) 30%, transparent)}
+
+/* The inline look at the source document. Deliberately plain: the real one renders every page
+   through the shared pdf viewer, and a mock that imitates its chrome would misrepresent it. */
+.filev{margin-top:10px; border:1px solid var(--border); border-radius:9px; overflow:hidden; background:var(--surface-2)}
+.filev-h{padding:7px 10px; font-size:11px; color:var(--ink-3); border-bottom:1px solid var(--border); background:var(--surface)}
+.filev-p{
+  height:190px; margin:10px; border-radius:5px; border:1px solid var(--border-strong);
+  background:
+    repeating-linear-gradient(180deg, transparent 0 11px, var(--border) 11px 12px) 10px 26px/calc(100% - 20px) calc(100% - 50px) no-repeat,
+    var(--surface);
+  display:flex; align-items:flex-end; justify-content:center; padding-bottom:7px;
+}
+.filev-p span{font-size:10.5px; color:var(--ink-3)}
+
+/* ---------- duplicate sets (ATLS-376) ----------
+   Reuses .grp for the header: a duplicate set is the same shape of thing as a source-document
+   group, a band of rows read against one shared fact. */
+.dup-what{font-weight:600; color:var(--ink); font-size:12.5px}
+.dup-why{
+  font-size:10.5px; font-weight:600; letter-spacing:.04em; padding:2px 7px; border-radius:5px;
+  background:var(--warn-weak); color:var(--warn);
+  border:1px solid color-mix(in srgb, var(--warn) 30%, transparent);
+}
+tr.dup-keep > td{background:var(--ok-weak)}
+tr.dup-drop > td{background:var(--bad-weak)}
+tr.dup-keep > td:first-child{box-shadow:inset 3px 0 0 var(--ok)}
+tr.dup-drop > td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
+.dup-pick{display:flex; align-items:center; justify-content:center}
+.dup-pick input{width:15px; height:15px; accent-color:var(--ok); cursor:pointer; margin:0}
+.dup-act > td{padding:11px 14px !important; background:var(--surface-2)}
+.dup-act-in{display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+.dup-says{font-size:12.5px; color:var(--ink-2); flex:1; min-width:260px}
+.dup-says b{color:var(--ink)}
+.dup-warn{
+  display:block; padding:10px 12px; border-radius:9px; margin-bottom:10px; font-size:12.5px;
+  background:var(--bad-weak); border:1px solid color-mix(in srgb, var(--bad) 28%, transparent);
+  color:var(--ink-2);
+}
+.dup-warn b{color:var(--bad)}
+.btn-dup{
+  font:inherit; cursor:pointer; font-size:12.5px; font-weight:600; white-space:nowrap;
+  border:1px solid var(--accent); background:var(--accent); color:#fff;
+  border-radius:8px; padding:7px 13px;
+}
+.btn-dup:hover{background:var(--accent-hover); border-color:var(--accent-hover)}
+.btn-dup.danger{background:var(--bad); border-color:var(--bad)}
+.btn-dup.danger:hover{filter:brightness(1.08)}
+.btn-dup:focus-visible{outline:2px solid var(--ring); outline-offset:2px}
+.dup-none{padding:48px 20px; text-align:center; color:var(--ink-3); font-size:13px}
+.dup-none b{color:var(--ink)}
 .kv dt{color:var(--ink-3); font-size:12.5px}
 .kv dd{margin:0; color:var(--ink); font-weight:500; overflow-wrap:anywhere}
 .note{
@@ -480,6 +544,10 @@ tr.excl .amt{text-decoration:line-through}
     <header class="topbar">
       <div class="crumbs">Bookkeeping &nbsp;/&nbsp; <b>Feeds</b></div>
       <div class="topbar-right">
+        <!-- No auth in a mock, so this stands in for the role. It is here rather than hidden
+             behind a flag because the read-only state is half of what the design is. -->
+        <button class="pg" id="roleBtn" type="button" aria-pressed="true"
+                style="white-space:nowrap">Admin</button>
         <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch colour theme" title="Switch colour theme">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
         </button>
@@ -490,17 +558,7 @@ tr.excl .amt{text-decoration:line-through}
       <div class="ph">
         <div>
           <h1>Feeds</h1>
-          <p>Every raw line that has entered the system, exactly as its statement, check pack or supplier invoice reported it. Feeds are immutable &mdash; a bookkeeping project claims them by date window, and only then do they become transactions.</p>
-        </div>
-        <div class="ph-actions">
-          <button class="btn" type="button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3m0 12l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
-            Export CSV
-          </button>
-          <button class="btn btn-primary" type="button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-            Upload to vault
-          </button>
+          <p>Every raw line that has entered the system, as its statement, check pack or supplier invoice reported it. A bookkeeping project claims them by date window, and only then do they become transactions. Bank and check values are correctable by an admin, which discards whatever was built on them and lets the pipeline rebuild it.</p>
         </div>
       </div>
 
@@ -511,7 +569,6 @@ tr.excl .amt{text-decoration:line-through}
           <button class="tab" role="tab" id="tab-bank" aria-selected="true" aria-controls="panel" data-view="bank">Bank feeds <span class="count" id="c-bank">0</span></button>
           <button class="tab" role="tab" id="tab-check" aria-selected="false" aria-controls="panel" data-view="check">Check feeds <span class="count" id="c-check">0</span></button>
           <button class="tab" role="tab" id="tab-invoice" aria-selected="false" aria-controls="panel" data-view="invoice">Invoice feeds <span class="count" id="c-invoice">0</span></button>
-          <button class="tab" role="tab" id="tab-upload" aria-selected="false" aria-controls="panel" data-view="upload">Uploads <span class="count" id="c-upload">0</span></button>
         </div>
 
         <div class="filters">
@@ -525,6 +582,11 @@ tr.excl .amt{text-decoration:line-through}
                this is a deliberate opt-in to a different view, not a default filter. -->
           <button class="pg" type="button" id="f-excl" aria-pressed="false" hidden
                   style="white-space:nowrap">Show excluded</button>
+          <!-- Duplicate resolution (ATLS-376). Bank and check only; invoice duplicates key on
+               vendor plus invoice number rather than date plus amount and are deferred to v2,
+               so the control is hidden there rather than offered and half-served. -->
+          <button class="pg" type="button" id="f-dupe" aria-pressed="false"
+                  style="white-space:nowrap">Duplicates</button>
           <select id="f-claim" aria-label="Filter by claim state">
             <option value="">Any claim state</option>
             <option value="unclaimed">Unclaimed</option>
@@ -534,6 +596,10 @@ tr.excl .amt{text-decoration:line-through}
           </select>
           <span class="filter-note" id="fnote"></span>
         </div>
+
+        <!-- Said once, above the sets. It is a fact about the role, not about any one set, so
+             repeating it per set is noise the reader has to skip nine times. -->
+        <p class="note" id="dupeGate" hidden style="margin:12px 14px 0"></p>
 
         <div class="tw" id="panel" role="tabpanel" aria-labelledby="tab-bank">
           <table id="tbl">
@@ -574,6 +640,9 @@ tr.excl .amt{text-decoration:line-through}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
   </div>
+  <!-- What you can DO to this row, in one place and above the facts. Trailing after the
+       definition list, View File read as part of Status and Correct this row floated alone. -->
+  <div class="d-acts" id="d-acts"></div>
   <div class="db" id="d-body"></div>
 </aside>
 
@@ -892,6 +961,7 @@ tr.excl .amt{text-decoration:line-through}
   fixBatchPages();
   sortInvoices();
   buildFeeds();
+  plantDuplicates();
 
   /* ---------- render helpers ---------- */
   function esc(s){
@@ -925,26 +995,23 @@ tr.excl .amt{text-decoration:line-through}
   /* ---------- column specs ---------- */
   var COLS = {
     bank: [
-      { k:"Date",        cls:"", get:function(r){ return '<span class="mono t-strong">' + r.date + "</span>"; } },
+      { k:"Date",        cls:"", get:function(r){ return '<span class="mono t-strong">' + esc(r.date) + "</span>"; } },
       { k:"Description", cls:"", get:function(r){ return '<span class="desc t-strong" title="' + esc(r.desc) + '">' + esc(r.desc) + "</span>"; } },
       { k:"Account",     cls:"", get:function(r){ return acctCell(r.account); } },
       { k:"Amount",      cls:"num", get:function(r){ return '<span class="amt mono ' + (r.amount < 0 ? "out" : "in") + '">' + money(r.amount) + "</span>"; } },
-      { k:"Source file", cls:"", get:function(r){ return '<span class="t-dim mono">' + esc(r.upload.file) + "</span>"; } },
       { k:"Uploaded by", cls:"", get:function(r){ return whoCell(r.upload.uploader, "System"); } },
       { k:"Reviewed by", cls:"", get:function(r){ return whoCell(r.upload.reviewer, "Auto-approved"); } },
       { k:"Project",     cls:"", get:projCell }
     ],
     check: [
       { k:"Feed date", cls:"", get:function(r){
-          return '<span class="mono t-strong">' + r.date + '</span><span class="date-src">' + r.dateSrc + "</span>"; } },
+          return '<span class="mono t-strong">' + esc(r.date) + '</span><span class="date-src">' + esc(r.dateSrc) + "</span>"; } },
       { k:"Check no.", cls:"", get:function(r){
-          return r.checkNo ? '<span class="mono t-strong">#' + r.checkNo + "</span>"
+          return r.checkNo ? '<span class="mono t-strong">#' + esc(r.checkNo) + "</span>"
                            : '<span class="t-dim">no number</span>'; } },
       { k:"Payee",     cls:"", get:function(r){ return '<span class="t-strong">' + esc(r.payee) + "</span>"; } },
       { k:"Account",   cls:"", get:function(r){ return acctCell(r.account); } },
       { k:"Amount",    cls:"num", get:function(r){ return '<span class="amt mono out">' + money(r.amount) + "</span>"; } },
-      { k:"Scan",      cls:"", get:function(r){ return '<span class="scan' + (r.image ? "" : " missing") + '" role="img" aria-label="' + (r.image ? "Check image available" : "No check image") + '"></span>'; } },
-      { k:"Source pack", cls:"", get:function(r){ return '<span class="t-dim mono">' + esc(r.upload.file) + "</span>"; } },
       { k:"Uploaded by", cls:"", get:function(r){ return whoCell(r.upload.uploader, "System"); } },
       { k:"Reviewed by", cls:"", get:function(r){ return whoCell(r.upload.reviewer, "Auto-approved"); } },
       { k:"Project",     cls:"", get:projCell }
@@ -954,7 +1021,7 @@ tr.excl .amt{text-decoration:line-through}
           return '<button class="exp-btn" type="button" tabindex="-1" aria-hidden="true">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" ' +
             'stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>'; } },
-      { k:"Invoice date", cls:"", get:function(r){ return '<span class="mono t-strong">' + r.date + "</span>"; } },
+      { k:"Invoice date", cls:"", get:function(r){ return '<span class="mono t-strong">' + esc(r.date) + "</span>"; } },
       { k:"Vendor", cls:"", get:function(r){
           return '<span class="desc t-strong" title="' + esc(r.vendor) + '">' + esc(r.vendor) + "</span>"; } },
       { k:"Invoice no.", cls:"", get:function(r){
@@ -973,31 +1040,313 @@ tr.excl .amt{text-decoration:line-through}
             : '<span class="pill ok"><i></i>closes</span>'; } },
       { k:"Source file", cls:"", get:function(r){ return '<span class="t-dim mono">' + esc(r.upload.file) + "</span>"; } },
       { k:"Approved by", cls:"", get:function(r){ return whoCell(r.upload.reviewer, "Auto-approved"); } }
-    ],
-    upload: [
-      { k:"File",   cls:"", get:function(u){ return '<span class="t-strong mono">' + esc(u.file) + "</span>"; } },
-      { k:"Kind",   cls:"", get:function(u){
-          return u.kind === "bank" ? "Bank statement" : u.kind === "check" ? "Check pack" : "Supplier invoice"; } },
-      { k:"Account",cls:"", get:function(u){
-          /* An invoice upload has no capital account -- see buildUploads. */
-          return u.account ? acctCell(u.account) : '<span class="t-dim">&mdash; vendor-scoped</span>'; } },
-      { k:"Sheets read", cls:"", get:function(u){
-          if (u.kind === "invoice") return '<span class="mono t-dim">' + u.pagesRead + "/" + u.pagesTotal + " pages</span>";
-          if (u.kind !== "check") return '<span class="t-dim">n/a</span>';
-          var pct = Math.round(u.sheetsRead / u.sheetsTotal * 100);
-          var partial = u.sheetsRead < u.sheetsTotal;
-          return '<span class="sheets"><span class="meter"><i style="width:' + pct + '%"></i></span>' +
-            '<span class="mono' + (partial ? " t-strong" : " t-dim") + '">' + u.sheetsRead + "/" + u.sheetsTotal + "</span></span>"; } },
-      { k:"Feeds",  cls:"num", get:function(u){ return '<span class="mono t-strong">' + u.items + "</span>"; } },
-      { k:"Uploaded by", cls:"", get:function(u){ return whoCell(u.uploader, "System"); } },
-      { k:"Reviewed by", cls:"", get:function(u){ return whoCell(u.reviewer, "Auto-approved"); } },
-      { k:"Committed",   cls:"", get:function(u){ return '<span class="mono t-dim">' + u.committed + "</span>"; } },
-      { k:"Claimed into",cls:"", get:function(u){
-          var d = projectFor(u.committed.slice(0,7) + "-15");
-          return d ? '<span class="proj"><span class="proj-name">' + esc(d.name) + "</span></span>"
-                   : '<span class="proj-none">&mdash; no open close</span>'; } }
     ]
   };
+
+  /* ---------- planted duplicates (ATLS-376) ----------
+     Re-uploads, so the Duplicates view has something true to show. Two shapes are planted on
+     purpose, because the second is the one that proves the rule:
+
+     1. Copies spread ACROSS uploads -- a second export of a month already ingested. The real
+        duplicate, and what the view exists to resolve.
+     2. A pair within ONE upload -- two genuine withdrawals the statement printed twice. The
+        view must NOT raise these, and planting a pair is the only way to see that it doesn't.
+
+     One copy in (1) is routed, because a copy that already became a project transaction is the
+     case the resolution has to handle honestly rather than the case it gets to ignore. */
+  function plantDuplicates(){
+    function reupload(src, suffix){
+      var u = {
+        uid: src.uid + "R", kind: src.kind,
+        file: src.file.replace(/\.(pdf|csv)$/i, suffix),
+        account: src.account,
+        committed: iso(new Date(Date.UTC(2026, monthOf(src.file), 28))),
+        uploader: pick(PEOPLE), reviewer: pick(PEOPLE),
+        sheetsTotal: src.sheetsTotal, sheetsRead: src.sheetsTotal,
+        runId: src.runId + 37, items: 0
+      };
+      uploads.push(u);
+      return u;
+    }
+
+    /* (1) a second export, for each of the two feeds that ship in v1 */
+    [{ list: bank, kind: "bank", prefix: "BF-", seq: 68000, take: 9, suffix: "_v2.pdf" },
+     { list: check, kind: "check", prefix: "CF-", seq: 78000, take: 5, suffix: "_rescan.pdf" }
+    ].forEach(function(spec){
+      var src = uploads.filter(function(u){ return u.kind === spec.kind; })[0];
+      /* Copied from rows that are NOT already routed, so the single routed member of each set
+         is the re-uploaded copy. That is what makes the guard's advice true: keeping the
+         earlier copy really does avoid the reversal. Sets where every copy is routed are a
+         real shape too, and the guard says something different for them. */
+      var originals = spec.list.filter(function(r){
+        return r.upload.uid === src.uid && r.claim !== "routed" && r.claim !== "matched";
+      }).slice(0, spec.take);
+      if (!originals.length) return;
+      var dst = reupload(src, spec.suffix);
+      originals.forEach(function(o, n){
+        var copy = {};
+        Object.keys(o).forEach(function(k){ copy[k] = o[k]; });
+        copy.id = spec.prefix + (spec.seq + n);
+        copy.upload = dst;
+        /* The re-uploaded copy is claimed on its own terms. The first is routed so the
+           transaction guard has something to guard. */
+        copy.claim = n === 0 ? "routed" : (o.project ? "pending" : "unclaimed");
+        copy.txn = copy.claim === "routed" ? "PT-" + (33000 + n) : null;
+        copy.status = "active";
+        spec.list.push(copy);
+        dst.items++;
+      });
+    });
+
+    /* (2) genuine twins -- one statement, one transaction that really happened twice */
+    var anchor = bank.filter(function(r){ return r.project && r.claim !== "routed"; })[0];
+    if (anchor){
+      var twin = {};
+      Object.keys(anchor).forEach(function(k){ twin[k] = anchor[k]; });
+      twin.id = "BF-69000";
+      twin.desc = anchor.desc;
+      twin.status = "active";
+      twin.txn = null;
+      twin.claim = anchor.claim;
+      bank.push(twin);
+      anchor.upload.items++;
+    }
+  }
+
+  /* Opening the source document, and a cheque's own crop where one was cut. Both were rows naming
+     a file, which is the least useful thing to do with a file: the name answers "which one" and
+     nothing else, while the page answers whether the figures above are what it actually says. */
+  /* The row's actions, in the bar under the header. Opening the document and correcting the row
+     are the two things a person does to a feed line, so they sit together and above the facts. */
+  function actionBar(r){
+    var doc = r.id + "#doc", crop = r.id + "#crop";
+    var out = '<button class="btn" type="button" data-viewfile="' + doc + '" title="' +
+      esc(r.upload.file) + '">' + (viewingFile === doc ? "Hide file" : "View file") + "</button>";
+    if (r.kind === "check" && r.image){
+      out += '<button class="btn" type="button" data-viewfile="' + crop + '">' +
+        (viewingFile === crop ? "Hide scan" : "View scan") + "</button>";
+    }
+    out += '<span class="spacer"></span>';
+    /* While the form is open it owns Cancel and Save, so the bar does not offer a second way in. */
+    if (isAdmin && editing !== r.id){
+      out += '<button class="btn-dup" type="button" data-edit="' + r.id + '">Correct this row</button>';
+    }
+    return out;
+  }
+
+  /* Two different artifacts, so two different frames. The scan is the item cut from its own sheet,
+     which for a cheque is the thing worth looking at; the pack is forty sheets of other people's
+     cheques. */
+  function filePreview(r){
+    var doc = r.id + "#doc", crop = r.id + "#crop";
+    if (viewingFile !== doc && viewingFile !== crop) return "";
+    var isCrop = viewingFile === crop;
+    var sheet = 1 + (parseInt(r.id.slice(-2), 10) % 9);
+    return '<section><div class="filev"><div class="filev-h mono">' +
+        (isCrop ? esc(r.id) + " &middot; cut from sheet " + sheet : esc(r.upload.file)) + "</div>" +
+      '<div class="filev-p"' + (isCrop ? ' style="height:110px"' : "") + "><span>" +
+        (isCrop ? "the cheque itself"
+         : r.kind === "check" ? "sheet " + sheet + " of the pack" : "page " + sheet) +
+      "</span></div></div></section>";
+  }
+
+  /* The form, or the button that opens it, or the reason there is neither. Admin only, and the
+     restriction is stated rather than implied by an absent control: a correction discards a
+     categorisation someone may have set by hand, un-books a match in another account, and leaves a
+     close short a transaction until the next pipeline run. */
+  function editBlock(r){
+    if (editing !== r.id) return "";
+
+    var textLabel = r.kind === "check" ? "Payee" : "Description";
+    var dirty = function(k, now){ return String(editForm[k]) !== String(now) ? " dirty" : ""; };
+    var was = function(k, now){
+      return String(editForm[k]) !== String(now)
+        ? '<span class="ed-was">was <b>' + esc(String(now)) + "</b></span>" : "";
+    };
+    var current = {
+      date: r.date,
+      text: r.kind === "check" ? (r.payee || "") : (r.desc || ""),
+      amount: r.amount,
+      checkNo: r.checkNo || ""
+    };
+
+    var steps = teardownOf(r);
+    var td = steps.length
+      ? '<div class="td"><div class="td-k">Saving discards</div><ul>' +
+        steps.map(function(s){ return "<li>" + s + "</li>"; }).join("") + "</ul>" +
+        '<p class="td-after">' + (r.kind === "check"
+          ? "The bank line keeps its transaction and goes back to the categorisation queue."
+          : "<b>The row stays active</b>, so " +
+            (r.project ? esc(r.project.name) : "the next open close") +
+            " claims it again and the pipeline rebuilds the transaction from the corrected values. " +
+            "That happens on the next pipeline run, not on save.") + "</p></div>"
+      : '<div class="note">Nothing downstream depends on this row yet, so the correction is just a ' +
+        "correction.</div>";
+
+    return '<div class="ed">' +
+      '<div class="ed-f' + dirty("date", current.date) + '"><label for="ed-date">Date</label>' +
+        '<input id="ed-date" class="mono" type="text" value="' + esc(editForm.date) + '" data-ed="date">' +
+        was("date", current.date) + "</div>" +
+      /* An absent cheque number is a real state, not a blank waiting to be filled: the bank prints
+         nothing on 14 of every 100. The placeholder says so rather than leaving the field looking
+         unanswered, and clearing it back to empty is a legitimate correction. */
+      (r.kind === "check"
+        ? '<div class="ed-f' + dirty("checkNo", current.checkNo) + '"><label for="ed-no">Check number</label>' +
+          '<input id="ed-no" class="mono" type="text" placeholder="none printed" value="' +
+          esc(editForm.checkNo) + '" data-ed="checkNo">' +
+          (String(editForm.checkNo) !== String(current.checkNo)
+            ? '<span class="ed-was">was <b>' + (current.checkNo ? esc(current.checkNo) : "none printed") + "</b></span>"
+            : "") + "</div>"
+        : "") +
+      '<div class="ed-f' + dirty("text", current.text) + '"><label for="ed-text">' + textLabel + "</label>" +
+        '<input id="ed-text" type="text" value="' + esc(editForm.text) + '" data-ed="text">' +
+        was("text", current.text) + "</div>" +
+      '<div class="ed-f' + dirty("amount", current.amount) + '"><label for="ed-amt">Amount</label>' +
+        '<input id="ed-amt" class="mono" type="text" value="' + esc(editForm.amount) + '" data-ed="amount">' +
+        was("amount", current.amount) + "</div>" +
+      '<div class="ed-f"><label for="ed-acct">Account</label>' +
+        '<input id="ed-acct" class="mono" type="text" value="' + esc(r.account.label) + '" disabled>' +
+        '<span class="ed-lock">Moving a row to another account changes its ledger, its claim window ' +
+        "and its close. That is a move, not a correction.</span></div>" +
+      '<div class="ed-f"><label for="ed-reason">Reason (required)</label>' +
+        '<input id="ed-reason" type="text" placeholder="e.g. decimal misread from the scan" value="' +
+        esc(editForm.reason) + '" data-ed="reason"></div>' +
+      td +
+      '<div class="ed-acts"><button class="btn" type="button" data-edcancel="1">Cancel</button>' +
+        '<button class="btn-dup" type="button" data-edsave="' + r.id + '"' +
+        (editDirty(r) && editForm.reason.trim() ? "" : " disabled") + ">Save correction</button></div>" +
+      "</div>";
+  }
+
+  function editDirty(r){
+    var text = r.kind === "check" ? (r.payee || "") : (r.desc || "");
+    return String(editForm.date) !== String(r.date) ||
+           String(editForm.text) !== String(text) ||
+           String(editForm.amount) !== String(r.amount) ||
+           (r.kind === "check" && String(editForm.checkNo) !== String(r.checkNo || ""));
+  }
+
+  /* ---------- admin correction (ATLS-376) ----------
+     **An edit behaves exactly like an exclusion, except the row stays active.** Nothing downstream
+     is patched: the project transaction, its matches and its ledger history are discarded, the claim
+     is dropped, and the pipeline rebuilds all of it from the corrected values on its next run. One
+     rule instead of a per-field judgement about whether a denormalised amount is still accurate or a
+     pairing still holds, and the only version that cannot be half-right.
+
+     The order is not a preference. In the backend `ProjectTransferMatch` and `ProjectCheckMatch`
+     PROTECT the transaction, the transaction PROTECTs the claim, and ledger history keys on the
+     transaction id, so any other order raises ProtectedError.
+
+     A cheque is the exception, and for a structural reason: its matched transaction belongs to the
+     BANK line, not to the cheque, so it survives. Only the pairing and everything the pairing
+     stamped come apart. */
+  function teardownOf(r){
+    var steps = [];
+    if (r.kind === "check"){
+      if (r.claim === "matched" || r.claim === "routed"){
+        steps.push("the check match, dismissed rather than deleted \u2014 its transaction survives this edit");
+        steps.push("what the match stamped on " + (r.txn || "the bank line") +
+                   ": type \u201ccheck\u201d, the reference number and the payee in the memo");
+        steps.push("that transaction's categorisation, with review status back to pending");
+      }
+      return steps;
+    }
+    if (r.txn) steps.push("any transfer or check match holding " + r.txn);
+    if (r.txn) steps.push("ledger history for " + r.txn + ", and its embedding");
+    if (r.txn) steps.push(r.txn + ", with the categorisation someone may have set by hand");
+    if (r.project) steps.push("the claim by " + r.project.name);
+    return steps;
+  }
+
+  function applyCorrection(r, next){
+    r.corrections = r.corrections || [];
+    r.corrections.push({
+      at: "2026-12-29", by: pick(PEOPLE).name, reason: next.reason,
+      before: { date: r.date, desc: r.desc, payee: r.payee, amount: r.amount, checkNo: r.checkNo },
+      undone: teardownOf(r)
+    });
+    r.date = next.date;
+    if (r.kind === "check"){
+      r.payee = next.text;
+      r.checkNo = next.checkNo;
+    } else {
+      r.desc = next.text;
+    }
+    r.amount = next.amount;
+
+    /* The teardown. The row stays ACTIVE \u2014 that is the only difference from an exclusion. */
+    if (r.kind === "check"){
+      if (r.claim === "matched") { r.claim = r.project ? "pending" : "unclaimed"; r.txn = null; }
+    } else {
+      r.project = null;
+      r.claim = "unclaimed";
+      r.txn = null;
+    }
+    r.awaitingRebuild = true;
+  }
+
+  /* ---------- duplicate sets, computed when the view is opened ----------
+     Never stored. Feed values are correctable by an admin, so a stored finding would be stale
+     the moment someone fixes a misread amount; recomputing is correct by construction and the
+     cache-invalidation problem never exists.
+
+     Only the text needs folding. A date is a date and an amount is a number, so two rows that
+     differ only in how a figure was printed cannot both be here in the first place. */
+  function dupeText(r){
+    return (r.kind === "check" ? (r.payee || "") + " " + (r.checkNo || "") : (r.desc || ""))
+      .trim().toLowerCase().replace(/\s+/g, " ");
+  }
+  function dupeKey(r){
+    return [r.date, r.amount.toFixed(2), dupeText(r)].join("\u001f");
+  }
+
+  /* `(set, ...)` for the rows in hand, commonest first. A set is reported only where copies
+     EXCEED what any single upload accounts for:
+
+       the genuine count is the most copies one upload contributed.
+
+     A statement showing a transaction twice is evidence it happened twice; two statements each
+     showing it once is evidence it happened once and was ingested twice. Without that rule the
+     view raises every genuine pair of identical withdrawals, which is how a feature built to
+     stop double-counting starts telling people to delete real money. */
+  function duplicateSets(rows){
+    var by = Object.create(null);
+    rows.forEach(function(r){
+      /* An excluded row has left the register, so it leaves the comparison too -- which is
+         also what makes resolving a set remove it from this list. */
+      if (r.status !== "active") return;
+      var k = dupeKey(r);
+      (by[k] = by[k] || []).push(r);
+    });
+    var out = [];
+    Object.keys(by).forEach(function(k){
+      var group = by[k];
+      if (group.length < 2) return;
+      group.sort(function(a, b){
+        return a.upload.committed < b.upload.committed ? -1
+             : a.upload.committed > b.upload.committed ? 1
+             : (a.id < b.id ? -1 : 1);
+      });
+      var perUpload = Object.create(null);
+      group.forEach(function(r){ perUpload[r.upload.uid] = (perUpload[r.upload.uid] || 0) + 1; });
+      var genuine = Math.max.apply(null, Object.keys(perUpload).map(function(u){ return perUpload[u]; }));
+      if (group.length - genuine < 1) return;
+      out.push({ key: k, rows: group, genuine: genuine, surplus: group.length - genuine });
+    });
+    out.sort(function(a, b){
+      if (b.surplus !== a.surplus) return b.surplus - a.surplus;
+      return a.rows[0].date < b.rows[0].date ? -1 : 1;
+    });
+    return out;
+  }
+
+  /** Every other live copy of this row, for the drawer. Includes genuine twins, which the
+      view deliberately does not raise but a person looking at one row should still see. */
+  function copiesOf(r){
+    var list = r.kind === "check" ? check : r.kind === "bank" ? bank : [];
+    var k = dupeKey(r);
+    return list.filter(function(o){ return o !== r && o.status === "active" && dupeKey(o) === k; });
+  }
 
   /* ---------- state ---------- */
   var view = "bank", page = 1, per = 25;
@@ -1006,36 +1355,43 @@ tr.excl .amt{text-decoration:line-through}
      comparing two invoices is a real thing a bookkeeper does. */
   var open = Object.create(null);
   var showExcluded = false;
+  /* Duplicate resolution. `keep` holds which copy a reviewer chose to survive, keyed by the
+     set rather than by row, so the choice follows the set through a re-render. */
+  /* Admin correction. `editing` holds the feed id whose drawer is in edit mode, so opening a
+     different row closes the form rather than carrying a half-typed value onto someone else's. */
+  var isAdmin = true;
+  var editing = null;
+  var editForm = null;
+  /* Which row has its file open. Reading a document is not an admin matter, so this is the one
+     drawer control that does not check the role. */
+  var viewingFile = null;
+
+  var showDupes = false;
+  var keep = Object.create(null);
+  /* The sets as last rendered, so a click can address one by position. */
+  var dupeSets = [];
+  var dupesApply = function(){ return showDupes && (view === "bank" || view === "check"); };
   var $ = function(id){ return document.getElementById(id); };
 
   function source(){
-    return view === "bank" ? bank : view === "check" ? check
-         : view === "invoice" ? invoice : uploads;
+    return view === "bank" ? bank : view === "check" ? check : invoice;
   }
 
   function filtered(){
     var q = $("q").value.trim().toLowerCase();
     var fa = $("f-account").value, fp = $("f-project").value, fc = $("f-claim").value;
     return source().filter(function(r){
-      var isUp = view === "upload";
       /* Invoice feeds carry no capital account, so the Account filter cannot apply to
          them; the control is disabled while that tab is open rather than silently
          returning nothing. */
       if (fa && (!r.account || r.account.id !== fa)) return false;
-      if (!isUp && fp && (!r.project || r.project.id !== fp)) return false;
-      if (isUp && fp) {
-        var d = r.file.indexOf("2026-08") > -1 ? "BP-42" : "BP-38";
-        if (d !== fp) return false;
-      }
+      if (fp && (!r.project || r.project.id !== fp)) return false;
       if (view === "invoice" && r.outcome === "excluded" && !showExcluded) return false;
-      if (!isUp && fc && r.claim !== fc) return false;
-      /* uploads have no claim axis; the control is cleared on tab switch */
+      if (fc && r.claim !== fc) return false;
       if (!q) return true;
-      var hay = isUp
-        ? [r.file, r.uid, r.account ? r.account.label : "", r.uploader.name, r.reviewer ? r.reviewer.name : "auto approved"]
-        : [r.id, r.desc || "", r.payee || "", r.checkNo || "", r.vendor || "", r.no || "",
-           r.upload.file, r.account ? r.account.label : "",
-           r.upload.uploader.name, r.upload.reviewer ? r.upload.reviewer.name : "auto"];
+      var hay = [r.id, r.desc || "", r.payee || "", r.checkNo || "", r.vendor || "", r.no || "",
+                 r.upload.file, r.account ? r.account.label : "",
+                 r.upload.uploader.name, r.upload.reviewer ? r.upload.reviewer.name : "auto"];
       return hay.join(" ").toLowerCase().indexOf(q) > -1;
     });
   }
@@ -1046,11 +1402,11 @@ tr.excl .amt{text-decoration:line-through}
     var all = bank.concat(check);
     var claimed = all.filter(function(r){ return r.claim !== "unclaimed"; }).length;
     var uncl = all.length - claimed;
-    /* Claimed but not yet turned into a project transaction -- the one thing on this
-       screen a person can actually act on. A short pack cannot be worked here: its
-       review gate is resolved and its run is terminal, so it is provenance only and
-       lives as a plain column on the Uploads tab. */
-    var pendingRouting = all.filter(function(r){ return r.claim === "pending"; }).length;
+    /* Computed here the same way the view computes it, from the same function, so the tile and
+       the table can never disagree about how many there are. */
+    var dupB = duplicateSets(bank), dupC = duplicateSets(check);
+    var dupSets = dupB.length + dupC.length;
+    var dupSurplus = dupB.concat(dupC).reduce(function(n, s){ return n + s.surplus; }, 0);
     var tiles = [
       { k:"Feeds in system", v:(bank.length + check.length + invoice.length).toLocaleString(),
         n:"<b>" + bank.length + "</b> bank &middot; <b>" + check.length + "</b> check &middot; <b>" +
@@ -1059,8 +1415,12 @@ tr.excl .amt{text-decoration:line-through}
         n:"across <b>" + PROJECTS.length + "</b> open closes &middot; bank + check only", tone:"var(--ok)" },
       { k:"Unclaimed", v:uncl.toLocaleString(),
         n:"outside every project window &middot; invoices are not claimed", tone:"var(--warn)" },
-      { k:"Pending routing", v:pendingRouting.toLocaleString(),
-        n:"claimed, not yet a transaction", tone:"var(--accent)" }
+      /* Surplus, not copies: a transaction that genuinely happened twice has two rows and
+         nothing to resolve, and counting those would invent a backlog. Bank + check only;
+         invoice duplicates are v2. */
+      { k:"Duplicate copies", v:dupSurplus.toLocaleString(),
+        n:"in <b>" + dupSets + "</b> " + (dupSets === 1 ? "set" : "sets") +
+          " &middot; bank + check", tone:"var(--warn)" }
     ];
     $("rail").innerHTML = tiles.map(function(t){
       return '<div class="stat" style="--tone:' + t.tone + '"><div class="stat-k">' + t.k +
@@ -1071,7 +1431,7 @@ tr.excl .amt{text-decoration:line-through}
   /* ---------- the invoice detail panel ----------
      Rendered INLINE, under its own row, rather than in the drawer: an invoice's eleven
      columns are the context you read the lines against, and a drawer covers them. The
-     drawer stays for bank feeds, checks and uploads, which have far fewer columns. */
+     drawer stays for bank feeds and checks, which have far fewer columns. */
   function invoiceDetail(r){
     var invSections = "";
     if (r.outcome === "excluded"){
@@ -1169,7 +1529,135 @@ tr.excl .amt{text-decoration:line-through}
     return invSections;
   }
 
+  /* ---------- the duplicates view ----------
+     Grouped, because the decision cannot be made one row at a time: choosing which copy
+     survives means seeing the others. What every copy shares is hoisted into the set header, so
+     the rows carry only what the choice turns on -- when it arrived, from which file, and
+     whether anything downstream already depends on it. */
+  function renderDupes(){
+    var sets = duplicateSets(filtered());
+    var gate = $("dupeGate");
+    gate.hidden = isAdmin;
+    if (!isAdmin){
+      gate.innerHTML = "Resolving a duplicate is limited to admins. Excluding a copy discards the " +
+        "project transaction built on it, its matches and its ledger history, the same teardown a " +
+        "correction runs, so it takes the same gate. The sets are shown here because noticing one " +
+        "and fixing it are different jobs.";
+    }
+    var cols = [
+      { k:"Keep", cls:"" }, { k:"Committed", cls:"" }, { k:"Source file", cls:"" },
+      { k:"Reviewed by", cls:"" }, { k:"Amount", cls:"num" }, { k:"Project", cls:"" },
+      { k:"Status", cls:"" }
+    ];
+    $("thead").innerHTML = "<tr>" + cols.map(function(c){
+      return '<th scope="col" class="' + c.cls + '">' + c.k + "</th>";
+    }).join("") + "</tr>";
+
+    if (!sets.length){
+      $("tbody").innerHTML = '<tr><td colspan="' + cols.length + '"><div class="dup-none">' +
+        "<b>No duplicate copies in these feeds.</b><br>Every row that reads alike is accounted " +
+        "for by a single upload, so each one is a transaction that genuinely happened more than once." +
+        "</div></td></tr>";
+      $("pinfo").innerHTML = "No duplicates";
+      $("pnav").innerHTML = "";
+      return;
+    }
+
+    var all = filtered();
+    dupeSets = sets;
+    var html = sets.map(function(s, si){
+      var first = s.rows[0];
+      var kept = keep[s.key] || first.id;
+      var dropping = s.rows.filter(function(r){ return r.id !== kept; });
+      var routed = dropping.filter(function(r){ return r.claim === "routed" || r.claim === "matched"; });
+
+      var head = '<tr class="grp"><td colspan="' + cols.length + '"><div class="grp-in">' +
+        '<span class="dup-what">' + esc(first.date) + " &middot; " + money(first.amount) + " &middot; " +
+          esc(first.kind === "check" ? first.payee : first.desc) + "</span>" +
+        '<span class="grp-n">' + (first.account ? esc(first.account.label) : "") + "</span>" +
+        '<span class="dup-why">' + s.rows.length + " copies &middot; " + s.genuine +
+          " genuine &middot; " + s.surplus + " surplus</span>" +
+        "</div></td></tr>";
+
+      var body = s.rows.map(function(r){
+        var isKeep = r.id === kept;
+        var idx = all.indexOf(r);
+        return '<tr tabindex="0" data-i="' + idx + '" class="' + (isKeep ? "dup-keep" : "dup-drop") + '">' +
+          '<td><div class="dup-pick"><input type="radio" name="keep-' + si + '"' +
+            (isKeep ? " checked" : "") + (isAdmin ? "" : " disabled") +
+            ' data-set="' + si + '" data-row="' + r.id + '"' +
+            ' aria-label="Keep ' + r.id + '"></div></td>' +
+          '<td><div class="mono t-strong" style="font-size:12.5px">' + r.upload.committed + "</div>" +
+            '<div class="mono t-dim" style="font-size:11px">' + r.id + " &middot; run " + r.upload.runId + "</div></td>" +
+          '<td><span class="t-dim mono">' + esc(r.upload.file) + "</span></td>" +
+          "<td>" + whoCell(r.upload.reviewer, "Auto-approved") + "</td>" +
+          '<td class="num"><span class="amt mono ' + (r.amount < 0 ? "out" : "in") + '">' +
+            money(r.amount) + "</span></td>" +
+          "<td>" + projCell(r) + (r.txn ? ' <span class="mono t-dim" style="font-size:11px">' + r.txn + "</span>" : "") + "</td>" +
+          '<td><span class="t-dim" style="font-size:12px">Active</span></td>' +
+          "</tr>";
+      }).join("");
+
+      /* The transaction guard. Excluding a feed row does not unmake the project transaction it
+         already became, so the control names it and says what is left to do rather than
+         reporting a resolution that only half happened. */
+      /* How many copies in the whole set are already transactions, not just the ones being
+         dropped. With exactly one, the way out is to keep that one and drop the rest; with
+         more, every choice reverses something and saying otherwise would be false comfort.
+         (The escape is always the routed row itself, so the sentence says "it" rather than
+         naming the row a second time in the same breath.) */
+      var routedInSet = s.rows.filter(function(o){
+        return o.claim === "routed" || o.claim === "matched";
+      });
+      var warn = routed.length
+        ? '<span class="dup-warn"><b>' +
+          (routedInSet.length === 1
+            ? "This copy is already a transaction."
+            : "Every copy here is already a transaction.") +
+          "</b> Excluding " + '<span class="mono">' + routed[0].id + '</span> hides the feed row, but ' +
+          '<span class="mono">' + routed[0].txn + "</span> stays in " +
+          esc(routed[0].project ? routed[0].project.name : "its project") +
+          " and has to be reversed there. " +
+          (routedInSet.length === 1
+            ? "Keep it instead and nothing needs reversing."
+            : "Whichever copy you keep, a transaction has to be reversed in its close.") +
+          "</span>"
+        : "";
+      var says = routed.length
+        ? ""
+        : "Excluding <b>" + dropping.length + (dropping.length === 1 ? " copy" : " copies") +
+          "</b>. Nothing downstream depends on " +
+          dropping.map(function(r){ return r.id; }).join(", ") + " yet, so this is a clean resolve.";
+
+      /* Without the action there is only the guard left to say, and a set with no routed copy has
+         nothing set-specific at all, so it gets no footer rather than an empty one. */
+      var act = isAdmin
+        ? '<tr class="dup-act"><td colspan="' + cols.length + '">' + warn +
+          '<div class="dup-act-in"><div class="dup-says">' + says + "</div>" +
+          '<button class="btn-dup' + (routed.length ? " danger" : "") + '" type="button" data-resolve="' +
+            si + '">' +
+            (routed.length ? "Exclude and flag the transaction" : "Exclude the copy, keep " + kept) +
+          "</button></div></td></tr>"
+        : warn
+          ? '<tr class="dup-act"><td colspan="' + cols.length + '">' + warn + "</td></tr>"
+          : "";
+
+      return head + body + act;
+    }).join("");
+
+    $("tbody").innerHTML = html;
+
+    var copies = sets.reduce(function(n, s){ return n + s.rows.length; }, 0);
+    var surplus = sets.reduce(function(n, s){ return n + s.surplus; }, 0);
+    $("pinfo").innerHTML = "<b>" + sets.length + "</b> " + (sets.length === 1 ? "set" : "sets") +
+      " &middot; <b>" + copies + "</b> copies &middot; <b>" + surplus + "</b> surplus to resolve";
+    $("pnav").innerHTML = "";
+    $("fnote").textContent = "Computed on load, not stored";
+  }
+
   function renderTable(){
+    if (dupesApply()) return renderDupes();
+    $("dupeGate").hidden = true;
     var cols = COLS[view], rows = filtered();
     var pages = Math.max(1, Math.ceil(rows.length / per));
     if (page > pages) page = pages;
@@ -1216,7 +1704,7 @@ tr.excl .amt{text-decoration:line-through}
       : '<tr><td colspan="' + cols.length + '" style="padding:48px; text-align:center; color:var(--ink-3)">' +
         "No feeds match these filters.</td></tr>";
 
-    var noun = view === "upload" ? "uploads" : view === "bank" ? "bank feed lines"
+    var noun = view === "bank" ? "bank feed lines"
              : view === "invoice" ? "invoice feeds" : "check feeds";
     $("pinfo").innerHTML = rows.length
       ? "Showing <b>" + (start + 1) + "</b>&ndash;<b>" + Math.min(start + per, rows.length) +
@@ -1240,33 +1728,42 @@ tr.excl .amt{text-decoration:line-through}
     }
     $("fnote").textContent = rows.length === source().length
       ? "" : "Filtered from " + source().length.toLocaleString();
+
   }
 
-  function renderAll(){ renderTable(); }
+  /* The duplicates control, labelled from the same computation the view uses. Lives here
+     rather than in `renderTable`, which returns early once the duplicates view is on. */
+  function renderDupeControl(){
+    if (view !== "bank" && view !== "check") return;
+    var n = duplicateSets(source()).reduce(function(acc, s){ return acc + s.surplus; }, 0);
+    $("f-dupe").textContent = (showDupes ? "All feeds" : "Duplicates") + " (" + n + ")";
+  }
+
+  function renderAll(){ renderDupeControl(); renderTable(); }
 
   /* ---------- drawer ---------- */
-  function openDrawer(idx){
-    var r = filtered()[idx];
+  var drawerRow = null;
+  function openDrawer(idx){ return openDrawerFor(filtered()[idx]); }
+  function openDrawerFor(r){
     if (!r) return;
-    var isUp = view === "upload";
-    var up = isUp ? r : r.upload;
+    drawerRow = r;
+    var up = r.upload;
 
-    var UPKIND = { bank:"Bank statement upload", check:"Check pack upload", invoice:"Supplier invoice upload" };
     var FEEDKIND = { bank:"Bank feed line", check:"Check feed", invoice:"Invoice feed" };
-    $("d-kind").textContent = isUp ? UPKIND[up.kind] : FEEDKIND[r.kind];
-    $("d-title").innerHTML = isUp ? esc(up.file)
-      : (r.kind === "bank" ? esc(r.desc)
+    $("d-kind").textContent = FEEDKIND[r.kind];
+    $("d-title").innerHTML =
+      (r.kind === "bank" ? esc(r.desc)
          : r.kind === "invoice"
            ? esc(r.vendor) + (r.no ? ' <span class="mono t-dim">&middot; ' + esc(r.no) + "</span>" : "")
          : (r.checkNo ? "Check #" + esc(r.checkNo) : "Check, no number") + " &middot; " + esc(r.payee));
 
     var facts = "";
-    if (!isUp && r.kind === "invoice"){
+    if (r.kind === "invoice"){
       facts += '<dl class="kv">' +
         "<dt>Feed id</dt><dd class='mono'>" + r.id + "</dd>" +
         "<dt>Vendor</dt><dd>" + esc(r.vendor) + "</dd>" +
         "<dt>Invoice no.</dt><dd class='mono'>" + (r.no || "&mdash; none printed") + "</dd>" +
-        "<dt>Invoice date</dt><dd class='mono'>" + r.date + "</dd>" +
+        "<dt>Invoice date</dt><dd class='mono'>" + esc(r.date) + "</dd>" +
         "<dt>Currency</dt><dd class='mono'>" + r.ccy + "</dd>" +
         "<dt>Net</dt><dd>" + amt(r.subtotal, r.ccy) + "</dd>" +
         "<dt>Tax</dt><dd>" + (r.tax ? amt(r.tax, r.ccy) : "<span class='t-dim'>none printed</span>") + "</dd>" +
@@ -1281,58 +1778,44 @@ tr.excl .amt{text-decoration:line-through}
         "<dt>Account</dt><dd><span class='t-dim'>&mdash; a bill is vendor-scoped, not account-scoped</span></dd>" +
         "<dt>Status</dt><dd>" + (r.status === "active" ? "Active" : "Excluded from lists") + "</dd>" +
         "</dl>" +
-        "<div class='note'>Recorded only when a reviewer approved it, and immutable once written &mdash; " +
-        "the same contract as a bank feed. Nothing here is calculated: every figure is what the invoice printed.</div>";
-    } else if (!isUp){
+        "<div class='note'>Recorded only when a reviewer approved it. Nothing here is calculated: every " +
+        "figure is what the invoice printed. Admin correction is a bank and check feed capability for now " +
+        "(invoice duplicates and corrections are v2), so these figures are still read-only.</div>";
+    } else {
       facts += '<dl class="kv">' +
         "<dt>Feed id</dt><dd class='mono'>" + r.id + "</dd>" +
         (r.kind === "bank"
-          ? "<dt>Date</dt><dd class='mono'>" + r.date + "</dd>"
-          : "<dt>Feed date</dt><dd class='mono'>" + r.date + " <span class='t-dim'>(" + r.dateSrc + ")</span></dd>" +
-            "<dt>Written on face</dt><dd class='mono'>" + r.written + "</dd>" +
-            "<dt>Bank footer</dt><dd class='mono'>" + (r.posted || "&mdash; none printed") + "</dd>") +
+          ? "<dt>Date</dt><dd class='mono'>" + esc(r.date) + "</dd>"
+          : "<dt>Feed date</dt><dd class='mono'>" + esc(r.date) + " <span class='t-dim'>(" + esc(r.dateSrc) + ")</span></dd>" +
+            "<dt>Written on face</dt><dd class='mono'>" + esc(r.written) + "</dd>" +
+            "<dt>Bank footer</dt><dd class='mono'>" + (r.posted ? esc(r.posted) : "&mdash; none printed") + "</dd>") +
         "<dt>Amount</dt><dd class='mono'>" + money(r.amount) + "</dd>" +
         "<dt>Account</dt><dd>" + acctCell(r.account) + "</dd>" +
-        "<dt>Status</dt><dd>" + (r.status === "active" ? "Active" : "Excluded from lists") + "</dd>" +
-        (r.kind === "check" ? "<dt>Check image</dt><dd>" + (r.image ? "In the library" : "None cut") + "</dd>" : "") +
-        "</dl>";
-    } else {
-      facts += '<dl class="kv">' +
-        "<dt>Upload id</dt><dd class='mono'>" + up.uid + "</dd>" +
-        "<dt>Account</dt><dd>" + (up.account ? acctCell(up.account)
-          : "<span class='t-dim'>&mdash; vendor-scoped</span>") + "</dd>" +
-        "<dt>Feeds created</dt><dd class='mono'>" + up.items + "</dd>" +
-        (up.kind === "check"
-          ? "<dt>Sheets read</dt><dd class='mono'>" + up.sheetsRead + " of " + up.sheetsTotal + "</dd>" +
-            (up.sheetsRead < up.sheetsTotal
-              ? "<dt></dt><dd><span class='t-dim' style='font-weight:400'>Read in part, so this pack yielded fewer " +
-                "checks than it physically held. Not fixable from here &mdash; the pack's review is closed. " +
-                "Re-upload the missing sheets to add them.</span></dd>"
-              : "")
-          : "") +
-        "<dt>Committed</dt><dd class='mono'>" + up.committed + "</dd>" +
+        "<dt>Status</dt><dd>" + (r.status === "active" ? "Active" : "Excluded from lists") +
+          (r.awaitingRebuild ? ' <span class="pill pill-rebuild"><i></i>awaiting rebuild</span>' : "") + "</dd>" +
+        (r.kind === "check" && !r.image ? "<dt>Check image</dt><dd>None cut</dd>" : "") +
         "</dl>";
     }
 
     var claimHtml;
-    if (isUp){
-      var dproj = projectFor(up.committed.slice(0,7) + "-15");
-      claimHtml = dproj
-        ? '<dl class="kv"><dt>Window match</dt><dd>' + esc(dproj.name) +
-          '</dd><dt>Period</dt><dd class="mono">' + dproj.start + " &rarr; " + dproj.end + "</dd></dl>"
-        : '<div class="note">No open close covers this file&rsquo;s period, so its feeds are sitting unclaimed. ' +
-          "Create the close and the pipeline claims them on its next sync.</div>";
-    } else if (r.project){
+    if (r.project){
       claimHtml = '<dl class="kv">' +
         "<dt>Project</dt><dd>" + esc(r.project.name) + "</dd>" +
         '<dt>Period</dt><dd class="mono">' + r.project.start + " &rarr; " + r.project.end + "</dd>" +
         "<dt>Claim state</dt><dd>" + claimPill(r.claim) + "</dd>" +
         (r.txn ? "<dt>Transaction</dt><dd class='mono'>" + r.txn + "</dd>" : "") +
         "</dl>";
+    } else if (r.awaitingRebuild){
+      /* Unclaimed because a correction discarded the claim, not because nothing covers the date.
+         Saying the wrong one of those sends someone looking for a close that already exists. */
+      claimHtml = '<div class="note">A correction discarded this row\u2019s claim along with the ' +
+        "transaction built on it. The row is still active, so the first close whose period covers " +
+        '<span class="mono">' + esc(r.date) + "</span> claims it again on its next pipeline run and the " +
+        "transaction is rebuilt from the corrected figures.</div>";
     } else {
       claimHtml = '<div class="note">This feed sits outside every open project window, so no project has claimed it. ' +
         "It will be claimed automatically by the first close whose period covers " +
-        '<span class="mono">' + r.date + "</span>.</div>";
+        '<span class="mono">' + esc(r.date) + "</span>.</div>";
     }
 
     var steps = [
@@ -1341,26 +1824,85 @@ tr.excl .amt{text-decoration:line-through}
         m: up.reviewer ? esc(up.reviewer.name) : "No reviewer recorded", dim: !up.reviewer },
       { t:"Feeds committed", m:"Run " + up.runId + " &middot; " + up.items + " rows" }
     ];
-    if (!isUp && r.project) steps.push({ t:"Claimed by " + esc(r.project.name), m:"Claim state: " + CLAIM_LABEL[r.claim] });
-    if (!isUp && r.txn) steps.push({ t:"Routed to a project transaction", m:r.txn });
-    if (!isUp && !r.project) steps.push({ t:"Awaiting a project claim", m:"No open window covers this date", dim:true });
+    if (r.project) steps.push({ t:"Claimed by " + esc(r.project.name), m:"Claim state: " + CLAIM_LABEL[r.claim] });
+    if (r.txn) steps.push({ t:"Routed to a project transaction", m:r.txn });
+    if (!r.project && !r.awaitingRebuild){
+      steps.push({ t:"Awaiting a project claim", m:"No open window covers this date", dim:true });
+    }
+    /* A correction is provenance, not a side note: it is the only record that the figures above are
+       not what the statement reported. */
+    (r.corrections || []).forEach(function(c){
+      var changedBits = [];
+      if (c.before.date !== r.date) changedBits.push("date " + esc(c.before.date) + " \u2192 " + esc(r.date));
+      var beforeText = r.kind === "check" ? c.before.payee : c.before.desc;
+      var nowText = r.kind === "check" ? r.payee : r.desc;
+      if (beforeText !== nowText) changedBits.push(r.kind === "check" ? "payee rewritten" : "description rewritten");
+      if (r.kind === "check" && (c.before.checkNo || "") !== (r.checkNo || "")){
+        changedBits.push("number " + esc(c.before.checkNo || "none") + " \u2192 " + esc(r.checkNo || "none"));
+      }
+      if (c.before.amount !== r.amount) changedBits.push(money(c.before.amount) + " \u2192 " + money(r.amount));
+      steps.push({
+        t: "Corrected by " + esc(c.by),
+        m: changedBits.join(" &middot; ") + ' &middot; "' + esc(c.reason) + '"' +
+           (c.undone.length ? "<br><span class='t-dim'>discarded: " + c.undone.length +
+            (c.undone.length === 1 ? " dependency" : " dependencies") + "</span>" : "")
+      });
+    });
+    if (r.awaitingRebuild) steps.push(r.kind === "check"
+      ? { t:"Awaiting re-categorisation",
+          m:"The bank line it was matched to is back in the categorisation queue" }
+      : { t:"Awaiting rebuild",
+          m:"The pipeline re-claims and re-routes this row on its next run" });
 
+    /* Every other live copy of this row. Genuine twins appear here even though the duplicates
+       view does not raise them: the view must not nag, but a person reading one row should
+       still be able to see that another reads the same. */
+    var copies = copiesOf(r);
+    var copiesHtml = "";
+    if (copies.length){
+      var sameUpload = copies.filter(function(o){ return o.upload.uid === r.upload.uid; }).length;
+      copiesHtml = '<section><div class="dsec-k">Duplicates</div>' +
+        '<dl class="kv">' + copies.map(function(o){
+          return "<dt class='mono'>" + o.id + "</dt><dd>" +
+            (o.upload.uid === r.upload.uid
+              ? "same file &middot; run " + o.upload.runId
+              : esc(o.upload.file) + " &middot; run " + o.upload.runId) +
+            (o.txn ? ' &middot; <span class="mono">' + o.txn + "</span>" : "") + "</dd>";
+        }).join("") + "</dl>" +
+        '<div class="note">' + (sameUpload === copies.length
+          ? "Every copy came from this same file, so the statement reported the transaction more " +
+            "than once and it genuinely happened more than once. Not raised as a duplicate."
+          : "A copy arrived in a different upload, so this set carries more rows than any single " +
+            "statement accounts for. Resolve it from <b>Duplicates</b>.") + "</div></section>";
+    }
+
+    $("d-acts").innerHTML = r.kind === "invoice" ? "" : actionBar(r);
+
+    var formHtml = editBlock(r);
     $("d-body").innerHTML =
-      '<section><div class="dsec-k">' + (isUp ? "The upload" : "The feed as reported") + "</div>" + facts + "</section>" +
+      filePreview(r) +
+      (formHtml ? '<section><div class="dsec-k">Correcting this row</div>' + formHtml + "</section>" : "") +
+      '<section><div class="dsec-k">' + "The feed as reported" + "</div>" + facts + "</section>" +
+      copiesHtml +
       '<section><div class="dsec-k">People</div><dl class="kv">' +
         "<dt>Uploaded by</dt><dd>" + whoCell(up.uploader, "System") + "</dd>" +
         "<dt>Reviewed by</dt><dd>" + whoCell(up.reviewer, "Auto-approved") + "</dd>" +
-        '<dt>Source file</dt><dd class="mono">' + esc(up.file) + "</dd>" +
       "</dl></section>" +
-      '<section><div class="dsec-k">' + (isUp ? "Project window" : "Project") + "</div>" + claimHtml + "</section>" +
+      '<section><div class="dsec-k">' + "Project" + "</div>" + claimHtml + "</section>" +
       '<section><div class="dsec-k">Provenance</div><ul class="tl">' +
         steps.map(function(s){
           return '<li class="' + (s.dim ? "dim" : "") + '"><div><div class="tl-t">' + s.t +
             '</div><div class="tl-m">' + s.m + "</div></div></li>";
         }).join("") +
       "</ul></section>" +
-      (isUp ? "" : '<div class="note">A feed row is immutable. Its date, description, amount and account are ' +
-        "never rewritten after the read &mdash; only its active/excluded status can change.</div>");
+      (isAdmin ? "" : '<div class="note">Correcting or excluding a feed row is limited to admins. ' +
+        "Its values are what the statement reported, and changing them discards the project " +
+        "transaction built on them.</div>") +
+      ('<div class="note">Excluding a row changes nothing but whether lists count it, and ' +
+        "<b>Show excluded</b> brings it back. Its values are separately correctable by an admin, " +
+        "recorded as its own event rather than as a silent rewrite, so what the statement " +
+        "originally said stays answerable. Because values can change, duplicate sets are " +
+        "computed when the view is opened rather than stored.</div>");
 
     $("drawer").classList.add("open");
     $("drawer").setAttribute("aria-hidden", "false");
@@ -1368,6 +1910,7 @@ tr.excl .amt{text-decoration:line-through}
     $("closeBtn").focus();
   }
   function closeDrawer(){
+    editing = null; editForm = null; drawerRow = null; viewingFile = null;
     $("drawer").classList.remove("open");
     $("drawer").setAttribute("aria-hidden", "true");
     $("scrim").classList.remove("open");
@@ -1382,7 +1925,6 @@ tr.excl .amt{text-decoration:line-through}
   $("c-bank").textContent = bank.length;
   $("c-check").textContent = check.length;
   $("c-invoice").textContent = invoice.length;
-  $("c-upload").textContent = uploads.length;
 
   Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(t){
     t.addEventListener("click", function(){
@@ -1391,21 +1933,50 @@ tr.excl .amt{text-decoration:line-through}
       });
       view = t.dataset.view; page = 1; open = Object.create(null);
       $("panel").setAttribute("aria-labelledby", t.id);
-      if (view === "upload") { $("f-claim").value = ""; }
       if (view === "invoice") { $("f-claim").value = ""; }
-      $("f-claim").disabled = (view === "upload" || view === "invoice");
+      $("f-claim").disabled = (view === "invoice");
       /* No capital account on an invoice feed -- disable rather than mislead. */
       if (view === "invoice") { $("f-account").value = ""; $("f-project").value = ""; }
       $("f-account").disabled = (view === "invoice");
       /* Not claimed, so neither control can mean anything here. */
       $("f-project").disabled = (view === "invoice");
       $("f-excl").hidden = (view !== "invoice");
+      /* Invoice duplicates key on vendor plus invoice number, not date plus amount (v2), and
+         an upload is a file rather than a feed row, so neither tab can answer this. */
+      $("f-dupe").hidden = (view !== "bank" && view !== "check");
       renderAll();
     });
   });
 
   ["q","f-account","f-project","f-claim"].forEach(function(id){
     $(id).addEventListener("input", function(){ page = 1; renderAll(); });
+  });
+  $("f-dupe").addEventListener("click", function(){
+    showDupes = !showDupes;
+    this.setAttribute("aria-pressed", String(showDupes));
+    page = 1; renderAll();
+  });
+  /* Choosing which copy survives, and resolving. Delegated, because the set bodies are
+     re-rendered on every change. */
+  $("tbody").addEventListener("change", function(e){
+    var radio = e.target.closest('input[type="radio"][data-set]');
+    if (!radio) return;
+    var s = dupeSets[Number(radio.dataset.set)];
+    if (!s) return;
+    keep[s.key] = radio.dataset.row;
+    renderAll();
+  });
+  $("tbody").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-resolve]");
+    if (!btn) return;
+    e.stopPropagation();
+    var s = dupeSets[Number(btn.dataset.resolve)];
+    if (!s) return;
+    var kept = keep[s.key] || s.rows[0].id;
+    /* The resolution is a status flip, never a delete: the row stays in the register and
+       `Show excluded` brings it back. Nothing about its values is touched. */
+    s.rows.forEach(function(r){ if (r.id !== kept) r.status = "inactive"; });
+    renderRail(); renderAll();
   });
   $("f-excl").addEventListener("click", function(){
     showExcluded = !showExcluded;
@@ -1436,6 +2007,8 @@ tr.excl .amt{text-decoration:line-through}
   $("tbody").addEventListener("click", function(e){
     /* A click inside an open panel must not collapse it. */
     if (e.target.closest("tr.exp-row")) return;
+    /* Nor may a click on a duplicate set's own controls open the drawer behind them. */
+    if (e.target.closest("input, button")) return;
     activate(e.target.closest("tr[data-i]"));
   });
   $("tbody").addEventListener("keydown", function(e){
@@ -1444,6 +2017,69 @@ tr.excl .amt{text-decoration:line-through}
     var tr = e.target.closest("tr[data-i]");
     if (tr){ e.preventDefault(); activate(tr); }
   });
+  $("roleBtn").addEventListener("click", function(){
+    isAdmin = !isAdmin;
+    this.setAttribute("aria-pressed", String(isAdmin));
+    this.textContent = isAdmin ? "Admin" : "Bookkeeper";
+    /* Dropping out of admin mid-edit must not leave the form standing. */
+    if (!isAdmin){ editing = null; editForm = null; }
+    renderAll();
+    if (drawerRow) openDrawerFor(drawerRow);
+  });
+
+  $("drawer").addEventListener("click", function(e){
+    var open = e.target.closest("[data-edit]");
+    if (open){
+      var r = drawerRow;
+      editing = open.dataset.edit;
+      editForm = {
+        date: r.date,
+        text: r.kind === "check" ? (r.payee || "") : (r.desc || ""),
+        checkNo: r.checkNo || "",
+        amount: String(r.amount),
+        reason: ""
+      };
+      openDrawerFor(r);
+      var f = $("ed-date"); if (f) f.focus();
+      return;
+    }
+    var vf = e.target.closest("[data-viewfile]");
+    if (vf){
+      viewingFile = viewingFile === vf.dataset.viewfile ? null : vf.dataset.viewfile;
+      openDrawerFor(drawerRow);
+      return;
+    }
+    if (e.target.closest("[data-edcancel]")){
+      editing = null; editForm = null;
+      openDrawerFor(drawerRow);
+      return;
+    }
+    var save = e.target.closest("[data-edsave]");
+    if (save && !save.disabled){
+      var row = drawerRow;
+      applyCorrection(row, {
+        date: editForm.date,
+        text: editForm.text,
+        checkNo: editForm.checkNo.trim(),
+        amount: Math.round(parseFloat(editForm.amount) * 100) / 100 || row.amount,
+        reason: editForm.reason.trim()
+      });
+      editing = null; editForm = null;
+      renderRail(); renderAll(); openDrawerFor(row);
+    }
+  });
+  /* Typed values are held in `editForm` and the block is rebuilt, so the caret is restored by
+     hand rather than lost on every keystroke. */
+  $("drawer").addEventListener("input", function(e){
+    var input = e.target.closest("[data-ed]");
+    if (!input || !editForm) return;
+    editForm[input.dataset.ed] = input.value;
+    var id = input.id, pos = input.selectionStart;
+    openDrawerFor(drawerRow);
+    var again = $(id);
+    if (again){ again.focus(); try { again.setSelectionRange(pos, pos); } catch (err) {} }
+  });
+
   $("closeBtn").addEventListener("click", closeDrawer);
   $("scrim").addEventListener("click", closeDrawer);
   document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeDrawer(); });
